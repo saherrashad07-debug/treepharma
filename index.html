@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree Pharma - مستلزمات طبية وتجميل</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; color: #333; }
+        header { background-color: #000000; color: #ffffff; padding: 20px; text-align: center; border-bottom: 5px solid #2E8B57; }
+        header h1 { margin: 0; font-size: 32px; color: #fff; }
+        header p { margin: 5px 0 0; font-size: 16px; color: #ccc; }
+        .address { font-size: 14px; margin-top: 10px; color: #2E8B57; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .product-card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; }
+        .product-card h3 { color: #2E8B57; margin-top: 0; font-size: 18px; }
+        .product-card .company { font-weight: bold; color: #555; font-size: 13px; margin-bottom: 10px; }
+        .product-card .price { font-size: 20px; font-weight: bold; margin: 10px 0; color: #000; }
+        .qty-input { width: 70px; padding: 8px; text-align: center; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; margin-bottom: 10px; }
+        .add-btn { background-color: #2E8B57; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; transition: 0.3s;}
+        .add-btn:hover { background-color: #246b41; }
+
+        .cart-section { margin-top: 40px; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd; }
+        .cart-section h2 { color: #000; border-bottom: 2px solid #2E8B57; padding-bottom: 10px; }
+        .customer-info { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
+        .customer-info input { flex: 1; min-width: 200px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        .order-list { margin-bottom: 20px; font-size: 16px; }
+        .order-list div { padding: 8px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between;}
+        .submit-btn { background-color: #000; color: #fff; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: 0.3s; }
+        .submit-btn:hover { background-color: #333; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Tree Pharma</h1>
+        <p>شركه مستلزمات طبيه وتجميل</p>
+        <div class="address">شارع البريد متفرع من شارع أبو سليمان</div>
+    </header>
+
+    <div class="container">
+        <div class="product-grid" id="productGrid">
+            <!-- الأصناف هتتضاف هنا أوتوماتيك عن طريق الجافا سكريبت -->
+        </div>
+
+        <div class="cart-section">
+            <h2>تأكيد الطلب</h2>
+            <div class="customer-info">
+                <input type="text" id="pharmacyName" placeholder="اسم الصيدلية / مركز التجميل">
+                <input type="text" id="customerName" placeholder="اسم الدكتور / المسؤول">
+                <input type="text" id="customerPhone" placeholder="رقم الهاتف للتواصل">
+            </div>
+            
+            <div class="order-list" id="cartDisplay">
+                <div><span>لا توجد أصناف في السلة بعد</span></div>
+            </div>
+
+            <button class="submit-btn" onclick="sendOrder()">تأكيد الطلب وإرسال عبر واتساب</button>
+        </div>
+    </div>
+
+    <script>
+        // قائمة كل الأصناف والأسعار (مأخوذة من ملفك)
+        const products = [
+            { name: "اكس بلاك سبراي مزيل عرق مستورد 150مل", price: 120 },
+            { name: "اكس سبراي بلاك نايت 150مل", price: 120 },
+            { name: "اكس سبراي جولد 150مل", price: 120 },
+            { name: "اكس سبراي سكيت بورد 150مل", price: 120 },
+            { name: "اكس سبراي كوكيز 150مل", price: 120 },
+            { name: "اكنى ستوب غسول", price: 120 },
+            { name: "اكنى ستوب كريم", price: 68 },
+            { name: "انجرام اكسترا كوول كريم حلاقة كبير", price: 39 },
+            { name: "انجرام كوول كريم حلاقة كبير", price: 39 },
+            { name: "اوف سبراي حشرات", price: 165 },
+            { name: "ايفا بالعسل كريم بشرة صغير", price: 11.5 },
+            { name: "ايفا بالعسل كريم بشره عائلي", price: 43.25 },
+            { name: "ايفا جليسرين عائلي 170جم", price: 44.5 },
+            { name: "ايفا جليسرين كريم بشرة وسط", price: 23 },
+            { name: "ايفا خيار كريم بشرة عائلي", price: 43.25 },
+            { name: "ايفا خيار كريم بشره صغير", price: 11 },
+            { name: "ايفا خيار كريم بشره وسط اخضر", price: 22.5 },
+            { name: "ايفا عسل كريم بشره وسط", price: 22.5 },
+            { name: "باردونتكس معجون اسنان أصلي شركة 20مل", price: 34 },
+            { name: "باردونتكس معجون اسنان أصلي شركة 50مل", price: 69 },
+            { name: "بريدوكايين كريم 15جم", price: 32 },
+            { name: "بلاستر سيلك بلاست 1.25سم", price: 6.9 },
+            { name: "بلاستر سيلك بلاست 10سم", price: 65 },
+            { name: "بلاستر سيلك بلاست 2سم", price: 9.25 },
+            { name: "بلاستر سيلك بلاست 2.5سم", price: 19.5 },
+            { name: "بلاستر سيلك بلاست 5سم", price: 34.5 },
+            { name: "بلاستر سيلك بلاست 7سم", price: 49 },
+            { name: "بلاستر شريط كيور ايد 1000قطعة", price: 320 },
+            { name: "بلاستر مدور 100قطعة", price: 30 },
+            { name: "بلاستر مدور 500قطعة", price: 140 },
+            { name: "بلاستر مدور دكتور ايد 100قطعة", price: 35 },
+            { name: "بليس بلسم بجوز الهند 500مل", price: 99 },
+            { name: "بليس شامبو ارجان 500مل", price: 99 },
+            { name: "بليس شامبو بزيت جوز الهند 500مل", price: 99 },
+            { name: "بليس شامبو شيا 500مل", price: 99 },
+            { name: "بليس شامبو كرياتين سلفات فري 500مل", price: 99 },
+            { name: "بوباى صن سكرين جيل عرض 1+1 60مل", price: 300 },
+            { name: "بوباي صن سكرين كريم عرض 1+1 50مل", price: 190 },
+            { name: "بودرة قدم ايفا بالصبار اخضر", price: 33.5 },
+            { name: "بودرة قدم بيور اخضر بالصبار", price: 15 },
+            { name: "بودرة قدم بيور ازرق بالنعناع", price: 15 },
+            { name: "بومباستيك جيل شعر ايس 180مل", price: 33.5 },
+            { name: "بومباستيك جيل شعر فاير 180مل", price: 33.5 },
+            { name: "بومباستيك جيل شعر نايت 180مل", price: 33.5 },
+            { name: "بيبرونة الجو صغير 150مل", price: 25 },
+            { name: "بيبرونة الجو كبير 250مل", price: 28 },
+            { name: "بيتاديرم كريم كبير 30جم", price: 23 },
+            { name: "بيتاديرم كريم صغير 15جم", price: 18 },
+            { name: "بيتاديرم مرهم", price: 18 },
+            { name: "بيتادين منظف جراحي", price: 72 },
+            { name: "بيرفكت كير محلول عدسات", price: 130 },
+            { name: "بيرفكتوديل سبراي 5%", price: 97 },
+            { name: "بيكتول برتقال اقراص استحلاب", price: 600 },
+            { name: "بيكتول عسل وليمون اقراص استحلاب", price: 600 },
+            { name: "توسكان شراب", price: 24 },
+            { name: "جليسوليد كريم صغير 40مل", price: 35 },
+            { name: "جليسوليد كريم وسط 80جم", price: 65 },
+            { name: "جهاز ريد سائل + غيار عرض خاص 2", price: 209 },
+            { name: "جهاز ضغط روزماكس", price: 1450 },
+            { name: "جوانتي شفاف في اي بي 50قطعة", price: 10 },
+            { name: "جوانتي فحص شفاف 70قطعة", price: 13 },
+            { name: "جوانتي فحص شفاف كيان 100قطعة", price: 20 },
+            { name: "جوانتي لاتكس أبيض اي بروتكت اكس لارج", price: 175 },
+            { name: "جوانتي لاتكس أبيض ماليزي فري بودر ميديم", price: 175 },
+            { name: "جوانتي لاتكس أبيض ماليزي ميديم", price: 175 },
+            { name: "جوانتي لاتكس ابيض ماليزي فري بودر لارج", price: 175 },
+            { name: "جوانتي لاتكس ماليزي ابيض سموول", price: 175 },
+            { name: "جوانتي لاتكس ماليزي لارج", price: 175 },
+            { name: "جوانتي نتريل أسود ماليزي اكس لارج (جولد)", price: 180 },
+            { name: "جوانتي نتريل أسود ماليزي لارج (جولد)", price: 180 },
+            { name: "جوانتي نتريل أسود ماليزي ميديم (جولد)", price: 180 },
+            { name: "جوانتي نتريل ارقى بينك سموول", price: 190 },
+            { name: "جوانتي نتريل ارقى بينك لارج", price: 190 },
+            { name: "جوانتي نتريل ارقى بينك ميديم", price: 190 },
+            { name: "جوانتي نتريل ازرق سموول", price: 185 },
+            { name: "جوانتي نتريل ازرق لارج", price: 180 },
+            { name: "جوانتي نتريل ازرق ميديم", price: 180 },
+            { name: "جوانتي نتريل اسود سموول", price: 190 },
+            { name: "جوانتي نتريل اسود لارج", price: 185 },
+            { name: "جوانتي نتريل اسود ميديم", price: 185 },
+            { name: "جوانتي نتريل ايه ام اسود لارج", price: 175 },
+            { name: "جوانتي نتريل بينك فري بودر ميديم", price: 220 },
+            { name: "جوانتي نتريل فيت برو ازرق لارج", price: 180 },
+            { name: "جونسون زيت 75مل", price: 52.5 },
+            { name: "جونسون شامبو 100مل", price: 45 },
+            { name: "جونسون شامبو اطفال 200مل", price: 72.5 },
+            { name: "جيل سونار باركر جركن 4 لتر", price: 85 },
+            { name: "حرير سويت 100جم", price: 16.5 },
+            { name: "حنة جلوري لون أسود 6 اكياس", price: 270 },
+            { name: "حنة جلوري لون احمر كستنائي 6 اكياس", price: 270 },
+            { name: "حنة جلوري لون بني غامق 6 اكياس", price: 270 },
+            { name: "حنة جلوري لون بني فاتح 6 اكياس", price: 270 },
+            { name: "حنة فاتيكا اسود", price: 186 },
+            { name: "خافض لسان علبة 100قطعة", price: 34 },
+            { name: "خلة أسنان كبيرة", price: 12 },
+            { name: "داجو بلس شامبو", price: 300 },
+            { name: "داجو شامبو", price: 250 },
+            { name: "دريسنج مقاس 18*35 جم 500", price: 90 },
+            { name: "دوف شامبو تساقط شعر 180مل", price: 69 },
+            { name: "راجون سوبر بودرة حشرات", price: 17 },
+            { name: "راجون سوبر زاحف اخضر", price: 50 },
+            { name: "راجون مبيد طائر احمر", price: 38 },
+            { name: "راسب ابيض كريم للديدان روتكس", price: 25 },
+            { name: "رول سرير ازرق عرض 60سم", price: 75 },
+            { name: "رول سرير بينك عرض 60سم", price: 75 },
+            { name: "ريد احمر زاحف صغير", price: 92 },
+            { name: "ريد ازرق بدون رائحة صغير 300مل", price: 79 },
+            { name: "ريد طائر ازرق بدون رائحة اكوا كبير 400مل", price: 93 },
+            { name: "ريكسونا بلية مزيل عرق شاور فريش 50مل", price: 60 },
+            { name: "ريكسونا بلية مزيل عرق ابيض واسود 50مل", price: 60 },
+            { name: "ريكسونا بلية مزيل عرق اكسترا كول 50مل", price: 60 },
+            { name: "ريكسونا بلية مزيل عرق بالفحم 50مل", price: 60 },
+            { name: "ريكسونا بلية مزيل عرق بامبو 50مل", price: 60 },
+            { name: "ريكسونا بلية مزيل عرق خشب ونعناع 50مل", price: 60 },
+            { name: "ريكسونا بلية مزيل عرق في ايت 50مل", price: 60 },
+            { name: "ريكسونا بليه صغير اكسترا كوول 20مل", price: 33 },
+            { name: "ريكسونا بليه صغير شاور فريش 20مل", price: 33 },
+            { name: "زيت برافين لتر", price: 250 },
+            { name: "سايدكس بيور 4 لتر", price: 95 },
+            { name: "سايدكس فاست مطهر", price: 160 },
+            { name: "ستارفيل اكنى للبشرة", price: 85 },
+            { name: "ستارفيل اى كونتور جيل", price: 250 },
+            { name: "ستارفيل رول اون النسيم", price: 130 },
+            { name: "ستارفيل رول اون عطر شرقي", price: 130 },
+            { name: "ستارفيل رول اون فانيليا", price: 130 },
+            { name: "ستارفيل غسول تفتيح للبشرة", price: 180 },
+            { name: "ستارفيل غسول جيل اخضر", price: 140 },
+            { name: "ستارفيل كريم حمايه للبشرة", price: 85 },
+            { name: "سرنجات ماسكو 80 سم", price: 220 },
+            { name: "سرنجات ساس كبار", price: 1.3 },
+            { name: "سرنجات ماسكو اطفال 150سم", price: 235 },
+            { name: "سرنجات ماسكو كبار 150سم", price: 235 },
+            { name: "سرنجات ماسكو 120سم", price: 235 },
+            { name: "سرنجات ارو 20 سم", price: 470 },
+            { name: "سرنجات ارو انسولين 1مل", price: 2 },
+            { name: "سرنجات انسولين KDL 10 قطع", price: 50 },
+            { name: "سرنجات انسولين كورى", price: 60 },
+            { name: "سرنجات انسولين ماسكو 250 مل", price: 570 },
+            { name: "سرنجات شراب الدولية 50 سم", price: 115 },
+            { name: "سرنجات شراب ماسكو 75 سم", price: 140 },
+            { name: "سن ديرما بن مقاس 12", price: 25 },
+            { name: "سن ديرما بن مقاس 36", price: 25 },
+            { name: "سنسوداين معجون اسنان جيل تنظيف 20مل", price: 34.5 },
+            { name: "سنسوداين معجون اسنان ديب كلين بالفلورايد 20مل", price: 34.5 },
+            { name: "سنسوداين معجون اسنان ديب كلين تبييض 20مل", price: 34.5 },
+            { name: "سيجنال معجون اسنان 120مل", price: 41.5 },
+            { name: "سيجنال معجون اسنان 25مل", price: 12.75 },
+            { name: "سيجنال معجون اسنان 50مل", price: 24.5 },
+            { name: "سيجنال معجون اسنان اطفال فراولة 50مل", price: 38.5 },
+            { name: "سيجنال معجون اسنان اطفال فواكه 50مل", price: 38.5 },
+            { name: "سيفتي بوكس بلاستيك", price: 70 },
+            { name: "سيفتي بوكس كرتون", price: 13 },
+            { name: "سينوبار اس صابون", price: 75 },
+            { name: "سينوبار غسول 250مل", price: 190 },
+            { name: "شاش 10سم", price: 3.5 },
+            { name: "شاش 15سم", price: 4.25 },
+            { name: "شاش 5سم", price: 1.75 },
+            { name: "شاش 7سم", price: 2.5 },
+            { name: "شامبو جانتار بخلاصة العنبر لتغذية الشعر", price: 290 },
+            { name: "شامبو راديكال ضد القشرة ازرق", price: 290 },
+            { name: "شامبو راديكال لتساقط الشعر احمر", price: 290 },
+            { name: "شامبو فاتيكا رجالي 180مل", price: 54 },
+            { name: "شرايط سكر اكواتشيك انستانت", price: 530 },
+            { name: "شفرات أليس 3 قطع", price: 37 },
+            { name: "شفرة فلامينجو اس الاصلي", price: 13.5 },
+            { name: "صابون ديتول أورجينال أخضر 115جم", price: 27 },
+            { name: "صابون ديتول اكسترا كوول ازرق 85جم صغير", price: 23 },
+            { name: "صابون ديتول اورانج 85جم صغير", price: 23 },
+            { name: "صابون ديتول اورجينال اخضر 85جم صغير", price: 23 },
+            { name: "صابون ديتول عسل وجوز هند أصفر 115جم", price: 27 },
+            { name: "صابون ديتول كوول أزرق 115جم", price: 27 },
+            { name: "صابون ديتول مرطب بينك 85جم صغير", price: 23 },
+            { name: "صابون ديتول مرطب للجلد بينك 115جم", price: 27 },
+            { name: "صانسيلك شامبو بايوتين وزيت خروع ازرق 180مل", price: 47.5 },
+            { name: "صانسيلك شامبو بروتين حرير وزيت ارجان اصفر 180مل", price: 47.5 },
+            { name: "صانسيلك شامبو بروفيتامين بي بينك 180مل", price: 47.5 },
+            { name: "صانسيلك شامبو كيراتين وزيت لوز برتقالي 180مل", price: 47.5 },
+            { name: "صانسيلك شامبو كثافة الشعر ازرق 350مل", price: 70 },
+            { name: "صانسيلك شامبو للشعر التالف برتقالي 350مل", price: 70 },
+            { name: "صانسيلك شامبو لمعان شعر أسود 350مل", price: 70 },
+            { name: "صن بلوك دراكون كريم جيل عرض 1+1", price: 210 },
+            { name: "صوفي عرض طويل", price: 87 },
+            { name: "صوفي عرض طويل جدا", price: 87 },
+            { name: "طقم سفر مستورد 3 قطع", price: 70 },
+            { name: "عازل طبي سوفت بالفانيلا", price: 20 },
+            { name: "عازل طبي سوفت بالكريز", price: 20 },
+            { name: "عازل طبي سوفت شيكولاتة", price: 20 },
+            { name: "عازل طبي سوفت علبة 2+2 مع هدية", price: 440 },
+            { name: "عازل طبي سوفت فراولة", price: 20 },
+            { name: "عازل طبي سوفت كولا", price: 20 },
+            { name: "عازل طبي سوفت موز", price: 20 },
+            { name: "علبة كمامات ازرق ميد لايف استيك", price: 50 },
+            { name: "علبة كمامات سينسا بلس مغلفة 50 ق", price: 55 },
+            { name: "فاتيكا زيت ارجان 90مل", price: 19.25 },
+            { name: "فاتيكا زيت الوفيرا 90مل", price: 19.25 },
+            { name: "فاتيكا زيت جرجير 90مل", price: 19.25 },
+            { name: "فاتيكا زيت جوز هند 90مل", price: 22.5 },
+            { name: "فاتيكا زيت حبة سوداء 90مل", price: 19.25 },
+            { name: "فاتيكا زيت روزماري 90مل", price: 19.25 },
+            { name: "فاتيكا زيت زيتون 90مل", price: 19.25 },
+            { name: "فاتيكا زيت لوز 90مل", price: 19.25 },
+            { name: "فاتيكا زيت مينك 90مل", price: 19.25 },
+            { name: "فاتيكا زيت بالارجان 45مل", price: 11.75 },
+            { name: "فاتيكا زيت بالالوفيرا 180مل", price: 33.5 },
+            { name: "فاتيكا زيت بالالوفيرا 45مل", price: 11.75 },
+            { name: "فاتيكا زيت بالحبة السوداء 180مل", price: 33.5 },
+            { name: "فاتيكا زيت باللوز 45مل", price: 11.75 },
+            { name: "فاتيكا زيت بالمينك 45مل", price: 11.75 },
+            { name: "فاتيكا زيت جرجير 180مل", price: 33.5 },
+            { name: "فاتيكا زيت جوز هند 180مل", price: 33.5 },
+            { name: "فاتيكا زيت زيتون 180مل", price: 33.5 },
+            { name: "فاتيكا زيت صبار 180مل", price: 33.5 },
+            { name: "فاتيكا زيت لوز 180مل", price: 33.5 },
+            { name: "فاتيكا زيت مينك 180مل", price: 33.5 },
+            { name: "فاتيكا شامبو بالارجان 360مل", price: 63 },
+            { name: "فاتيكا شامبو بالزيتون 360مل", price: 63 },
+            { name: "فاتيكا شامبو باللوز 360مل", price: 63 },
+            { name: "فاتيكا شامبو بجوز الهند 360مل", price: 63 },
+            { name: "فاتيكا شامبو صغير بالجرجير 180مل", price: 36.5 },
+            { name: "فاتيكا شامبو صغير بالروزماري 180مل", price: 36.5 },
+            { name: "فاتيكا شامبو صغير بالعسل 180مل", price: 36.5 },
+            { name: "فاتيكا شامبو صغير باللوز 180مل", price: 36.5 },
+            { name: "فاتيكا شامبو صغير بجوز الهند 180مل", price: 36.5 },
+            { name: "فاتيكا شامبو صغير بزيت الزيتون 180مل", price: 36.5 },
+            { name: "فاتيكا كريم شعر بزبدة الشيا 65مل", price: 25.25 },
+            { name: "فاتيكا كريم شعر بزيت الارجان 65مل", price: 25.25 },
+            { name: "فاتيكا كريم شعر حبة البركة 65مل", price: 25.25 },
+            { name: "فاتيكا كريم شعر ارجان 125مل", price: 47.5 },
+            { name: "فاتيكا كريم شعر بالمينك 125مل", price: 47.5 },
+            { name: "فاتيكا كريم شعر جوز هند 125مل", price: 47.5 },
+            { name: "فاتيكا كريم شعر حماية من القشرة 125مل", price: 47.5 },
+            { name: "فاتيكا كريم شعر زبدة الشيا 125مل", price: 47.5 },
+            { name: "فاتيكا كريم شعر صبار 190مل", price: 62 },
+            { name: "فاتيكا كريم شعر لوز 190مل", price: 62 },
+            { name: "فازلين فيرا صغير 20جم", price: 7.5 },
+            { name: "فازلين فيرا 50جم", price: 13.5 },
+            { name: "فرشة اسنان اطفال دي ار", price: 6 },
+            { name: "فلورو معجون اسنان بالفواكه 50جم", price: 24 },
+            { name: "فلورو معجون اسنان بالكولا 50جم", price: 24 },
+            { name: "فلورو معجون اسنان باللبان 50جم", price: 22 },
+            { name: "فيانسيه كريم احمر صغير 2*1 125جم", price: 29 },
+            { name: "فيانسيه كريم اخضر صغير 2*1 125جم", price: 29 },
+            { name: "فيانسيه كريم ازرق صغير 2*1 125جم", price: 29 },
+            { name: "فيانسيه كريم اصفر صغير 2*1 125جم", price: 29 },
+            { name: "فيانسيه كريم موف صغير 2*1 125جم", price: 29 },
+            { name: "فيانسيه كريم ابيض صغير 2*1", price: 29 },
+            { name: "فيانسيه كريم ابيض كبير 2*1 225مل", price: 42.5 },
+            { name: "فيانسيه كريم احمر كبير 2*1 225مل", price: 40 },
+            { name: "فيانسيه كريم ازرق كبير 2*1 225مل", price: 40 },
+            { name: "فيانسيه كريم موف كبير 2*1 225مل", price: 40 },
+            { name: "فيانسيه كريم بخاخ بصل وخروع 240مل", price: 45 },
+            { name: "فيانسيه كريم بخاخ جوز هند 240مل", price: 45 },
+            { name: "فيانسيه كريم بخاخ روزماري وجوجوبا 240مل", price: 45 },
+            { name: "فيانسيه كريم بخاخ ليمون 240مل", price: 45 },
+            { name: "فيبكس كريم بلو اكتيف ازرق 10جم", price: 33 },
+            { name: "فيبكس كريم كلاسيك اخضر 10جم", price: 33 },
+            { name: "فيبكس كريم مايستك حريمي 10جم", price: 33 },
+            { name: "فيت بار صابون", price: 60 },
+            { name: "قطن الصياد 100جم", price: 10.5 },
+            { name: "قطن الصياد 250جم", price: 25.75 },
+            { name: "قطن الصياد 25جم", price: 3 },
+            { name: "قطن الصياد 50جم", price: 6 },
+            { name: "قطن المحلة 500جم", price: 100 },
+            { name: "كارتيز كريم شعر برطمان 180مل", price: 60 },
+            { name: "كارتيز كريم واكس تصفيف شعر بزبدة الشيا", price: 78.5 },
+            { name: "كاسات حجامة مقاس 5", price: 47 },
+            { name: "كاسات حجامة مقاس 6", price: 47 },
+            { name: "كانيولا اصفر 24", price: 8 },
+            { name: "كانيولا اخضر 18", price: 7 },
+            { name: "كانيولا ازرق 22", price: 8 },
+            { name: "كانيولا بنفسجي 26", price: 7 },
+            { name: "كانيولا رصاصي 16", price: 10 },
+            { name: "كانيولا فيلر مقاس 18 بينك", price: 60 },
+            { name: "كانيولا فيلر مقاس 21 اخضر", price: 60 },
+            { name: "كانيولا فيلر مقاس 22 رصاصي", price: 60 },
+            { name: "كانيولا فيلر مقاس 23 ازرق", price: 60 },
+            { name: "كانيولا فيلر مقاس 25 اصفر", price: 60 },
+            { name: "كانيولا مقاس 20", price: 8 },
+            { name: "كحول سيتي فارما 70% 1 لتر", price: 60 },
+            { name: "كحول ابيض ايثيلى 100مل", price: 14 },
+            { name: "كحول سيتي فارما 5 لتر", price: 190 },
+            { name: "كحول فيرا 120مل", price: 15 },
+            { name: "كفروسول مبيد حشري اسود", price: 48.5 },
+            { name: "كلارى شامبو", price: 300 },
+            { name: "كلارى ليف ان كريم", price: 300 },
+            { name: "كلير شامبو حريمي 600مل", price: 146 },
+            { name: "كلير شامبو حريمي تساقط شعر 180مل", price: 68.5 },
+            { name: "كلير شامبو حريمي نعومة ولمعان 180مل", price: 68.5 },
+            { name: "كلير شامبو رجالي 180مل", price: 68.5 },
+            { name: "كلير شامبو رجالي بالفحم 180مل", price: 72 },
+            { name: "كلير شامبو رجالي بالقهوة 180مل", price: 72 },
+            { name: "كلير شامبو رجالي ترطيب عميق 360مل", price: 105 },
+            { name: "كلير شامبو رجالي قهوة ضد التساقط 360مل", price: 105 },
+            { name: "كليرفيس صابونة 100جم", price: 38 },
+            { name: "كمادات ماسكو بارد /ساخن 12*28 سم", price: 46 },
+            { name: "كمامات جوود كير 50 قطعة", price: 50 },
+            { name: "كوب عينات", price: 2.75 },
+            { name: "كيس جمع بول بحنفية /ماسكو", price: 9.5 },
+            { name: "لزقة فار مستورد أصلي", price: 18.5 },
+            { name: "ليت اب غسول", price: 190 },
+            { name: "ليدوكايين فيال", price: 45 },
+            { name: "ماء مذيب أشربة دواك", price: 1.25 },
+            { name: "ماء ميسيلار غارنييه زيوت 100مل", price: 87 },
+            { name: "ماء ميسيلار غارنييه فيتامين سي 100مل", price: 79 },
+            { name: "ماكينة جيليت بلو سمبل حصيرة 3 شفرات", price: 78.5 },
+            { name: "ماكينة حريمي كوين من لورد 5 قطع", price: 22 },
+            { name: "ماكينة حلاقة جيليت بلوتو كيس 5 ق", price: 97.5 },
+            { name: "ماكينة حلاقة حريمي 3 ام 3 قطع", price: 28.5 },
+            { name: "ماكينة حلاقة حريمي فينوس 4+8 هدية", price: 170 },
+            { name: "ماكينة حلاقة رجالي لورد 10 قطع 2 شفرة", price: 36 },
+            { name: "مان لوك جيل شعر 250جم انبوبة", price: 38 },
+            { name: "مان لوك كريم حلاقة بالنعناع صغير ازرق", price: 25 },
+            { name: "مان لوك كريم حلاقة كبير بالصبار اخضر", price: 39 },
+            { name: "مان لوك كريم حلاقة كبير بالنعناع ازرق", price: 37 },
+            { name: "محلول جلوكوز 5% جيبكو", price: 27 },
+            { name: "مسحة كحولية", price: 27 },
+            { name: "مسحة كحولية ماسكو 100 ق", price: 30 },
+            { name: "مسواك معجون اسنان 120جم", price: 38 },
+            { name: "معجون اسنان كلوس اب صغير احمر 25مل", price: 15.75 },
+            { name: "معجون اسنان كلوس اب صغير اخضر 25مل", price: 15.75 },
+            { name: "معجون اسنان كلوس اب احمر 50مل", price: 27.5 },
+            { name: "معجون اسنان كلوس اب اخضر 50مل", price: 27.5 },
+            { name: "معجون اسنان كلوس اب وسط 50جم", price: 27.25 },
+            { name: "معجون اسنان هيربال دابر 150جم", price: 41 },
+            { name: "مقص كارت صغير ستانلس مستورد", price: 16 },
+            { name: "مناديل زينة تريو 500 م", price: 26.5 },
+            { name: "مناديل سانيتا كلوب ماكسي اكس لارج", price: 110 },
+            { name: "مناديل سي فولد فوكس 200 م", price: 23 },
+            { name: "مناديل فوكوس 500 م عرض لفترة محدودة", price: 24 },
+            { name: "مناديل مبللة ماكس تاتش 15 منديل", price: 6 },
+            { name: "مناديل وايبس ايفا للوجه وازالة مكياج", price: 47 },
+            { name: "مينك كريم بالبلسم بالعسل 125مل", price: 27.5 },
+            { name: "مينك كريم بالبلسم بزيت الخروع 125مل", price: 27.5 },
+            { name: "مينك كريم بالبلسم بزيت الزيتون 125مل", price: 27.5 },
+            { name: "مينك كريم بالبلسم بزيت جوز الهند 125مل", price: 27.5 },
+            { name: "مينك كريم بالبلسم بالعسل 200مل", price: 45 },
+            { name: "مينك كريم بالبلسم بجوز الهند 200مل", price: 45 },
+            { name: "مينك كريم بالبلسم زيت الثوم والروزماري 200مل", price: 45 },
+            { name: "مينك كريم بالبلسم زيت الزيتون 200مل", price: 45 },
+            { name: "مينك كريم شعر هير فود بجوز الهند 125مل", price: 28 },
+            { name: "مينك كريم شعر هير فود بزيت الزيتون 125مل", price: 28 },
+            { name: "مينك كريم شعر هير فود بزيت المينك 125مل", price: 28 },
+            { name: "مينك كريم واكس بالعسل 100مل", price: 26.5 },
+            { name: "مينك كريم واكس جوز هند 100مل", price: 26.5 },
+            { name: "مينك كريم واكس زيت زيتون 100مل", price: 26.5 },
+            { name: "مينك كريم واكس 150مل", price: 37 },
+            { name: "مينوكسيديل فورت 5% جيل", price: 127 },
+            { name: "نونو بودرة اطفال ابيض 200مل", price: 82 },
+            { name: "نونو بودرة اطفال ازرق 200مل", price: 82 },
+            { name: "نونو بودرة اطفال بينك 200مل", price: 82 },
+            { name: "نيزابكس شامبو", price: 55 },
+            { name: "نيفيا بلية مزيل عرق فريش 50مل", price: 60 },
+            { name: "نيفيا بلية مزيل عرق بلاك اند وايت حريمي 50مل", price: 60 },
+            { name: "نيفيا بلية مزيل عرق بلاك اند وايت رجالي 50مل", price: 60 },
+            { name: "نيفيا بلية مزيل عرق بيرل 50مل", price: 60 },
+            { name: "نيفيا بلية مزيل عرق ديب اسبريسو 50مل", price: 60 },
+            { name: "نيفيا بلية مزيل عرق ديب دارك وود 50مل", price: 60 },
+            { name: "نيفيا بلية مزيل عرق فريش اكتيف 50مل", price: 60 },
+            { name: "نيفيا سبراي مزيل عرق حريمي ابيض واسود 150مل", price: 110 },
+            { name: "نيفيا سبراي مزيل عرق رجالي ابيض واسود 150مل", price: 110 },
+            { name: "نيفيا سبراي مزيل عرق راديانس 150مل", price: 110 },
+            { name: "نيفيا سبراي مزيل عرق فريش 150مل", price: 110 },
+            { name: "نيفيا كريم بشره 30مل", price: 28.5 },
+            { name: "هيبتا بانثينول كريم للشعر اخضر كبار", price: 149 },
+            { name: "هيبتا بانثينول ماكس كريم 50جم", price: 99 },
+            { name: "هيرباك اسبراى احمر 2%", price: 125 },
+            { name: "هيركود كريم جيل ازرق برطمان 150مل", price: 33.75 },
+            { name: "واقي ذكري سوفت مستورد 3 ق", price: 15 },
+            { name: "وان كريم ازاله بالعسل 40جم", price: 19.5 },
+            { name: "وان كريم ازاله بالعسل 80جم", price: 28.5 },
+            { name: "وان كريم ازاله بشرة حساسة 40جم", price: 20 },
+            { name: "وان كريم ازاله بشرة حساسة 80جم", price: 28.5 },
+            { name: "وان كريم ازاله بشرة حساسه 125جم", price: 37.5 },
+            { name: "وان كريم ازاله بشرة عاديه 40جم", price: 18.5 },
+            { name: "وان كريم ازاله بشرة عاديه 125جم", price: 35 },
+            { name: "وان كريم ازاله بشرة عاديه 80جم", price: 28.5 },
+            { name: "ودانات قطن خشب كبير", price: 12 },
+            { name: "وصله ثلاثيه", price: 12 }
+        ];
+
+        let cart = [];
+
+        // توليد كروت الأصناف أوتوماتيكياً
+        window.onload = function() {
+            let grid = document.getElementById('productGrid');
+            products.forEach((p, index) => {
+                grid.innerHTML += `
+                    <div class="product-card">
+                        <h3>${p.name}</h3>
+                        <div class="company">الشركة: تري فارما</div>
+                        <div class="price">${p.price} ج.م</div>
+                        <input type="number" class="qty-input" id="qty${index}" placeholder="الكمية" min="1">
+                        <button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'qty${index}')">إضافة للسلة</button>
+                    </div>
+                `;
+            });
+        };
+
+        function addToCart(productName, price, qtyId) {
+            let qtyInput = document.getElementById(qtyId);
+            let quantity = parseInt(qtyInput.value);
+
+            if (quantity > 0) {
+                cart.push({ name: productName, price: price, qty: quantity });
+                updateCartDisplay();
+                alert("تم إضافة " + productName + " إلى السلة.");
+                qtyInput.value = "";
+            } else {
+                alert("برجاء كتابة كمية صحيحة.");
+            }
+        }
+
+        function updateCartDisplay() {
+            let cartDiv = document.getElementById('cartDisplay');
+            cartDiv.innerHTML = '';
+            let total = 0;
+
+            if (cart.length === 0) {
+                cartDiv.innerHTML = '<div><span>لا توجد أصناف في السلة بعد</span></div>';
+                return;
+            }
+
+            cart.forEach(item => {
+                let itemTotal = item.price * item.qty;
+                total += itemTotal;
+                cartDiv.innerHTML += `
+                    <div>
+                        <span>${item.name} (الكمية: ${item.qty})</span>
+                        <span>${itemTotal} ج.م</span>
+                    </div>
+                `;
+            });
+
+            cartDiv.innerHTML += `
+                <div style="font-weight: bold; font-size: 20px; color: #2E8B57; margin-top: 10px; border-top: 2px solid #000; padding-top: 10px;">
+                    <span>الإجمالي:</span>
+                    <span>${total} ج.م</span>
+                </div>
+            `;
+        }
+
+        function sendOrder() {
+            let pharmacy = document.getElementById('pharmacyName').value;
+            let name = document.getElementById('customerName').value;
+            let phone = document.getElementById('customerPhone').value;
+
+            if (cart.length === 0) { alert("برجاء إضافة أصناف للسلة أولاً."); return; }
+            if (!pharmacy || !name || !phone) { alert("برجاء إدخال بيانات الصيدلية والاسم ورقم الهاتف."); return; }
+
+            // رقم الواتساب بتاعك (مظبط على الرقم اللي بعته لي)
+            let adminWhatsApp = "201274906271"; 
+
+            let message = `*طلب جديد من Tree Pharma*\n\n`;
+            message += `*اسم الصيدلية:* ${pharmacy}\n`;
+            message += `*اسم المسؤول:* ${name}\n`;
+            message += `*رقم الهاتف:* ${phone}\n\n`;
+            message += `*الأصناف المطلوبة:*\n`;
+
+            let total = 0;
+            cart.forEach(item => {
+                let itemTotal = item.price * item.qty;
+                total += itemTotal;
+                message += `- ${item.name} (الكمية: ${item.qty}) = ${itemTotal} ج.م\n`;
+            });
+
+            message += `\n*الإجمالي: ${total} ج.م*`;
+
+            let url = `https://wa.me/${adminWhatsApp}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+        }
+    </script>
+
+</body>
+</html>
