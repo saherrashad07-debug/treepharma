@@ -8,7 +8,6 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; color: #333; padding-bottom: 80px; /* مساحة لزرار السلة العائم */ }
         header { background-color: #000000; color: #ffffff; padding: 20px; text-align: center; border-bottom: 5px solid #2E8B57; }
         header img.logo { max-width: 150px; margin-bottom: 10px; }
-        header h1 { margin: 0; font-size: 32px; color: #fff; }
         header p { margin: 5px 0 0; font-size: 16px; color: #ccc; }
         .address { font-size: 14px; margin-top: 10px; color: #2E8B57; }
         .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
@@ -33,9 +32,17 @@
         .customer-info { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
         .customer-info input { flex: 1; min-width: 200px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
         .order-list { margin-bottom: 20px; font-size: 16px; }
-        .order-list div { padding: 8px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between;}
-        .submit-btn { background-color: #000; color: #fff; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: 0.3s; }
+        .order-list div { padding: 8px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; align-items: center;}
+        
+        /* أزرار الإرسال والطباعة */
+        .action-buttons { display: flex; gap: 15px; }
+        .submit-btn { background-color: #000; color: #fff; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: 0.3s; flex: 2; }
         .submit-btn:hover { background-color: #333; }
+        .print-btn { background-color: #2E8B57; color: #fff; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: 0.3s; flex: 1; }
+        .print-btn:hover { background-color: #246b41; }
+
+        /* زرار الحذف في السلة */
+        .remove-btn { background-color: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px; margin-right: 10px; }
 
         /* زرار السلة العائم */
         .floating-cart {
@@ -51,7 +58,6 @@
 <body>
 
     <header>
-        <!-- اللوجو هيتحط هنا -->
         <img src="logo.png" alt="Tree Pharma" class="logo">
         <p>شركه مستلزمات طبيه وتجميل</p>
         <div class="address">شارع البريد متفرع من شارع أبو سليمان</div>
@@ -59,14 +65,11 @@
 
     <div class="container">
         
-        <!-- خانة البحث -->
         <div class="search-container">
             <input type="text" id="searchInput" class="search-input" placeholder="ابحث عن صنف... (مثال: جوانتي، شامبو، كريم)" oninput="filterProducts()">
         </div>
 
-        <div class="product-grid" id="productGrid">
-            <!-- الأصناف هتتضاف هنا أوتوماتيك -->
-        </div>
+        <div class="product-grid" id="productGrid"></div>
 
         <div class="cart-section" id="cartSection">
             <h2>تأكيد الطلب</h2>
@@ -80,11 +83,13 @@
                 <div><span>لا توجد أصناف في السلة بعد</span></div>
             </div>
 
-            <button class="submit-btn" onclick="sendOrder()">تأكيد الطلب وإرسال عبر واتساب</button>
+            <div class="action-buttons">
+                <button class="submit-btn" onclick="sendOrder()">تأكيد الطلب (واتساب)</button>
+                <button class="print-btn" onclick="printOrder()">طباعة الطلب</button>
+            </div>
         </div>
     </div>
 
-    <!-- زرار السلة العائم -->
     <button id="floatingCartBtn" class="floating-cart" onclick="scrollToCart()">عرض السلة (0)</button>
 
     <script>
@@ -471,7 +476,6 @@
 
         let cart = [];
 
-        // توليد كروت الأصناف مع ميزة البحث
         function filterProducts() {
             let searchText = document.getElementById('searchInput').value;
             let grid = document.getElementById('productGrid');
@@ -485,7 +489,6 @@
             }
 
             filtered.forEach(p => {
-                // إيجاد الـ index الأصلي للمنتج عشان نربطه بحقل الكمية
                 let originalIndex = products.indexOf(p);
                 grid.innerHTML += `
                     <div class="product-card">
@@ -500,7 +503,15 @@
         }
 
         window.onload = function() {
-            filterProducts(); // عرض كل الأصناف عند فتح الصفحة
+            filterProducts();
+            // تحميل بيانات العميل المحفوظة
+            let savedData = localStorage.getItem('treePharma_customer');
+            if (savedData) {
+                let customer = JSON.parse(savedData);
+                document.getElementById('pharmacyName').value = customer.pharmacy || '';
+                document.getElementById('customerName').value = customer.name || '';
+                document.getElementById('customerPhone').value = customer.phone || '';
+            }
         };
 
         function addToCart(productName, price, qtyId) {
@@ -508,7 +519,7 @@
             let quantity = parseInt(qtyInput.value);
 
             if (quantity > 0) {
-                cart.push({ name: productName, price: price, qty: quantity });
+                cart.push({ id: Date.now(), name: productName, price: price, qty: quantity });
                 updateCartDisplay();
                 updateFloatingCart();
                 alert("تم إضافة " + productName + " إلى السلة.");
@@ -516,6 +527,12 @@
             } else {
                 alert("برجاء كتابة كمية صحيحة.");
             }
+        }
+
+        function removeFromCart(itemId) {
+            cart = cart.filter(item => item.id !== itemId);
+            updateCartDisplay();
+            updateFloatingCart();
         }
 
         function updateCartDisplay() {
@@ -533,8 +550,8 @@
                 total += itemTotal;
                 cartDiv.innerHTML += `
                     <div>
-                        <span>${item.name} (الكمية: ${item.qty})</span>
-                        <span>${itemTotal} ج.م</span>
+                        <span>${item.name} (الكمية: ${item.qty}) - ${itemTotal} ج.م</span>
+                        <button class="remove-btn" onclick="removeFromCart(${item.id})">حذف X</button>
                     </div>
                 `;
             });
@@ -547,7 +564,6 @@
             `;
         }
 
-        // تحديث زرار السلة العائم
         function updateFloatingCart() {
             let totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
             let totalPrice = cart.reduce((sum, item) => sum + (item.qty * item.price), 0);
@@ -561,7 +577,6 @@
             }
         }
 
-        // النزول لأسفل عند الضغط على زرار السلة
         function scrollToCart() {
             document.getElementById('cartSection').scrollIntoView({ behavior: 'smooth' });
         }
@@ -573,6 +588,10 @@
 
             if (cart.length === 0) { alert("برجاء إضافة أصناف للسلة أولاً."); return; }
             if (!pharmacy || !name || !phone) { alert("برجاء إدخال بيانات الصيدلية والاسم ورقم الهاتف."); return; }
+
+            // حفظ بيانات العميل للمرة القادمة
+            let customerData = { pharmacy: pharmacy, name: name, phone: phone };
+            localStorage.setItem('treePharma_customer', JSON.stringify(customerData));
 
             let adminWhatsApp = "201274906271"; 
 
@@ -593,6 +612,75 @@
 
             let url = `https://wa.me/${adminWhatsApp}?text=${encodeURIComponent(message)}`;
             window.open(url, '_blank');
+        }
+
+        function printOrder() {
+            let pharmacy = document.getElementById('pharmacyName').value;
+            let name = document.getElementById('customerName').value;
+            let phone = document.getElementById('customerPhone').value;
+
+            if (cart.length === 0) { alert("السلة فارغة، لا يمكن طباعة الطلب."); return; }
+
+            let printContents = `
+                <html dir="rtl" lang="ar">
+                <head>
+                    <title>طباعة طلب - Tree Pharma</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; }
+                        h1 { color: #2E8B57; text-align: center; margin-bottom: 5px; }
+                        h2 { font-size: 18px; border-bottom: 2px solid #000; padding-bottom: 5px; }
+                        .header-info { text-align: center; margin-bottom: 20px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+                        th { background-color: #f4f7f6; }
+                        .total { text-align: left; font-size: 20px; font-weight: bold; margin-top: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header-info">
+                        <h1>Tree Pharma</h1>
+                        <p>شارع البريد متفرع من شارع أبو سليمان</p>
+                    </div>
+                    <h2>بيانات العميل:</h2>
+                    <p><strong>الصيدلية:</strong> ${pharmacy}</p>
+                    <p><strong>المسؤول:</strong> ${name}</p>
+                    <p><strong>الهاتف:</strong> ${phone}</p>
+                    
+                    <h2>تفاصيل الطلب:</h2>
+                    <table>
+                        <tr>
+                            <th>الصنف</th>
+                            <th>الكمية</th>
+                            <th>السعر</th>
+                            <th>الإجمالي</th>
+                        </tr>`;
+
+            let total = 0;
+            cart.forEach(item => {
+                let itemTotal = item.price * item.qty;
+                total += itemTotal;
+                printContents += `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${item.qty}</td>
+                            <td>${item.price} ج.م</td>
+                            <td>${itemTotal} ج.م</td>
+                        </tr>`;
+            });
+
+            printContents += `
+                    </table>
+                    <div class="total">الإجمالي: ${total} ج.م</div>
+                </body>
+                </html>`;
+
+            let printWindow = window.open('', '_blank');
+            printWindow.document.open();
+            printWindow.document.write(printContents);
+            printWindow.document.close();
+            setTimeout(function() {
+                printWindow.print();
+            }, 500);
         }
     </script>
 
