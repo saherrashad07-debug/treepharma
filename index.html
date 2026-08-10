@@ -33,8 +33,11 @@
 
         .cart-section { margin-top: 40px; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd; }
         .cart-section h2 { color: #000; border-bottom: 2px solid #2E8B57; padding-bottom: 10px; }
-        .customer-info { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
-        .customer-info input { flex: 1; min-width: 200px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        
+        /* تعديل شكل بيانات العميل */
+        .customer-info { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; background: #f9f9f9; padding: 15px; border-radius: 8px; }
+        .customer-info input { padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
+        
         .order-list { margin-bottom: 20px; font-size: 16px; }
         .order-list div { padding: 8px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; align-items: center;}
         
@@ -75,12 +78,15 @@
 
         <div class="cart-section" id="cartSection">
             <h2>تأكيد الطلب</h2>
+            
+            <!-- بيانات العميل -->
             <div class="customer-info">
-                <input type="text" id="pharmacyName" placeholder="اسم الصيدلية / مركز التجميل">
-                <input type="text" id="customerName" placeholder="اسم الدكتور / المسؤول">
-                <input type="text" id="customerPhone" placeholder="رقم الهاتف للتواصل">
+                <input type="text" id="clientName" placeholder="اسم العميل (صيدلية / مركز / عيادة)">
+                <input type="text" id="clientAddress" placeholder="العنوان بالتفصيل">
+                <input type="text" id="clientPhone" placeholder="رقم الموبايل">
             </div>
             
+            <!-- تفاصيل الطلب -->
             <div class="order-list" id="cartDisplay">
                 <div><span>لا توجد أصناف في السلة بعد</span></div>
             </div>
@@ -508,9 +514,9 @@
             let savedData = localStorage.getItem('treePharma_customer');
             if (savedData) {
                 let customer = JSON.parse(savedData);
-                document.getElementById('pharmacyName').value = customer.pharmacy || '';
-                document.getElementById('customerName').value = customer.name || '';
-                document.getElementById('customerPhone').value = customer.phone || '';
+                document.getElementById('clientName').value = customer.name || '';
+                document.getElementById('clientAddress').value = customer.address || '';
+                document.getElementById('clientPhone').value = customer.phone || '';
             }
         };
 
@@ -582,23 +588,23 @@
         }
 
         function sendOrder() {
-            let pharmacy = document.getElementById('pharmacyName').value;
-            let name = document.getElementById('customerName').value;
-            let phone = document.getElementById('customerPhone').value;
+            let name = document.getElementById('clientName').value;
+            let address = document.getElementById('clientAddress').value;
+            let phone = document.getElementById('clientPhone').value;
 
             if (cart.length === 0) { alert("برجاء إضافة أصناف للسلة أولاً."); return; }
-            if (!pharmacy || !name || !phone) { alert("برجاء إدخال بيانات الصيدلية والاسم ورقم الهاتف."); return; }
+            if (!name || !address || !phone) { alert("برجاء إدخال اسم العميل والعنوان ورقم الموبايل."); return; }
 
-            let customerData = { pharmacy: pharmacy, name: name, phone: phone };
+            let customerData = { name: name, address: address, phone: phone };
             localStorage.setItem('treePharma_customer', JSON.stringify(customerData));
 
             let adminWhatsApp = "201274906271"; 
 
             let message = `*طلب جديد من Tree Pharma*\n\n`;
-            message += `*اسم الصيدلية:* ${pharmacy}\n`;
-            message += `*اسم المسؤول:* ${name}\n`;
-            message += `*رقم الهاتف:* ${phone}\n\n`;
-            message += `*الأصناف المطلوبة:*\n`;
+            message += `*اسم العميل:* ${name}\n`;
+            message += `*العنوان:* ${address}\n`;
+            message += `*رقم الموبايل:* ${phone}\n\n`;
+            message += `*تفاصيل الطلب:*\n`;
 
             let total = 0;
             cart.forEach(item => {
@@ -614,9 +620,9 @@
         }
 
         function printOrder() {
-            let pharmacy = document.getElementById('pharmacyName').value;
-            let name = document.getElementById('customerName').value;
-            let phone = document.getElementById('customerPhone').value;
+            let name = document.getElementById('clientName').value;
+            let address = document.getElementById('clientAddress').value;
+            let phone = document.getElementById('clientPhone').value;
 
             if (cart.length === 0) { alert("السلة فارغة، لا يمكن طباعة الطلب."); return; }
 
@@ -641,9 +647,9 @@
                         <p>شركة تري فارما للمستلزمات الطبية والتجميل</p>
                     </div>
                     <h2>بيانات العميل:</h2>
-                    <p><strong>الصيدلية:</strong> ${pharmacy}</p>
-                    <p><strong>المسؤول:</strong> ${name}</p>
-                    <p><strong>الهاتف:</strong> ${phone}</p>
+                    <p><strong>اسم العميل:</strong> ${name}</p>
+                    <p><strong>العنوان:</strong> ${address}</p>
+                    <p><strong>الموبايل:</strong> ${phone}</p>
                     
                     <h2>تفاصيل الطلب:</h2>
                     <table>
