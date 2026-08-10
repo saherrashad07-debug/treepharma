@@ -7,16 +7,16 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; color: #333; padding-bottom: 80px; }
         
-        /* تعديل الهيدر عشان يبقى اللوجو على جنب */
+        /* تعديل الهيدر للخلفية البيضاء الشيك */
         header { 
-            background-color: #000000; color: #ffffff; padding: 15px 30px; 
-            border-bottom: 5px solid #2E8B57; 
+            background-color: #ffffff; color: #2E8B57; padding: 20px 30px; 
+            border-bottom: 4px solid #2E8B57; 
             display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); /* ظل خفيف عشان يبقى شيك */
         }
-        header img.logo { max-width: 180px; width: 100%; height: auto; border-radius: 8px; background-color: #fff; padding: 5px; }
+        header img.logo { max-width: 180px; width: 100%; height: auto; }
         .header-text { text-align: left; }
-        .header-text p { margin: 0; font-size: 18px; color: #ccc; font-weight: bold; }
-        .header-text .address { font-size: 14px; margin-top: 5px; color: #2E8B57; }
+        .header-text p { margin: 0; font-size: 22px; color: #2E8B57; font-weight: bold; }
 
         .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
         
@@ -59,10 +59,9 @@
 <body>
 
     <header>
-        <img src="logo.png" alt="Tree Pharma" class="logo">
+        <img src="https://z-cdn-media.chatglm.cn/files/478b6d0d-a651-4d2b-afc3-a905fdd1e80d.jpg?auth_key=1886396261-25b7993b9f4d499fa2153b720f93ab1b-0-c1856c1ff2bb77966eb7ace181297d11" alt="Tree Pharma" class="logo">
         <div class="header-text">
-            <p>شركه مستلزمات طبيه وتجميل</p>
-            <div class="address">شارع البريد متفرع من شارع أبو سليمان</div>
+            <p>شركة تري فارما للمستلزمات الطبية والتجميل</p>
         </div>
     </header>
 
@@ -639,7 +638,7 @@
                 <body>
                     <div class="header-info">
                         <h1>Tree Pharma</h1>
-                        <p>شارع البريد متفرع من شارع أبو سليمان</p>
+                        <p>شركة تري فارما للمستلزمات الطبية والتجميل</p>
                     </div>
                     <h2>بيانات العميل:</h2>
                     <p><strong>الصيدلية:</strong> ${pharmacy}</p>
