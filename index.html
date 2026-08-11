@@ -7,56 +7,77 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; color: #333; padding-bottom: 80px; }
         
-        /* تعديل الهيدر للخلفية البيضاء الشيك */
+        /* أنيميشن ظهور الهيدر */
         header { 
             background-color: #ffffff; color: #2E8B57; padding: 20px 30px; 
             border-bottom: 4px solid #2E8B57; 
             display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); /* ظل خفيف عشان يبقى شيك */
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            animation: fadeInDown 1s ease-out;
         }
         header img.logo { max-width: 180px; width: 100%; height: auto; }
         .header-text { text-align: left; }
-        .header-text p { margin: 0; font-size: 22px; color: #2E8B57; font-weight: bold; }
+        .header-text p { margin: 0; font-size: 28px; color: #2E8B57; font-weight: bold; }
 
-        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; animation: fadeIn 1.5s ease-out; }
         
-        .search-container { margin-bottom: 30px; text-align: center; }
-        .search-input { width: 100%; max-width: 500px; padding: 15px; font-size: 18px; border: 2px solid #2E8B57; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .search-container { margin-bottom: 20px; text-align: center; }
+        .search-input { width: 100%; max-width: 500px; padding: 12px; font-size: 16px; border: 2px solid #2E8B57; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: box-shadow 0.3s; }
+        .search-input:focus { box-shadow: 0 0 10px rgba(46, 139, 87, 0.4); outline: none; }
 
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .product-card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; }
-        .product-card h3 { color: #2E8B57; margin-top: 0; font-size: 18px; }
-        .product-card .price { font-size: 22px; font-weight: bold; margin: 15px 0; color: #000; }
-        .qty-input { width: 70px; padding: 8px; text-align: center; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; margin-bottom: 10px; }
-        .add-btn { background-color: #2E8B57; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; transition: 0.3s;}
-        .add-btn:hover { background-color: #246b41; }
+        .table-container { direction: rtl; overflow-x: auto; background: #fff; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .product-table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        .product-table th { background-color: #2E8B57; color: #fff; padding: 12px; text-align: right; font-size: 16px; border-bottom: 2px solid #1e6b40; }
+        .product-table td { padding: 10px; border-bottom: 1px solid #eee; font-size: 15px; }
+        .product-table tr:nth-child(even) { background-color: #f9f9f9; }
+        /* أنيميشن السطر لما الماوس يمر عليه */
+        .product-table tr { transition: background-color 0.3s ease; }
+        .product-table tr:hover { background-color: #e9f5ec; }
+        
+        .qty-input-table { width: 70px; padding: 6px; text-align: center; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; }
+        
+        /* زرار الإضافة باللون الأخضر مع أنيميشن */
+        .add-btn-table { background-color: #2E8B57; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; }
+        .add-btn-table:hover { background-color: #246b41; transform: scale(1.05); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 
-        .cart-section { margin-top: 40px; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd; }
+        .cart-section { margin-top: 40px; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd; animation: fadeIn 2s ease-out; }
         .cart-section h2 { color: #000; border-bottom: 2px solid #2E8B57; padding-bottom: 10px; }
         
-        /* تعديل شكل بيانات العميل */
         .customer-info { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; background: #f9f9f9; padding: 15px; border-radius: 8px; }
-        .customer-info input { padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
+        .customer-info input { padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; transition: border-color 0.3s; }
+        .customer-info input:focus { border-color: #2E8B57; outline: none; }
         
         .order-list { margin-bottom: 20px; font-size: 16px; }
-        .order-list div { padding: 8px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; align-items: center;}
+        .order-list div { padding: 8px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; align-items: center; animation: slideIn 0.5s ease-out; }
         
         .action-buttons { display: flex; gap: 15px; }
-        .submit-btn { background-color: #000; color: #fff; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: 0.3s; flex: 2; }
-        .submit-btn:hover { background-color: #333; }
-        .print-btn { background-color: #2E8B57; color: #fff; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: 0.3s; flex: 1; }
-        .print-btn:hover { background-color: #246b41; }
+        .submit-btn { background-color: #000; color: #fff; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: all 0.3s; flex: 2; }
+        .submit-btn:hover { background-color: #333; transform: translateY(-2px); }
+        .print-btn { background-color: #2E8B57; color: #fff; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: all 0.3s; flex: 1; }
+        .print-btn:hover { background-color: #246b41; transform: translateY(-2px); }
 
-        .remove-btn { background-color: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px; margin-right: 10px; }
+        .remove-btn { background-color: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px; margin-right: 10px; transition: all 0.3s; }
+        .remove-btn:hover { background-color: #cc0000; }
 
+        /* زرار السلة العائم مع أنيميشن الاهتزاز */
         .floating-cart {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             background-color: #000; color: #fff; border: none; padding: 15px 30px;
             border-radius: 50px; font-size: 18px; font-weight: bold; cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: none; z-index: 999;
-            border: 2px solid #2E8B57;
+            border: 2px solid #2E8B57; transition: background-color 0.3s;
         }
         .floating-cart:hover { background-color: #333; }
+        .bounce { animation: bounce 0.5s ease-in-out; }
+
+        /* تعريفات الأنيميشن */
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.1); }
+        }
     </style>
 </head>
 <body>
@@ -64,7 +85,7 @@
     <header>
         <img src="https://z-cdn-media.chatglm.cn/files/478b6d0d-a651-4d2b-afc3-a905fdd1e80d.jpg?auth_key=1886396261-25b7993b9f4d499fa2153b720f93ab1b-0-c1856c1ff2bb77966eb7ace181297d11" alt="Tree Pharma" class="logo">
         <div class="header-text">
-            <p>شركة تري فارما للمستلزمات الطبية والتجميل</p>
+            <p>Tree Pharma</p>
         </div>
     </header>
 
@@ -74,19 +95,29 @@
             <input type="text" id="searchInput" class="search-input" placeholder="ابحث عن صنف... (مثال: جوانتي، شامبو، كريم)" oninput="filterProducts()">
         </div>
 
-        <div class="product-grid" id="productGrid"></div>
+        <div class="table-container">
+            <table class="product-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50%;">اسم الصنف</th>
+                        <th>السعر</th>
+                        <th>الكمية</th>
+                        <th>إضافة</th>
+                    </tr>
+                </thead>
+                <tbody id="productTableBody"></tbody>
+            </table>
+        </div>
 
         <div class="cart-section" id="cartSection">
             <h2>تأكيد الطلب</h2>
             
-            <!-- بيانات العميل -->
             <div class="customer-info">
                 <input type="text" id="clientName" placeholder="اسم العميل (صيدلية / مركز / عيادة)">
                 <input type="text" id="clientAddress" placeholder="العنوان بالتفصيل">
                 <input type="text" id="clientPhone" placeholder="رقم الموبايل">
             </div>
             
-            <!-- تفاصيل الطلب -->
             <div class="order-list" id="cartDisplay">
                 <div><span>لا توجد أصناف في السلة بعد</span></div>
             </div>
@@ -486,25 +517,25 @@
 
         function filterProducts() {
             let searchText = document.getElementById('searchInput').value;
-            let grid = document.getElementById('productGrid');
-            grid.innerHTML = '';
+            let tableBody = document.getElementById('productTableBody');
+            tableBody.innerHTML = '';
 
             let filtered = products.filter(p => p.name.toLowerCase().includes(searchText.toLowerCase()));
 
             if(filtered.length === 0) {
-                grid.innerHTML = '<p style="text-align:center; color:red; font-size:20px;">لا يوجد صنف بهذا الاسم</p>';
+                tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red; font-size:20px; padding:20px;">لا يوجد صنف بهذا الاسم</td></tr>';
                 return;
             }
 
             filtered.forEach(p => {
                 let originalIndex = products.indexOf(p);
-                grid.innerHTML += `
-                    <div class="product-card">
-                        <h3>${p.name}</h3>
-                        <div class="price">${p.price} ج.م</div>
-                        <input type="number" class="qty-input" id="qty${originalIndex}" placeholder="الكمية" min="1">
-                        <button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'qty${originalIndex}')">إضافة للسلة</button>
-                    </div>
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${p.name}</td>
+                        <td>${p.price} ج.م</td>
+                        <td><input type="number" class="qty-input-table" id="qty${originalIndex}" placeholder="0" min="1"></td>
+                        <td><button class="add-btn-table" onclick="addToCart('${p.name}', ${p.price}, 'qty${originalIndex}')">إضافة</button></td>
+                    </tr>
                 `;
             });
         }
@@ -528,6 +559,13 @@
                 cart.push({ id: Date.now(), name: productName, price: price, qty: quantity });
                 updateCartDisplay();
                 updateFloatingCart();
+                
+                // أنيميشن اهتزاز زرار السلة
+                let floatBtn = document.getElementById('floatingCartBtn');
+                floatBtn.classList.remove('bounce');
+                void floatBtn.offsetWidth; // ترتيب الأنيميشن
+                floatBtn.classList.add('bounce');
+
                 alert("تم إضافة " + productName + " إلى السلة.");
                 qtyInput.value = "";
             } else {
@@ -644,7 +682,6 @@
                 <body>
                     <div class="header-info">
                         <h1>Tree Pharma</h1>
-                        <p>شركة تري فارما للمستلزمات الطبية والتجميل</p>
                     </div>
                     <h2>بيانات العميل:</h2>
                     <p><strong>اسم العميل:</strong> ${name}</p>
