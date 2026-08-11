@@ -32,6 +32,14 @@
         .search-input { width: 100%; max-width: 500px; padding: 12px; font-size: 16px; border: 2px solid #2E8B57; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: box-shadow 0.3s; }
         .search-input:focus { box-shadow: 0 0 10px rgba(46, 139, 87, 0.4); outline: none; }
 
+        /* زرار تحميل قائمة الأسعار (باللون الأخضر) */
+        .catalog-btn { 
+            background-color: #2E8B57; color: #fff; border: none; padding: 12px 20px; 
+            border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; 
+            margin-top: 15px; width: 100%; max-width: 500px; transition: all 0.3s;
+        }
+        .catalog-btn:hover { background-color: #246b41; transform: translateY(-2px); }
+
         .product-list { display: flex; flex-direction: column; gap: 15px; }
         .list-item { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); animation: slideIn 0.5s ease-out; transition: box-shadow 0.3s; }
         .list-item:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -45,10 +53,11 @@
         .add-btn { background-color: #2E8B57; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1; transition: all 0.3s ease; }
         .add-btn:hover { background-color: #246b41; transform: scale(1.02); }
 
-        .cart-section { margin-top: 40px; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd; animation: fadeIn 2s ease-out; }
-        .cart-section h2 { color: #000; border-bottom: 2px solid #2E8B57; padding-bottom: 10px; }
+        /* تظليل خلفية سلة المشتريات */
+        .cart-section { margin-top: 40px; background: #e8f5e9; padding: 25px; border-radius: 12px; border: 2px solid #2E8B57; box-shadow: 0 5px 15px rgba(46, 139, 87, 0.15); animation: fadeIn 2s ease-out; }
+        .cart-section h2 { color: #000; border-bottom: 2px solid #2E8B57; padding-bottom: 10px; margin-top: 0; }
         
-        .customer-info { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; background: #f9f9f9; padding: 15px; border-radius: 8px; }
+        .customer-info { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 8px; }
         .customer-info input { padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; transition: border-color 0.3s; }
         .customer-info input:focus { border-color: #2E8B57; outline: none; }
         
@@ -64,6 +73,7 @@
         .remove-btn { background-color: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px; margin-right: 10px; transition: all 0.3s; }
         .remove-btn:hover { background-color: #cc0000; }
 
+        /* زرار السلة العائم */
         .floating-cart {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             background-color: #000; color: #fff; border: none; padding: 15px 30px;
@@ -73,6 +83,22 @@
         }
         .floating-cart:hover { background-color: #333; }
         .bounce { animation: bounce 0.5s ease-in-out; }
+
+        /* زرار الواتساب العائم */
+        .floating-whatsapp {
+            position: fixed; bottom: 20px; right: 20px; background-color: #25D366; 
+            color: #fff; width: 60px; height: 60px; border-radius: 50%; 
+            display: flex; justify-content: center; align-items: center; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 999; text-decoration: none;
+            animation: pulse 2s infinite;
+        }
+        .floating-whatsapp svg { width: 35px; height: 35px; fill: #fff; }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.5); }
+            70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        }
 
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -85,6 +111,8 @@
         @media (max-width: 600px) {
             .item-name { font-size: 14px; }
             .item-price { font-size: 16px; }
+            .floating-whatsapp { width: 50px; height: 50px; bottom: 80px; }
+            .floating-whatsapp svg { width: 28px; height: 28px; }
         }
     </style>
 </head>
@@ -99,6 +127,8 @@
         
         <div class="search-container">
             <input type="text" id="searchInput" class="search-input" placeholder="ابحث عن صنف... (مثال: جوانتي، شامبو، كريم)" oninput="filterProducts()">
+            <br>
+            <button class="catalog-btn" onclick="printCatalog()">تحميل قائمة الأسعار</button>
         </div>
 
         <div class="product-list" id="productList"></div>
@@ -124,6 +154,11 @@
     </div>
 
     <button id="floatingCartBtn" class="floating-cart" onclick="scrollToCart()">عرض السلة (0)</button>
+    
+    <!-- زرار الواتساب العائم -->
+    <a href="https://wa.me/201274906271" class="floating-whatsapp" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/></svg>
+    </a>
 
     <script>
         const products = [
@@ -720,6 +755,51 @@
             let printWindow = window.open('', '_blank');
             printWindow.document.open();
             printWindow.document.write(printContents);
+            printWindow.document.close();
+            setTimeout(function() {
+                printWindow.print();
+            }, 500);
+        }
+
+        // دالة تحميل وطباعة قائمة الأسعار بالكامل
+        function printCatalog() {
+            let catalogContents = `
+                <html dir="rtl" lang="ar">
+                <head>
+                    <title>قائمة أسعار - Tree Pharma</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; }
+                        h1 { color: #2E8B57; text-align: center; margin-bottom: 20px; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
+                        th { background-color: #2E8B57; color: white; }
+                        tr:nth-child(even) { background-color: #f9f9f9; }
+                    </style>
+                </head>
+                <body>
+                    <h1>قائمة أسعار Tree Pharma</h1>
+                    <table>
+                        <tr>
+                            <th>اسم الصنف</th>
+                            <th>سعر الصيدلي</th>
+                        </tr>`;
+
+            products.forEach(p => {
+                catalogContents += `
+                        <tr>
+                            <td>${p.name}</td>
+                            <td>${p.price} ج.م</td>
+                        </tr>`;
+            });
+
+            catalogContents += `
+                    </table>
+                </body>
+                </html>`;
+
+            let printWindow = window.open('', '_blank');
+            printWindow.document.open();
+            printWindow.document.write(catalogContents);
             printWindow.document.close();
             setTimeout(function() {
                 printWindow.print();
