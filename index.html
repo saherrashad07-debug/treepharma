@@ -8,55 +8,51 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; color: #333; padding-bottom: 80px; }
         
         header { 
-            background-color: #ffffff; color: #2E8B57; padding: 20px 30px; 
-            border-bottom: 4px solid #2E8B57; 
-            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            background-color: #00695c; 
+            padding: 15px 30px; 
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
             animation: fadeInDown 1s ease-out;
-            text-align: center;
             position: relative;
         }
-        header img.logo { max-width: 200px; width: 100%; height: auto; border-radius: 8px; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        
+        .logo-circle {
+            background-color: #ffffff; 
+            border-radius: 50%; 
+            width: 90px; height: 90px; 
+            display: flex; justify-content: center; align-items: center; 
+            overflow: hidden; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            padding: 10px; 
+        }
+        .logo-circle img { 
+            max-width: 100%; max-height: 100%; 
+            object-fit: contain; 
+        }
+        
+        .header-title { margin: 0; font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: 1px; }
         
         .call-container { position: relative; display: inline-block; }
         .call-btn { 
-            background-color: #2E8B57; color: #fff; border: none; 
+            background-color: #ffffff; color: #00695c; border: none; 
             padding: 10px 25px; border-radius: 50px; font-size: 18px; font-weight: bold; 
-            transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(46, 139, 87, 0.3); 
+            transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
             cursor: pointer;
         }
-        .call-btn:hover { background-color: #246b41; transform: translateY(-2px); }
+        .call-btn:hover { background-color: #e0f2f1; transform: translateY(-2px); }
 
         .call-dropdown {
-            display: none;
-            position: absolute;
-            top: 110%; 
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #fff;
-            min-width: 220px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-            border-radius: 10px;
-            z-index: 1000;
-            padding: 10px;
-            border: 1px solid #ddd;
-            animation: fadeIn 0.3s ease-out;
+            display: none; position: absolute; top: 110%; left: 50%; transform: translateX(-50%);
+            background-color: #fff; min-width: 220px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            border-radius: 10px; z-index: 1000; padding: 10px; border: 1px solid #ddd; animation: fadeIn 0.3s ease-out;
         }
         .call-dropdown.show { display: block; }
-        
         .call-dropdown a {
-            display: block;
-            color: #2E8B57;
-            font-weight: bold;
-            padding: 12px;
-            text-decoration: none;
-            border-radius: 6px;
-            text-align: center;
-            transition: background-color 0.3s;
-            font-size: 17px;
+            display: block; color: #00695c; font-weight: bold; padding: 12px;
+            text-decoration: none; border-radius: 6px; text-align: center; transition: background-color 0.3s; font-size: 17px;
         }
         .call-dropdown a:hover { background-color: #f4f7f6; }
-        
         .dropdown-separator { height: 1px; background-color: #ddd; margin: 8px 0; }
         .complaint-label { color: #ff4d4d; font-size: 14px; font-weight: bold; margin: 5px 0; text-align: center; }
         .complaint-number { color: #000 !important; border: 2px solid #ff4d4d !important; margin-top: 5px; }
@@ -64,15 +60,15 @@
         .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; animation: fadeIn 1.5s ease-out; }
         
         .search-container { margin-bottom: 20px; text-align: center; }
-        .search-input { width: 100%; max-width: 500px; padding: 12px; font-size: 16px; border: 2px solid #2E8B57; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: box-shadow 0.3s; }
-        .search-input:focus { box-shadow: 0 0 10px rgba(46, 139, 87, 0.4); outline: none; }
+        .search-input { width: 100%; max-width: 500px; padding: 12px; font-size: 16px; border: 2px solid #00695c; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: box-shadow 0.3s; }
+        .search-input:focus { box-shadow: 0 0 10px rgba(0, 105, 92, 0.4); outline: none; }
 
         .catalog-btn { 
-            background-color: #2E8B57; color: #fff; border: none; padding: 12px 20px; 
+            background-color: #00695c; color: #fff; border: none; padding: 12px 20px; 
             border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; 
             margin-top: 15px; width: 100%; max-width: 500px; transition: all 0.3s;
         }
-        .catalog-btn:hover { background-color: #246b41; transform: translateY(-2px); }
+        .catalog-btn:hover { background-color: #004d40; transform: translateY(-2px); }
 
         .product-list { display: flex; flex-direction: column; gap: 15px; }
         .list-item { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); animation: slideIn 0.5s ease-out; transition: box-shadow 0.3s; }
@@ -80,19 +76,19 @@
         
         .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; }
         .item-name { font-weight: bold; color: #333; font-size: 16px; flex: 1; text-align: right; }
-        .item-price { color: #2E8B57; font-weight: bold; font-size: 18px; white-space: nowrap; }
+        .item-price { color: #00695c; font-weight: bold; font-size: 18px; white-space: nowrap; }
         
         .item-footer { display: flex; justify-content: space-between; align-items: center; gap: 15px; }
         .qty-input { width: 80px; padding: 10px; text-align: center; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
-        .add-btn { background-color: #2E8B57; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1; transition: all 0.3s ease; }
-        .add-btn:hover { background-color: #246b41; transform: scale(1.02); }
+        .add-btn { background-color: #00695c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1; transition: all 0.3s ease; }
+        .add-btn:hover { background-color: #004d40; transform: scale(1.02); }
 
-        .cart-section { margin-top: 40px; background: #e8f5e9; padding: 25px; border-radius: 12px; border: 2px solid #2E8B57; box-shadow: 0 5px 15px rgba(46, 139, 87, 0.15); animation: fadeIn 2s ease-out; }
-        .cart-section h2 { color: #000; border-bottom: 2px solid #2E8B57; padding-bottom: 10px; margin-top: 0; }
+        .cart-section { margin-top: 40px; background: #e0f2f1; padding: 25px; border-radius: 12px; border: 2px solid #00695c; box-shadow: 0 5px 15px rgba(0, 105, 92, 0.15); animation: fadeIn 2s ease-out; }
+        .cart-section h2 { color: #000; border-bottom: 2px solid #00695c; padding-bottom: 10px; margin-top: 0; }
         
         .customer-info { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 8px; }
         .customer-info input { padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; transition: border-color 0.3s; }
-        .customer-info input:focus { border-color: #2E8B57; outline: none; }
+        .customer-info input:focus { border-color: #00695c; outline: none; }
         
         .order-list { margin-bottom: 20px; font-size: 16px; }
         .order-list div { padding: 8px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; align-items: center; animation: slideIn 0.5s ease-out; }
@@ -100,8 +96,8 @@
         .action-buttons { display: flex; gap: 15px; }
         .submit-btn { background-color: #000; color: #fff; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: all 0.3s; flex: 2; }
         .submit-btn:hover { background-color: #333; transform: translateY(-2px); }
-        .print-btn { background-color: #2E8B57; color: #fff; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: all 0.3s; flex: 1; }
-        .print-btn:hover { background-color: #246b41; transform: translateY(-2px); }
+        .print-btn { background-color: #00695c; color: #fff; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: all 0.3s; flex: 1; }
+        .print-btn:hover { background-color: #004d40; transform: translateY(-2px); }
 
         .remove-btn { background-color: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px; margin-right: 10px; transition: all 0.3s; }
         .remove-btn:hover { background-color: #cc0000; }
@@ -111,7 +107,7 @@
             background-color: #000; color: #fff; border: none; padding: 15px 30px;
             border-radius: 50px; font-size: 18px; font-weight: bold; cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: none; z-index: 999;
-            border: 2px solid #2E8B57; transition: background-color 0.3s;
+            border: 2px solid #00695c; transition: background-color 0.3s;
         }
         .floating-cart:hover { background-color: #333; }
         .bounce { animation: bounce 0.5s ease-in-out; }
@@ -131,13 +127,25 @@
         @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes bounce { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.1); } }
         
-        @media (max-width: 600px) { .item-name { font-size: 14px; } .item-price { font-size: 16px; } .floating-whatsapp { width: 50px; height: 50px; bottom: 80px; } .floating-whatsapp svg { width: 28px; height: 28px; } }
+        @media (max-width: 600px) { 
+            .item-name { font-size: 14px; } 
+            .item-price { font-size: 16px; } 
+            .header-title { font-size: 22px; } 
+            .logo-circle { width: 70px; height: 70px; }
+            .floating-whatsapp { width: 50px; height: 50px; bottom: 80px; } 
+            .floating-whatsapp svg { width: 28px; height: 28px; } 
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <img src="https://z-cdn-media.chatglm.cn/files/f709f20a-2959-44d7-ad0c-f8d6c412951b.jpg?auth_key=1886554836-6c02f9bc6d5e44a3803ae4b03410b9c0-0-720f4d0b387c1dbef9c2ef09b5051ee8" alt="Tree Pharma" class="logo">
+        <div class="header-left">
+            <div class="logo-circle">
+                <img src="logo.jpg" alt="Tree Pharma">
+            </div>
+            <h1 class="header-title">Tree Pharma</h1>
+        </div>
         
         <div class="call-container">
             <button class="call-btn" onclick="toggleCallMenu()">اتصل بنا</button>
@@ -160,7 +168,7 @@
         </div>
 
         <div class="product-list" id="productList">
-            <p style="text-align:center; color:#2E8B57; font-size:18px;">جاري تحميل الأصناف...</p>
+            <p style="text-align:center; color:#00695c; font-size:18px;">جاري تحميل الأصناف...</p>
         </div>
 
         <div class="cart-section" id="cartSection">
@@ -304,7 +312,7 @@
                 total += itemTotal;
                 cartDiv.innerHTML += `<div><span>${item.name} (الكمية: ${item.qty}) - ${itemTotal} ج.م</span><button class="remove-btn" onclick="removeFromCart(${item.id})">حذف X</button></div>`;
             });
-            cartDiv.innerHTML += `<div style="font-weight: bold; font-size: 20px; color: #2E8B57; margin-top: 10px; border-top: 2px solid #000; padding-top: 10px;"><span>الإجمالي:</span><span>${total} ج.م</span></div>`;
+            cartDiv.innerHTML += `<div style="font-weight: bold; font-size: 20px; color: #00695c; margin-top: 10px; border-top: 2px solid #000; padding-top: 10px;"><span>الإجمالي:</span><span>${total} ج.م</span></div>`;
         }
 
         function updateFloatingCart() {
@@ -350,7 +358,7 @@
             let address = document.getElementById('clientAddress').value;
             let phone = document.getElementById('clientPhone').value;
             if (cart.length === 0) { alert("السلة فارغة، لا يمكن طباعة الطلب."); return; }
-            let printContents = `<html dir="rtl" lang="ar"><head><title>طباعة طلب - Tree Pharma</title><style>body{font-family:'Segoe UI',Tahoma,sans-serif;padding:20px}h1{color:#2E8B57;text-align:center;margin-bottom:5px}h2{font-size:18px;border-bottom:2px solid #000;padding-bottom:5px}.header-info{text-align:center;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #ddd;padding:8px;text-align:center}th{background-color:#f4f7f6}.total{text-align:left;font-size:20px;font-weight:bold;margin-top:20px}</style></head><body><div class="header-info"><h1>Tree Pharma</h1></div><h2>بيانات العميل:</h2><p><strong>اسم العميل:</strong> ${name}</p><p><strong>العنوان:</strong> ${address}</p><p><strong>الموبايل:</strong> ${phone}</p><h2>تفاصيل الطلب:</h2><table><tr><th>الصنف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>`;
+            let printContents = `<html dir="rtl" lang="ar"><head><title>طباعة طلب - Tree Pharma</title><style>body{font-family:'Segoe UI',Tahoma,sans-serif;padding:20px}h1{color:#00695c;text-align:center;margin-bottom:5px}h2{font-size:18px;border-bottom:2px solid #000;padding-bottom:5px}.header-info{text-align:center;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #ddd;padding:8px;text-align:center}th{background-color:#f4f7f6}.total{text-align:left;font-size:20px;font-weight:bold;margin-top:20px}</style></head><body><div class="header-info"><h1>Tree Pharma</h1></div><h2>بيانات العميل:</h2><p><strong>اسم العميل:</strong> ${name}</p><p><strong>العنوان:</strong> ${address}</p><p><strong>الموبايل:</strong> ${phone}</p><h2>تفاصيل الطلب:</h2><table><tr><th>الصنف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>`;
             let total = 0;
             cart.forEach(item => {
                 let itemTotal = item.price * item.qty;
@@ -367,7 +375,7 @@
 
         function printCatalog() {
             if (products.length === 0) { alert("لم يتم تحميل الأصناف بعد."); return; }
-            let catalogContents = `<html dir="rtl" lang="ar"><head><title>قائمة أسعار - Tree Pharma</title><style>body{font-family:'Segoe UI',Tahoma,sans-serif;padding:20px}h1{color:#2E8B57;text-align:center;margin-bottom:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:right}th{background-color:#2E8B57;color:white}tr:nth-child(even){background-color:#f9f9f9}</style></head><body><h1>قائمة أسعار Tree Pharma</h1><table><tr><th>اسم الصنف</th><th>سعر الصيدلي</th></tr>`;
+            let catalogContents = `<html dir="rtl" lang="ar"><head><title>قائمة أسعار - Tree Pharma</title><style>body{font-family:'Segoe UI',Tahoma,sans-serif;padding:20px}h1{color:#00695c;text-align:center;margin-bottom:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:right}th{background-color:#00695c;color:white}tr:nth-child(even){background-color:#f9f9f9}</style></head><body><h1>قائمة أسعار Tree Pharma</h1><table><tr><th>اسم الصنف</th><th>سعر الصيدلي</th></tr>`;
             products.forEach(p => {
                 catalogContents += `<tr><td>${p.name}</td><td>${p.price} ج.م</td></tr>`;
             });
