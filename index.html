@@ -14,16 +14,52 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
             animation: fadeInDown 1s ease-out;
             text-align: center;
+            position: relative;
         }
         header img.logo { max-width: 200px; width: 100%; height: auto; border-radius: 8px; }
         
+        .call-container { position: relative; display: inline-block; }
         .call-btn { 
-            background-color: #2E8B57; color: #fff; text-decoration: none; 
+            background-color: #2E8B57; color: #fff; border: none; 
             padding: 10px 25px; border-radius: 50px; font-size: 18px; font-weight: bold; 
             transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(46, 139, 87, 0.3); 
-            display: inline-block;
+            cursor: pointer;
         }
         .call-btn:hover { background-color: #246b41; transform: translateY(-2px); }
+
+        .call-dropdown {
+            display: none;
+            position: absolute;
+            top: 110%; 
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #fff;
+            min-width: 220px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            border-radius: 10px;
+            z-index: 1000;
+            padding: 10px;
+            border: 1px solid #ddd;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .call-dropdown.show { display: block; }
+        
+        .call-dropdown a {
+            display: block;
+            color: #2E8B57;
+            font-weight: bold;
+            padding: 12px;
+            text-decoration: none;
+            border-radius: 6px;
+            text-align: center;
+            transition: background-color 0.3s;
+            font-size: 17px;
+        }
+        .call-dropdown a:hover { background-color: #f4f7f6; }
+        
+        .dropdown-separator { height: 1px; background-color: #ddd; margin: 8px 0; }
+        .complaint-label { color: #ff4d4d; font-size: 14px; font-weight: bold; margin: 5px 0; text-align: center; }
+        .complaint-number { color: #000 !important; border: 2px solid #ff4d4d !important; margin-top: 5px; }
 
         .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; animation: fadeIn 1.5s ease-out; }
         
@@ -101,8 +137,19 @@
 <body>
 
     <header>
-        <img src="https://z-cdn-media.chatglm.cn/files/bb8b1617-51fc-4c13-8b25-c7bb9284d01e.jpg?auth_key=1886444430-97237a170f864d44807ef841c1d1f325-0-2f5f6e39907d50b0612ea4a705201d35" alt="Tree Pharma" class="logo">
-        <a href="tel:01274906271" class="call-btn">اتصل بنا: 01274906271</a>
+        <img src="https://z-cdn-media.chatglm.cn/files/f709f20a-2959-44d7-ad0c-f8d6c412951b.jpg?auth_key=1886554836-6c02f9bc6d5e44a3803ae4b03410b9c0-0-720f4d0b387c1dbef9c2ef09b5051ee8" alt="Tree Pharma" class="logo">
+        
+        <div class="call-container">
+            <button class="call-btn" onclick="toggleCallMenu()">اتصل بنا</button>
+            <div class="call-dropdown" id="callDropdown">
+                <a href="tel:01274906271">01274906271</a>
+                <a href="tel:01204767870">01204767870</a>
+                <a href="tel:01501224733">01501224733</a>
+                <div class="dropdown-separator"></div>
+                <p class="complaint-label">رقم الشكاوي</p>
+                <a href="tel:01220202473" class="complaint-number">01220202473</a>
+            </div>
+        </div>
     </header>
 
     <div class="container">
@@ -139,13 +186,25 @@
     </a>
 
     <script>
-        // =========================================================
-        // تم ربط الموقع بملف Google Sheet الخاص بالشركة
-        // =========================================================
         const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbzm3Stv4GLU8L9ysElpt-w46tlu0V4J-GnbHtgfuFK6YgCg_dbjZ8LVtMpJgCb7HEdm/exec'; 
 
         let products = []; 
         let cart = [];
+
+        function toggleCallMenu() {
+            document.getElementById("callDropdown").classList.toggle("show");
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.matches('.call-btn')) {
+                var dropdowns = document.getElementsByClassName("call-dropdown");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    if (dropdowns[i].classList.contains('show')) {
+                        dropdowns[i].classList.remove('show');
+                    }
+                }
+            }
+        }
 
         async function fetchProducts() {
             try {
