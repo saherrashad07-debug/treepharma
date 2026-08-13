@@ -142,7 +142,6 @@
     <header>
         <div class="header-left">
             <div class="logo-circle">
-                <!-- تم تعديل اسم الصورة هنا لتطابق الاسم المرفوع على جيت هاب -->
                 <img src="logo.jpg.jpg" alt="Tree Pharma">
             </div>
             <h1 class="header-title">Tree Pharma</h1>
@@ -195,8 +194,6 @@
     </a>
 
     <script>
-        const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbzm3Stv4GLU8L9ysElpt-w46tlu0V4J-GnbHtgfuFK6YgCg_dbjZ8LVtMpJgCb7HEdm/exec'; 
-
         let products = []; 
         let cart = [];
 
@@ -217,17 +214,12 @@
 
         async function fetchProducts() {
             try {
-                let response = await fetch(SHEET_API_URL);
-                let data = await response.json();
-                
-                products = data.map(item => ({
-                    name: item.name || item.Name || item["اسم الصنف"],
-                    price: parseFloat(item.price || item.Price || item["السعر"]) || 0
-                }));
-
+                // الموقع بيجيب الأصناف من ملف data.json
+                let response = await fetch('data.json'); 
+                products = await response.json();
                 filterProducts(); 
             } catch (error) {
-                document.getElementById('productList').innerHTML = '<p style="text-align:center; color:red; font-size:20px; padding:20px;">حدث خطأ في تحميل الأصناف.<br>برجاء التأكد من رابط جوجل شيت.</p>';
+                document.getElementById('productList').innerHTML = '<p style="text-align:center; color:red; font-size:20px; padding:20px;">حدث خطأ في تحميل الأصناف.<br>برجاء التأكد من رفع ملف data.json.</p>';
             }
         }
 
