@@ -34,16 +34,21 @@
         .header-title { margin: 0; font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: 1px; }
         
         .call-container { position: relative; display: inline-block; }
+        /* تعديل زرار الاتصال ليكون نص أبيض بارز بدون خلفية */
         .call-btn { 
-            background-color: #ffffff; color: #00695c; border: none; 
-            padding: 10px 25px; border-radius: 50px; font-size: 18px; font-weight: bold; 
-            transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+            background-color: transparent; /* شيلنا الخلفية */
+            color: #ffffff; /* لون أبيض */
+            border: none; 
+            padding: 5px 0; 
+            font-size: 20px; /* خط أكبر */
+            font-weight: 800; /* خط عريض بارز */
             cursor: pointer;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3); /* ظل خفيف يخليه بارز */
         }
-        .call-btn:hover { background-color: #e0f2f1; transform: translateY(-2px); }
+        .call-btn:hover { color: #e0f2f1; }
 
         .call-dropdown {
-            display: none; position: absolute; top: 110%; left: 50%; transform: translateX(-50%);
+            display: none; position: absolute; top: 110%; left: 0; /* ظبطنا مكان النزول */
             background-color: #fff; min-width: 220px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);
             border-radius: 10px; z-index: 1000; padding: 10px; border: 1px solid #ddd; animation: fadeIn 0.3s ease-out;
         }
@@ -127,7 +132,18 @@
         @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes bounce { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.1); } }
         
+        /* تعديل الهيدر على شاشة الموبايل */
         @media (max-width: 600px) { 
+            header { 
+                flex-direction: column; /* تخلي الهيدر ينزل تحت بعض */
+                text-align: center;
+            }
+            .call-container {
+                width: 100%; 
+                text-align: left; /* تخلي اتصل بنا في اقصى الشمال */
+                padding-left: 10px;
+                margin-top: 5px;
+            }
             .item-name { font-size: 14px; } 
             .item-price { font-size: 16px; } 
             .header-title { font-size: 22px; } 
@@ -214,7 +230,6 @@
 
         async function fetchProducts() {
             try {
-                // الموقع بيجيب الأصناف من ملف data.json
                 let response = await fetch('data.json'); 
                 products = await response.json();
                 filterProducts(); 
