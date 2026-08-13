@@ -34,21 +34,20 @@
         .header-title { margin: 0; font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: 1px; }
         
         .call-container { position: relative; display: inline-block; }
-        /* تعديل زرار الاتصال ليكون نص أبيض بارز بدون خلفية */
         .call-btn { 
-            background-color: transparent; /* شيلنا الخلفية */
-            color: #ffffff; /* لون أبيض */
+            background-color: transparent; 
+            color: #ffffff; 
             border: none; 
             padding: 5px 0; 
-            font-size: 20px; /* خط أكبر */
-            font-weight: 800; /* خط عريض بارز */
+            font-size: 20px; 
+            font-weight: 800; 
             cursor: pointer;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.3); /* ظل خفيف يخليه بارز */
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3); 
         }
         .call-btn:hover { color: #e0f2f1; }
 
         .call-dropdown {
-            display: none; position: absolute; top: 110%; left: 0; /* ظبطنا مكان النزول */
+            display: none; position: absolute; top: 110%; left: 0; 
             background-color: #fff; min-width: 220px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);
             border-radius: 10px; z-index: 1000; padding: 10px; border: 1px solid #ddd; animation: fadeIn 0.3s ease-out;
         }
@@ -67,6 +66,16 @@
         .search-container { margin-bottom: 20px; text-align: center; }
         .search-input { width: 100%; max-width: 500px; padding: 12px; font-size: 16px; border: 2px solid #00695c; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: box-shadow 0.3s; }
         .search-input:focus { box-shadow: 0 0 10px rgba(0, 105, 92, 0.4); outline: none; }
+
+        /* أزرار التبديل بين الأصناف والعروض */
+        .view-buttons { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .view-btn { 
+            background-color: #fff; color: #00695c; border: 2px solid #00695c; 
+            padding: 10px 25px; border-radius: 50px; cursor: pointer; font-size: 16px; font-weight: bold; 
+            transition: all 0.3s;
+        }
+        .view-btn.active { background-color: #00695c; color: #fff; }
+        .view-btn:hover { transform: translateY(-2px); }
 
         .catalog-btn { 
             background-color: #00695c; color: #fff; border: none; padding: 12px 20px; 
@@ -132,18 +141,9 @@
         @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes bounce { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.1); } }
         
-        /* تعديل الهيدر على شاشة الموبايل */
         @media (max-width: 600px) { 
-            header { 
-                flex-direction: column; /* تخلي الهيدر ينزل تحت بعض */
-                text-align: center;
-            }
-            .call-container {
-                width: 100%; 
-                text-align: left; /* تخلي اتصل بنا في اقصى الشمال */
-                padding-left: 10px;
-                margin-top: 5px;
-            }
+            header { flex-direction: column; text-align: center; }
+            .call-container { width: 100%; text-align: left; padding-left: 10px; margin-top: 5px; }
             .item-name { font-size: 14px; } 
             .item-price { font-size: 16px; } 
             .header-title { font-size: 22px; } 
@@ -183,6 +183,12 @@
             <button class="catalog-btn" onclick="printCatalog()">تحميل قائمة الأسعار</button>
         </div>
 
+        <!-- أزرار العرض الأسبوعي -->
+        <div class="view-buttons">
+            <button class="view-btn active" id="btnAll" onclick="showAllProducts()">كل الأصناف</button>
+            <button class="view-btn" id="btnOffers" onclick="showWeeklyOffers()">العرض الأسبوعي</button>
+        </div>
+
         <div class="product-list" id="productList">
             <p style="text-align:center; color:#00695c; font-size:18px;">جاري تحميل الأصناف...</p>
         </div>
@@ -210,7 +216,9 @@
     </a>
 
     <script>
-        let products = []; 
+        let allProducts = []; 
+        let offerProducts = [];
+        let currentProducts = []; 
         let cart = [];
 
         function toggleCallMenu() {
@@ -230,12 +238,35 @@
 
         async function fetchProducts() {
             try {
-                let response = await fetch('data.json'); 
-                products = await response.json();
+                let resAll = await fetch('data.json');
+                allProducts = await resAll.json();
+                
+                try {
+                    let resOffers = await fetch('offers.json');
+                    offerProducts = await resOffers.json();
+                } catch (e) {
+                    offerProducts = []; 
+                }
+                
+                currentProducts = allProducts;
                 filterProducts(); 
             } catch (error) {
                 document.getElementById('productList').innerHTML = '<p style="text-align:center; color:red; font-size:20px; padding:20px;">حدث خطأ في تحميل الأصناف.<br>برجاء التأكد من رفع ملف data.json.</p>';
             }
+        }
+
+        function showAllProducts() {
+            currentProducts = allProducts;
+            document.getElementById("btnAll").classList.add("active");
+            document.getElementById("btnOffers").classList.remove("active");
+            filterProducts();
+        }
+
+        function showWeeklyOffers() {
+            currentProducts = offerProducts;
+            document.getElementById("btnOffers").classList.add("active");
+            document.getElementById("btnAll").classList.remove("active");
+            filterProducts();
         }
 
         function filterProducts() {
@@ -243,12 +274,12 @@
             let listDiv = document.getElementById('productList');
             listDiv.innerHTML = '';
 
-            if (products.length === 0) {
-                listDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد أصناف متاحة حالياً.</p>';
+            if (currentProducts.length === 0) {
+                listDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد أصناف أو عروض متاحة حالياً.</p>';
                 return;
             }
 
-            let filtered = products.filter(p => p.name && p.name.toLowerCase().includes(searchText));
+            let filtered = currentProducts.filter(p => p.name && p.name.toLowerCase().includes(searchText));
 
             if(filtered.length === 0) {
                 listDiv.innerHTML = '<p style="text-align:center; color:red; font-size:20px; padding:20px;">لا يوجد صنف بهذا الاسم</p>';
@@ -256,7 +287,7 @@
             }
 
             filtered.forEach(p => {
-                let originalIndex = products.indexOf(p);
+                let originalIndex = currentProducts.indexOf(p);
                 listDiv.innerHTML += `
                     <div class="list-item">
                         <div class="item-header">
@@ -382,9 +413,9 @@
         }
 
         function printCatalog() {
-            if (products.length === 0) { alert("لم يتم تحميل الأصناف بعد."); return; }
+            if (allProducts.length === 0) { alert("لم يتم تحميل الأصناف بعد."); return; }
             let catalogContents = `<html dir="rtl" lang="ar"><head><title>قائمة أسعار - Tree Pharma</title><style>body{font-family:'Segoe UI',Tahoma,sans-serif;padding:20px}h1{color:#00695c;text-align:center;margin-bottom:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:right}th{background-color:#00695c;color:white}tr:nth-child(even){background-color:#f9f9f9}</style></head><body><h1>قائمة أسعار Tree Pharma</h1><table><tr><th>اسم الصنف</th><th>سعر الصيدلي</th></tr>`;
-            products.forEach(p => {
+            allProducts.forEach(p => {
                 catalogContents += `<tr><td>${p.name}</td><td>${p.price} ج.م</td></tr>`;
             });
             catalogContents += `</table></body></html>`;
