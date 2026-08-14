@@ -26,22 +26,14 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             padding: 10px; 
         }
-        .logo-circle img { 
-            max-width: 100%; max-height: 100%; 
-            object-fit: contain; 
-        }
+        .logo-circle img { max-width: 100%; max-height: 100%; object-fit: contain; }
         
         .header-title { margin: 0; font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: 1px; }
         
         .call-container { position: relative; display: inline-block; }
         .call-btn { 
-            background-color: transparent; 
-            color: #ffffff; 
-            border: none; 
-            padding: 5px 0; 
-            font-size: 20px; 
-            font-weight: 800; 
-            cursor: pointer;
+            background-color: transparent; color: #ffffff; border: none; padding: 5px 0; 
+            font-size: 20px; font-weight: 800; cursor: pointer;
             text-shadow: 1px 1px 3px rgba(0,0,0,0.3); 
         }
         .call-btn:hover { color: #e0f2f1; }
@@ -63,16 +55,33 @@
 
         .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; animation: fadeIn 1.5s ease-out; }
         
-        .search-container { margin-bottom: 20px; text-align: center; }
-        .search-input { width: 100%; max-width: 500px; padding: 12px; font-size: 16px; border: 2px solid #00695c; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: box-shadow 0.3s; }
+        .search-container { margin-bottom: 20px; text-align: center; position: relative; }
+        .search-input { 
+            width: 100%; max-width: 500px; padding: 12px; font-size: 16px; 
+            border: 2px solid #00695c; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+            transition: box-shadow 0.3s; 
+        }
         .search-input:focus { box-shadow: 0 0 10px rgba(0, 105, 92, 0.4); outline: none; }
 
-        /* أزرار التبديل بين الأصناف والعروض */
+        /* تنسيق قائمة البحث السريع المنسدلة */
+        .autocomplete-list {
+            display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 500px; background-color: #fff; z-index: 99;
+            border: 1px solid #ddd; border-radius: 8px; margin-top: 5px; max-height: 300px;
+            overflow-y: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: right;
+        }
+        .autocomplete-item {
+            padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 15px; color: #333;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .autocomplete-item:last-child { border-bottom: none; }
+        .autocomplete-item:hover { background-color: #f4f7f6; }
+        .autocomplete-item span { font-weight: bold; color: #00695c; font-size: 13px; }
+
         .view-buttons { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
         .view-btn { 
             background-color: #fff; color: #00695c; border: 2px solid #00695c; 
-            padding: 10px 25px; border-radius: 50px; cursor: pointer; font-size: 16px; font-weight: bold; 
-            transition: all 0.3s;
+            padding: 10px 25px; border-radius: 50px; cursor: pointer; font-size: 16px; font-weight: bold; transition: all 0.3s;
         }
         .view-btn.active { background-color: #00695c; color: #fff; }
         .view-btn:hover { transform: translateY(-2px); }
@@ -177,13 +186,14 @@
     </header>
 
     <div class="container">
+        <!-- قسم البحث السريع -->
         <div class="search-container">
-            <input type="text" id="searchInput" class="search-input" placeholder="ابحث عن صنف... (مثال: جوانتي، شامبو، كريم)" oninput="filterProducts()">
+            <input type="text" id="searchInput" class="search-input" placeholder="ابحث عن صنف... (مثال: جوانتي، شامبو، كريم)" oninput="handleSearchInput()" onfocus="handleSearchInput()">
+            <div class="autocomplete-list" id="autocompleteList"></div>
             <br>
             <button class="catalog-btn" onclick="printCatalog()">تحميل قائمة الأسعار</button>
         </div>
 
-        <!-- أزرار العرض الأسبوعي -->
         <div class="view-buttons">
             <button class="view-btn active" id="btnAll" onclick="showAllProducts()">كل الأصناف</button>
             <button class="view-btn" id="btnOffers" onclick="showWeeklyOffers()">العرض الأسبوعي</button>
@@ -226,13 +236,16 @@
         }
 
         window.onclick = function(event) {
+            // إخفاء قائمة الاتصال
             if (!event.target.matches('.call-btn')) {
                 var dropdowns = document.getElementsByClassName("call-dropdown");
                 for (let i = 0; i < dropdowns.length; i++) {
-                    if (dropdowns[i].classList.contains('show')) {
-                        dropdowns[i].classList.remove('show');
-                    }
+                    if (dropdowns[i].classList.contains('show')) dropdowns[i].classList.remove('show');
                 }
+            }
+            // إخفاء قائمة البحث السريع لو تم الضغط خارجها
+            if (!event.target.matches('#searchInput') && !event.target.matches('.autocomplete-item')) {
+                document.getElementById("autocompleteList").style.display = 'none';
             }
         }
 
@@ -240,13 +253,10 @@
             try {
                 let resAll = await fetch('data.json');
                 allProducts = await resAll.json();
-                
                 try {
                     let resOffers = await fetch('offers.json');
                     offerProducts = await resOffers.json();
-                } catch (e) {
-                    offerProducts = []; 
-                }
+                } catch (e) { offerProducts = []; }
                 
                 currentProducts = allProducts;
                 filterProducts(); 
@@ -267,6 +277,41 @@
             document.getElementById("btnOffers").classList.add("active");
             document.getElementById("btnAll").classList.remove("active");
             filterProducts();
+        }
+
+        // دالة البحث السريع (القائمة المنسدلة)
+        function handleSearchInput() {
+            let searchText = document.getElementById('searchInput').value.toLowerCase();
+            let autocompleteList = document.getElementById('autocompleteList');
+            autocompleteList.innerHTML = '';
+
+            if (!searchText) {
+                autocompleteList.style.display = 'none';
+                filterProducts(); // عرض كل الأصناف لو مسح الكلام
+                return;
+            }
+
+            // جلب أول 7 أصناف مطابقين
+            let matches = currentProducts.filter(p => p.name && p.name.toLowerCase().includes(searchText)).slice(0, 7);
+
+            if (matches.length > 0) {
+                autocompleteList.style.display = 'block';
+                matches.forEach(match => {
+                    let item = document.createElement('div');
+                    item.className = 'autocomplete-item';
+                    item.innerHTML = `${match.name} <span>${match.price} ج.م</span>`;
+                    item.onclick = () => {
+                        document.getElementById('searchInput').value = match.name; // تعبئة الخانة بالاسم
+                        autocompleteList.style.display = 'none'; // إخفاء القائمة
+                        filterProducts(); // تصفية المنتج اللي تم اختياره
+                    };
+                    autocompleteList.appendChild(item);
+                });
+            } else {
+                autocompleteList.style.display = 'none';
+            }
+
+            filterProducts(); // تصفية القائمة الرئيسية أثناء الكتابة برضو
         }
 
         function filterProducts() {
