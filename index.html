@@ -102,10 +102,10 @@
         .order-list div { padding: 8px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; align-items: center; animation: slideIn 0.5s ease-out; }
         
         .action-buttons { display: flex; gap: 15px; }
-        .submit-btn { background-color: #000; color: #fff; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: all 0.3s; flex: 2; }
-        .submit-btn:hover { background-color: #333; transform: translateY(-2px); }
-        .print-btn { background-color: #00695c; color: #fff; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: all 0.3s; flex: 1; }
-        .print-btn:hover { background-color: #004d40; transform: translateY(-2px); }
+        .submit-btn { background-color: #00695c; color: #fff; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: all 0.3s; flex: 2; }
+        .submit-btn:hover { background-color: #004d40; transform: translateY(-2px); }
+        .print-btn { background-color: #000; color: #fff; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: all 0.3s; flex: 1; }
+        .print-btn:hover { background-color: #333; transform: translateY(-2px); }
 
         .remove-btn { background-color: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px; margin-right: 10px; transition: all 0.3s; }
         .remove-btn:hover { background-color: #cc0000; }
@@ -197,7 +197,7 @@
                 <div><span>لا توجد أصناف في السلة بعد</span></div>
             </div>
             <div class="action-buttons">
-                <button class="submit-btn" onclick="sendOrder()">تأكيد الطلب (واتساب)</button>
+                <button class="submit-btn" onclick="sendOrder()">تأكيد الطلب</button>
                 <button class="print-btn" onclick="printOrder()">طباعة الطلب</button>
             </div>
         </div>
@@ -222,9 +222,7 @@
             if (!event.target.matches('.call-btn')) {
                 var dropdowns = document.getElementsByClassName("call-dropdown");
                 for (let i = 0; i < dropdowns.length; i++) {
-                    if (dropdowns[i].classList.contains('show')) {
-                        dropdowns[i].classList.remove('show');
-                    }
+                    if (dropdowns[i].classList.contains('show')) dropdowns[i].classList.remove('show');
                 }
             }
         }
@@ -233,13 +231,10 @@
             try {
                 let resAll = await fetch('data.json');
                 allProducts = await resAll.json();
-                
                 try {
                     let resOffers = await fetch('offers.json');
                     offerProducts = await resOffers.json();
-                } catch (e) {
-                    offerProducts = []; 
-                }
+                } catch (e) { offerProducts = []; }
                 
                 currentProducts = allProducts;
                 filterProducts(); 
@@ -369,9 +364,10 @@
             let phone = document.getElementById('clientPhone').value;
             if (cart.length === 0) { alert("برجاء إضافة أصناف للسلة أولاً."); return; }
             if (!name || !address || !phone) { alert("برجاء إدخال اسم العميل والعنوان ورقم الموبايل."); return; }
+            
             let customerData = { name: name, address: address, phone: phone };
             localStorage.setItem('treePharma_customer', JSON.stringify(customerData));
-            let adminWhatsApp = "201274906271"; 
+            
             let message = `*طلب جديد من Tree Pharma*\n\n`;
             message += `*اسم العميل:* ${name}\n*العنوان:* ${address}\n*رقم الموبايل:* ${phone}\n\n*تفاصيل الطلب:*\n`;
             let total = 0;
@@ -381,8 +377,29 @@
                 message += `- ${item.name} (الكمية: ${item.qty}) = ${itemTotal} ج.م\n`;
             });
             message += `\n*الإجمالي: ${total} ج.م*`;
-            let url = `https://wa.me/${adminWhatsApp}?text=${encodeURIComponent(message)}`;
-            window.open(url, '_blank');
+
+            // ===== إرسال الإشعار إلى التيليجرام =====
+            const tgToken = "8908489194:AAGtktz5VXy2NGkGohVc-4PXnW4tDpCkzoY";
+            const tgChatId = "5508491930";
+            const tgUrl = `https://api.telegram.org/bot${tgToken}/sendMessage?chat_id=${tgChatId}&text=${encodeURIComponent(message)}`;
+            
+            // إرسال الطلب للتيليجرام وتفريغ السلة عند النجاح
+            fetch(tgUrl)
+                .then(response => {
+                    if (response.ok) {
+                        alert("تم استلام طلبك بنجاح! سيتم التواصل معك قريباً.");
+                        cart = []; // تفريغ السلة
+                        updateCartDisplay();
+                        updateFloatingCart();
+                    } else {
+                        alert("حدث خطأ أثناء إرسال الطلب، برجاء المحاولة مرة أخرى.");
+                    }
+                })
+                .catch(err => {
+                    console.error("Telegram Error:", err);
+                    alert("حدث خطأ في الاتصال، برجاء التأكد من الإنترنت والمحاولة مرة أخرى.");
+                });
+            // ==========================================
         }
 
         function printOrder() {
