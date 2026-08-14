@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tree Pharma - مستلزمات طبية وتجميل</title>
+    
+    <!-- أكواد تحويل الموقع لتطبيق (PWA) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00695c">
+    <link rel="apple-touch-icon" href="logo.jpg.jpg">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Tree Pharma">
+    <!-- ====================================== -->
+
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; color: #333; padding-bottom: 80px; }
         
@@ -376,32 +386,20 @@
                 itemsText += `- ${item.name} (الكمية: ${item.qty}) = ${itemTotal} ج.م\n`;
             });
 
-            // تجهيز البيانات لإرسالها لجوجل شيت
-            const orderData = {
-                name: name,
-                phone: phone,
-                address: address,
-                items: itemsText,
-                total: total
-            };
-
+            const orderData = { name: name, phone: phone, address: address, items: itemsText, total: total };
             const GAS_URL = "https://script.google.com/macros/s/AKfycbxsZ88Sk_3rWPhUSf4BaSVPoqey4K296wxqLLe-yPqHdDWEU3Qz7w8aBQKsgmt5VCik/exec";
             
-            // إرسال البيانات للجوجل شيت (اللي هيسجلها وهيبعتها للتيليجرام)
             fetch(GAS_URL, {
                 method: 'POST',
-                mode: 'no-cors', // مهم جداً عشان متطلب الجوجل شيت
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8' // مهم جداً للـ CORS
-                },
+                mode: 'no-cors', 
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(orderData)
             })
             .then(() => {
                 alert("تم استلام طلبك بنجاح! سيتم التواصل معك قريباً.");
-                cart = []; // تفريغ السلة
+                cart = []; 
                 updateCartDisplay();
                 updateFloatingCart();
-                // مسح بيانات العميل بعد التأكيد لو حابب (اختياري)
                 document.getElementById('clientName').value = '';
                 document.getElementById('clientAddress').value = '';
                 document.getElementById('clientPhone').value = '';
@@ -445,6 +443,16 @@
             printWindow.document.close();
             setTimeout(function() { printWindow.print(); }, 500);
         }
+
+        // ===== كود تسجيل التطبيق (Service Worker) =====
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(reg => console.log('Service Worker Registered'))
+                    .catch(err => console.log('Service Worker Registration Failed: ', err));
+            });
+        }
+        // ============================================
     </script>
 </body>
 </html>
