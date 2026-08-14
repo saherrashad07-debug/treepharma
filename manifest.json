@@ -1,0 +1,16 @@
+{
+  "name": "Tree Pharma - مستلزمات طبية وتجميل",
+  "short_name": "Tree Pharma",
+  "description": "شركة تري فارما للمستلزمات الطبية والتجميل",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#00695c",
+  "icons": [
+    {
+      "src": "logo.jpg.jpg",
+      "sizes": "any",
+      "type": "image/jpg"
+    }
+  ]
+}
