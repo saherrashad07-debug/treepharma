@@ -368,38 +368,48 @@
             let customerData = { name: name, address: address, phone: phone };
             localStorage.setItem('treePharma_customer', JSON.stringify(customerData));
             
-            let message = `*طلب جديد من Tree Pharma*\n\n`;
-            message += `*اسم العميل:* ${name}\n*العنوان:* ${address}\n*رقم الموبايل:* ${phone}\n\n*تفاصيل الطلب:*\n`;
+            let itemsText = "";
             let total = 0;
             cart.forEach(item => {
                 let itemTotal = item.price * item.qty;
                 total += itemTotal;
-                message += `- ${item.name} (الكمية: ${item.qty}) = ${itemTotal} ج.م\n`;
+                itemsText += `- ${item.name} (الكمية: ${item.qty}) = ${itemTotal} ج.م\n`;
             });
-            message += `\n*الإجمالي: ${total} ج.م*`;
 
-            // ===== إرسال الإشعار إلى التيليجرام =====
-            const tgToken = "8908489194:AAGtktz5VXy2NGkGohVc-4PXnW4tDpCkzoY";
-            const tgChatId = "5508491930";
-            const tgUrl = `https://api.telegram.org/bot${tgToken}/sendMessage?chat_id=${tgChatId}&text=${encodeURIComponent(message)}`;
+            // تجهيز البيانات لإرسالها لجوجل شيت
+            const orderData = {
+                name: name,
+                phone: phone,
+                address: address,
+                items: itemsText,
+                total: total
+            };
+
+            const GAS_URL = "https://script.google.com/macros/s/AKfycbxsZ88Sk_3rWPhUSf4BaSVPoqey4K296wxqLLe-yPqHdDWEU3Qz7w8aBQKsgmt5VCik/exec";
             
-            // إرسال الطلب للتيليجرام وتفريغ السلة عند النجاح
-            fetch(tgUrl)
-                .then(response => {
-                    if (response.ok) {
-                        alert("تم استلام طلبك بنجاح! سيتم التواصل معك قريباً.");
-                        cart = []; // تفريغ السلة
-                        updateCartDisplay();
-                        updateFloatingCart();
-                    } else {
-                        alert("حدث خطأ أثناء إرسال الطلب، برجاء المحاولة مرة أخرى.");
-                    }
-                })
-                .catch(err => {
-                    console.error("Telegram Error:", err);
-                    alert("حدث خطأ في الاتصال، برجاء التأكد من الإنترنت والمحاولة مرة أخرى.");
-                });
-            // ==========================================
+            // إرسال البيانات للجوجل شيت (اللي هيسجلها وهيبعتها للتيليجرام)
+            fetch(GAS_URL, {
+                method: 'POST',
+                mode: 'no-cors', // مهم جداً عشان متطلب الجوجل شيت
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8' // مهم جداً للـ CORS
+                },
+                body: JSON.stringify(orderData)
+            })
+            .then(() => {
+                alert("تم استلام طلبك بنجاح! سيتم التواصل معك قريباً.");
+                cart = []; // تفريغ السلة
+                updateCartDisplay();
+                updateFloatingCart();
+                // مسح بيانات العميل بعد التأكيد لو حابب (اختياري)
+                document.getElementById('clientName').value = '';
+                document.getElementById('clientAddress').value = '';
+                document.getElementById('clientPhone').value = '';
+            })
+            .catch(err => {
+                console.error("Error:", err);
+                alert("حدث خطأ في الاتصال، برجاء التأكد من الإنترنت والمحاولة مرة أخرى.");
+            });
         }
 
         function printOrder() {
