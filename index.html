@@ -63,11 +63,23 @@
         .customer-info { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 8px; }
         .customer-info input { padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; transition: border-color 0.3s; }
         .customer-info input:focus { border-color: #00695c; outline: none; }
+        
+        /* قسم طرق الدفع */
+        .payment-section { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .payment-section h3 { margin: 0 0 15px 0; color: #00695c; font-size: 18px; }
+        .payment-option { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer; font-size: 16px; }
+        .payment-option input { width: 20px; height: 20px; accent-color: #00695c; }
+        .payment-details { display: none; margin-top: 10px; padding: 15px; background-color: #f9f9f9; border: 1px dashed #00695c; border-radius: 8px; font-size: 15px; line-height: 1.6; }
+        .payment-details.active { display: block; animation: fadeIn 0.3s ease-out; }
+        .copy-text { font-weight: bold; color: #00695c; user-select: all; }
+
         .order-list { margin-bottom: 20px; font-size: 16px; }
         .order-list div { padding: 8px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; align-items: center; }
         .action-buttons { display: flex; gap: 15px; }
         .submit-btn { background-color: #00695c; color: #fff; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: all 0.3s; flex: 2; }
         .submit-btn:hover { background-color: #004d40; transform: translateY(-2px); }
+        .print-btn { background-color: #000; color: #fff; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: all 0.3s; flex: 1; }
+        .print-btn:hover { background-color: #333; transform: translateY(-2px); }
         .remove-btn { background-color: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px; margin-right: 10px; transition: all 0.3s; }
         .remove-btn:hover { background-color: #cc0000; }
 
@@ -137,9 +149,36 @@
                     <input type="text" id="clientAddress" placeholder="العنوان بالتفصيل">
                     <input type="text" id="clientPhone" placeholder="رقم الموبايل">
                 </div>
+                
+                <!-- قسم طرق الدفع -->
+                <div class="payment-section">
+                    <h3>طريقة الدفع</h3>
+                    <label class="payment-option">
+                        <input type="radio" name="paymentMethod" value="كاش عند الاستلام" checked onchange="togglePaymentInfo()"> 
+                        دفع كاش عند الاستلام
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="paymentMethod" value="إنستا باي" onchange="togglePaymentInfo()"> 
+                        تحويل عبر إنستا باي (InstaPay)
+                    </label>
+                    <div id="instapay-details" class="payment-details">
+                        برجاء التحويل على رقم الحساب التالي وإرسال إيصال التحويل عند تأكيد الطلب:<br>
+                        الرقم: <span class="copy-text">01220202473</span><br>
+                        الاسم: <span class="copy-text">احمد محمد فتح الله</span>
+                    </div>
+                    <label class="payment-option">
+                        <input type="radio" name="paymentMethod" value="ماكينة فيزا (PayMob)" onchange="togglePaymentInfo()"> 
+                        الدفع عبر ماكينة فيزا (PayMob)
+                    </label>
+                    <div id="paymob-details" class="payment-details">
+                        سيقوم مندوبنا بإحضار ماكينة الدفع (فيزا) عند توصيل الطلب إليك.
+                    </div>
+                </div>
+
                 <div class="order-list" id="cartDisplay"><div><span>لا توجد أصناف في السلة بعد</span></div></div>
                 <div class="action-buttons">
                     <button class="submit-btn" onclick="sendOrder()">تأكيد الطلب</button>
+                    <button class="print-btn" onclick="printOrder()">طباعة الطلب</button>
                 </div>
             </div>
         </div>
@@ -246,6 +285,19 @@
             else { badge.style.display = 'none'; }
         }
 
+        // دالة إظهار تفاصيل الدفع
+        function togglePaymentInfo() {
+            let selectedMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+            document.getElementById('instapay-details').classList.remove('active');
+            document.getElementById('paymob-details').classList.remove('active');
+
+            if (selectedMethod === 'إنستا باي') {
+                document.getElementById('instapay-details').classList.add('active');
+            } else if (selectedMethod === 'ماكينة فيزا (PayMob)') {
+                document.getElementById('paymob-details').classList.add('active');
+            }
+        }
+
         function switchView(viewName, event) {
             document.getElementById('view-home').style.display = 'none';
             document.getElementById('view-cart').style.display = 'none';
@@ -262,11 +314,15 @@
             if (cart.length === 0) { alert("برجاء إضافة أصناف للسلة أولاً."); return; }
             if (!name || !address || !phone) { alert("برجاء إدخال اسم العميل والعنوان ورقم الموبايل."); return; }
             
+            // جلب طريقة الدفع المختارة
+            let paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+            
             let customerData = { name: name, address: address, phone: phone };
             localStorage.setItem('treePharma_customer', JSON.stringify(customerData));
             
             let itemsText = "", total = 0;
             cart.forEach(item => { let itemTotal = item.price * item.qty; total += itemTotal; itemsText += `- ${item.name} (الكمية: ${item.qty}) = ${itemTotal} ج.م\n`; });
+            itemsText += `\n*طريقة الدفع المطلوبة: ${paymentMethod}*`; // إضافة طريقة الدفع لرسالة التليجرام
 
             const orderData = { name: name, phone: phone, address: address, items: itemsText, total: total };
             const GAS_URL = "https://script.google.com/macros/s/AKfycbxsZ88Sk_3rWPhUSf4BaSVPoqey4K296wxqLLe-yPqHdDWEU3Qz7w8aBQKsgmt5VCik/exec";
@@ -285,6 +341,26 @@
             .catch(err => { console.error("Error:", err); alert("حدث خطأ في الاتصال، برجاء المحاولة مرة أخرى."); });
         }
 
+        function printOrder() {
+            let name = document.getElementById('clientName').value;
+            let address = document.getElementById('clientAddress').value;
+            let phone = document.getElementById('clientPhone').value;
+            let paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+            if (cart.length === 0) { alert("السلة فارغة، لا يمكن طباعة الطلب."); return; }
+            let printContents = `<html dir="rtl" lang="ar"><head><title>طباعة طلب - Tree Pharma</title><style>body{font-family:'Segoe UI',Tahoma,sans-serif;padding:20px}h1{color:#00695c;text-align:center;margin-bottom:5px}h2{font-size:18px;border-bottom:2px solid #000;padding-bottom:5px}.header-info{text-align:center;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #ddd;padding:8px;text-align:center}th{background-color:#f4f7f6}.total{text-align:left;font-size:20px;font-weight:bold;margin-top:20px}.payment-info{margin-top:15px;font-weight:bold;color:#00695c}</style></head><body><div class="header-info"><h1>Tree Pharma</h1></div><h2>بيانات العميل:</h2><p><strong>اسم العميل:</strong> ${name}</p><p><strong>العنوان:</strong> ${address}</p><p><strong>الموبايل:</strong> ${phone}</p><h2>تفاصيل الطلب:</h2><table><tr><th>الصنف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>`;
+            let total = 0;
+            cart.forEach(item => {
+                let itemTotal = item.price * item.qty; total += itemTotal;
+                printContents += `<tr><td>${item.name}</td><td>${item.qty}</td><td>${item.price} ج.م</td><td>${itemTotal} ج.م</td></tr>`;
+            });
+            printContents += `</table><div class="total">الإجمالي: ${total} ج.م</div><div class="payment-info">طريقة الدفع: ${paymentMethod}</div></body></html>`;
+            let printWindow = window.open('', '_blank');
+            printWindow.document.open();
+            printWindow.document.write(printContents);
+            printWindow.document.close();
+            setTimeout(function() { printWindow.print(); }, 500);
+        }
+
         function printCatalog() {
             if (allProducts.length === 0) { alert("لم يتم تحمل الأصناف بعد."); return; }
             let catalogContents = `<html dir="rtl" lang="ar"><head><title>قائمة أسعار - Tree Pharma</title><style>body{font-family:'Segoe UI',Tahoma,sans-serif;padding:20px}h1{color:#00695c;text-align:center;margin-bottom:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:right}th{background-color:#00695c;color:white}tr:nth-child(even){background-color:#f9f9f9}</style></head><body><h1>قائمة أسعار Tree Pharma</h1><table><tr><th>اسم الصنف</th><th>سعر الصيدلي</th></tr>`;
@@ -297,13 +373,10 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('service-worker.js').then(reg => {
-                    // الاستماع لتحديثات الـ Service Worker
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
                         newWorker.addEventListener('statechange', () => {
-                            // لو فيه نسخة جديدة اتنزلت وجاهزة تشتغل
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                // اعمل تحديث للصفحة فوراً عشان العميل يشوف الجديد
                                 window.location.reload();
                             }
                         });
