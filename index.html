@@ -84,14 +84,12 @@
         .remove-btn { background-color: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px; margin-right: 10px; transition: all 0.3s; }
         .remove-btn:hover { background-color: #cc0000; }
 
-        /* صفحة طلباتي والمفضلة */
         .history-item { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
         .history-date { font-weight: bold; color: #00695c; }
         .history-total { font-weight: bold; }
         .reorder-btn { background-color: #00695c; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; margin-top: 10px; width: 100%; }
         
-        /* صفحة تواصل معنا */
         .contact-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; }
         .contact-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; font-size: 18px; }
         .contact-item:last-child { border-bottom: none; }
@@ -100,7 +98,6 @@
         .whatsapp-btn-large { display: block; background-color: #25D366; color: #fff; text-decoration: none; padding: 15px; border-radius: 8px; font-size: 18px; font-weight: bold; margin-top: 20px; text-align: center; }
         .whatsapp-btn-large:hover { background-color: #128C7E; }
 
-        /* الفوتر الجديد بـ 5 أزرار */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #fff; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-around; padding: 8px 0; z-index: 999; border-top: 3px solid #00695c; }
         .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #00695c; font-weight: bold; font-size: 12px; cursor: pointer; padding: 5px; border-radius: 8px; transition: background-color 0.3s; position: relative; flex: 1; }
         .nav-item:hover { background-color: #f4f7f6; }
@@ -147,7 +144,6 @@
     </header>
 
     <div class="container">
-        <!-- الرئيسية -->
         <div id="view-home" class="view">
             <div class="search-container">
                 <input type="text" id="searchInput" class="search-input" placeholder="ابحث عن صنف... (مثال: جوانتي، شامبو، كريم)" oninput="filterProducts()">
@@ -161,13 +157,11 @@
             <div class="product-list" id="productList"><p style="text-align:center; color:#00695c; font-size:18px;">جاري تحميل الأصناف...</p></div>
         </div>
 
-        <!-- المفضلة -->
         <div id="view-favorites" class="view" style="display: none;">
             <h2 style="color:#00695c; text-align:center;">المفضلة</h2>
             <div class="product-list" id="favoritesList"></div>
         </div>
 
-        <!-- السلة -->
         <div id="view-cart" class="view" style="display: none;">
             <div class="cart-section" id="cartSection">
                 <h2>تأكيد الطلب</h2>
@@ -207,13 +201,11 @@
             </div>
         </div>
 
-        <!-- طلباتي -->
         <div id="view-orders" class="view" style="display: none;">
             <h2 style="color:#00695c; text-align:center;">طلباتي السابقة</h2>
             <div id="ordersList"><p style="text-align:center; color:#888; font-size:18px;">لا توجد طلبات سابقة.</p></div>
         </div>
 
-        <!-- تواصل معنا -->
         <div id="view-contact" class="view" style="display: none;">
             <h2 style="color:#00695c; text-align:center;">تواصل معنا</h2>
             <div class="contact-card">
@@ -252,7 +244,6 @@
         </div>
     </div>
 
-    <!-- الفوتر الجديد -->
     <nav class="bottom-nav">
         <div class="nav-item active" onclick="switchView('home', event)">
             <svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
@@ -321,7 +312,7 @@
                             <span class="item-price">${p.price} ج.م</span>
                         </div>
                         <div class="item-footer">
-                            <button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price})">${heart}</button>
+                            <button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price}, this)">${heart}</button>
                             <input type="number" class="qty-input" id="qty${originalIndex}" placeholder="الكمية" min="1">
                             <button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'qty${originalIndex}')">إضافة</button>
                         </div>
@@ -329,14 +320,24 @@
             });
         }
 
-        // ===== كود المفضلة =====
-        function toggleFavorite(name, price) {
+        // ===== كود المفضلة (معدل للسرعة) =====
+        function toggleFavorite(name, price, btnElement) {
             let index = favorites.findIndex(f => f.name === name);
-            if (index > -1) { favorites.splice(index, 1); } 
-            else { favorites.push({ name, price }); }
+            if (index > -1) {
+                favorites.splice(index, 1);
+                if(btnElement) btnElement.innerText = '🤍'; // تحديث الزرار فوراً
+            } else {
+                favorites.push({ name, price });
+                if(btnElement) btnElement.innerText = '❤️'; // تحديث الزرار فوراً
+            }
             localStorage.setItem('treePharma_favorites', JSON.stringify(favorites));
-            filterProducts(); // تحديث القلوب
-            renderFavorites(); // تحديث صفحة المفضلة
+            
+            // تحديث صفحة المفضلة في الخلفية من غير تأثير على سرعة الضغط
+            setTimeout(() => {
+                if(document.getElementById('view-favorites').style.display === 'block') {
+                    renderFavorites();
+                }
+            }, 50);
         }
 
         function renderFavorites() {
@@ -350,7 +351,7 @@
                             <span class="item-price">${p.price} ج.م</span>
                         </div>
                         <div class="item-footer">
-                            <button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price})">❤️</button>
+                            <button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price}, this)">❤️</button>
                             <input type="number" class="qty-input" placeholder="0" min="1" id="favQty${p.name.replace(/\s/g, '')}">
                             <button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'favQty${p.name.replace(/\s/g, '')}')">إضافة للسلة</button>
                         </div>
@@ -417,7 +418,6 @@
             if(viewName === 'orders') renderOrders();
         }
 
-        // ===== كود طلباتي =====
         function renderOrders() {
             let ordersDiv = document.getElementById('ordersList'); ordersDiv.innerHTML = '';
             if (myOrders.length === 0) { ordersDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد طلبات سابقة.</p>'; return; }
@@ -458,7 +458,6 @@
             cart.forEach(item => { let itemTotal = item.price * item.qty; total += itemTotal; itemsText += `- ${item.name} (الكمية: ${item.qty}) = ${itemTotal} ج.م\n`; });
             itemsText += `\n*طريقة الدفع المطلوبة: ${paymentMethod}*`;
 
-            // حفظ الطلب في طلباتي
             myOrders.unshift({ date: new Date().toLocaleDateString('en-GB'), items: [...cart], total: total });
             if (myOrders.length > 5) myOrders.pop();
             localStorage.setItem('treePharma_orders', JSON.stringify(myOrders));
