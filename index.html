@@ -255,28 +255,83 @@
         let favorites = JSON.parse(localStorage.getItem('treePharma_favorites')) || [];
         let myOrders = JSON.parse(localStorage.getItem('treePharma_orders')) || [];
 
+        // ===== نظام التحميل الفوري (LocalStorage Cache) =====
         async function fetchProducts() {
+            // 1. محاولة عرض الأصناف المحفوظة على الموبايل أولاً (للظهور الفوري)
+            let cachedAll = localStorage.getItem('treePharma_data');
+            let cachedOffers = localStorage.getItem('treePharma_offers');
+            
+            if (cachedAll) {
+                allProducts = JSON.parse(cachedAll);
+                currentProducts = allProducts;
+                filterProducts(); 
+            }
+            if (cachedOffers) {
+                offerProducts = JSON.parse(cachedOffers);
+            }
+
+            // 2. سحب البيانات الحديثة من الإنترنت في الخلفية
             try {
-                let resAll = await fetch('data.json'); allProducts = await resAll.json();
-                try { let resOffers = await fetch('offers.json'); offerProducts = await resOffers.json(); } catch (e) { offerProducts = []; }
-                currentProducts = allProducts; filterProducts(); 
-            } catch (error) { document.getElementById('productList').innerHTML = '<p style="text-align:center; color:red; font-size:20px; padding:20px;">حدث خطأ في تحميل الأصناف.</p>'; }
+                let resAll = await fetch('data.json');
+                let freshAll = await resAll.json();
+                
+                // لو فيه تحديث في الأسعار، حدّث الذاكرة والشاشة
+                if (JSON.stringify(freshAll) !== JSON.stringify(allProducts)) {
+                    allProducts = freshAll;
+                    localStorage.setItem('treePharma_data', JSON.stringify(allProducts));
+                    if (document.getElementById("btnAll").classList.contains("active")) filterProducts();
+                }
+            } catch (e) {}
+
+            try {
+                let resOffers = await fetch('offers.json');
+                let freshOffers = await resOffers.json();
+                if (JSON.stringify(freshOffers) !== JSON.stringify(offerProducts)) {
+                    offerProducts = freshOffers;
+                    localStorage.setItem('treePharma_offers', JSON.stringify(offerProducts));
+                    if (document.getElementById("btnOffers").classList.contains("active")) filterProducts();
+                }
+            } catch (e) {}
         }
 
-        function showAllProducts() { currentProducts = allProducts; document.getElementById("btnAll").classList.add("active"); document.getElementById("btnOffers").classList.remove("active"); filterProducts(); }
-        function showWeeklyOffers() { currentProducts = offerProducts; document.getElementById("btnOffers").classList.add("active"); document.getElementById("btnAll").classList.remove("active"); filterProducts(); }
+        function showAllProducts() { 
+            currentProducts = allProducts; 
+            document.getElementById("btnAll").classList.add("active"); 
+            document.getElementById("btnOffers").classList.remove("active"); 
+            filterProducts(); 
+        }
+        
+        function showWeeklyOffers() { 
+            currentProducts = offerProducts; 
+            document.getElementById("btnOffers").classList.add("active"); 
+            document.getElementById("btnAll").classList.remove("active"); 
+            filterProducts(); 
+        }
 
+        // ===== نظام عرض الأصناف السريع (بدون تعليق) =====
         function filterProducts() {
             let searchText = document.getElementById('searchInput').value.toLowerCase();
-            let listDiv = document.getElementById('productList'); listDiv.innerHTML = '';
-            if (currentProducts.length === 0) { listDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد أصناف.</p>'; return; }
+            let listDiv = document.getElementById('productList');
+            
+            if (currentProducts.length === 0) { 
+                listDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد أصناف.</p>'; 
+                return; 
+            }
+            
             let filtered = currentProducts.filter(p => p.name && p.name.toLowerCase().includes(searchText));
-            if(filtered.length === 0) { listDiv.innerHTML = '<p style="text-align:center; color:red; font-size:20px; padding:20px;">لا يوجد صنف بهذا الاسم</p>'; return; }
+            
+            if(filtered.length === 0) { 
+                listDiv.innerHTML = '<p style="text-align:center; color:red; font-size:20px; padding:20px;">لا يوجد صنف بهذا الاسم</p>'; 
+                return; 
+            }
+
+            // بناء الـ HTML مرة واحدة في الذاكرة (أسرع بكثير من innerHTML +=)
+            let htmlContent = '';
             filtered.forEach(p => {
                 let originalIndex = currentProducts.indexOf(p);
                 let isFav = favorites.some(f => f.name === p.name);
                 let heart = isFav ? '❤️' : '🤍';
-                listDiv.innerHTML += `
+                htmlContent += `
                     <div class="list-item">
                         <div class="item-header">
                             <span class="item-name">${p.name}</span>
@@ -289,6 +344,9 @@
                         </div>
                     </div>`;
             });
+            
+            // طباعة الـ HTML مرة واحدة في الشاشة
+            listDiv.innerHTML = htmlContent;
         }
 
         function toggleFavorite(name, price, btnElement) {
@@ -307,10 +365,12 @@
         }
 
         function renderFavorites() {
-            let favDiv = document.getElementById('favoritesList'); favDiv.innerHTML = '';
+            let favDiv = document.getElementById('favoritesList'); 
             if (favorites.length === 0) { favDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد أصناف في المفضلة.</p>'; return; }
+            
+            let htmlContent = '';
             favorites.forEach(p => {
-                favDiv.innerHTML += `
+                htmlContent += `
                     <div class="list-item">
                         <div class="item-header">
                             <span class="item-name">${p.name}</span>
@@ -323,6 +383,7 @@
                         </div>
                     </div>`;
             });
+            favDiv.innerHTML = htmlContent;
         }
 
         window.onload = function() {
@@ -347,13 +408,15 @@
         function removeFromCart(itemId) { cart = cart.filter(item => item.id !== itemId); updateCartDisplay(); updateCartBadge(); }
 
         function updateCartDisplay() {
-            let cartDiv = document.getElementById('cartDisplay'); cartDiv.innerHTML = ''; let total = 0;
+            let cartDiv = document.getElementById('cartDisplay'); 
             if (cart.length === 0) { cartDiv.innerHTML = '<div><span>لا توجد أصناف في السلة بعد</span></div>'; return; }
+            let total = 0, htmlContent = '';
             cart.forEach(item => {
                 let itemTotal = item.price * item.qty; total += itemTotal;
-                cartDiv.innerHTML += `<div><span>${item.name} (الكمية: ${item.qty}) - ${itemTotal} ج.م</span><button class="remove-btn" onclick="removeFromCart(${item.id})">حذف X</button></div>`;
+                htmlContent += `<div><span>${item.name} (الكمية: ${item.qty}) - ${itemTotal} ج.م</span><button class="remove-btn" onclick="removeFromCart(${item.id})">حذف X</button></div>`;
             });
-            cartDiv.innerHTML += `<div style="font-weight: bold; font-size: 20px; color: #00695c; margin-top: 10px; border-top: 2px solid #000; padding-top: 10px;"><span>الإجمالي:</span><span>${total} ج.م</span></div>`;
+            htmlContent += `<div style="font-weight: bold; font-size: 20px; color: #00695c; margin-top: 10px; border-top: 2px solid #000; padding-top: 10px;"><span>الإجمالي:</span><span>${total} ج.م</span></div>`;
+            cartDiv.innerHTML = htmlContent;
         }
 
         function updateCartBadge() {
@@ -385,11 +448,12 @@
         }
 
         function renderOrders() {
-            let ordersDiv = document.getElementById('ordersList'); ordersDiv.innerHTML = '';
+            let ordersDiv = document.getElementById('ordersList'); 
             if (myOrders.length === 0) { ordersDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد طلبات سابقة.</p>'; return; }
+            let htmlContent = '';
             myOrders.forEach((order, index) => {
                 let itemsText = order.items.map(item => `${item.name} (${item.qty})`).join('، ');
-                ordersDiv.innerHTML += `
+                htmlContent += `
                     <div class="history-item">
                         <div class="history-header">
                             <span class="history-date">تاريخ الطلب: ${order.date}</span>
@@ -399,6 +463,7 @@
                         <button class="reorder-btn" onclick="reorder(${index})">إعادة طلب هذه الأصناف</button>
                     </div>`;
             });
+            ordersDiv.innerHTML = htmlContent;
         }
 
         function reorder(index) {
