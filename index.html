@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-title" content="Tree Pharma">
 
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; color: #333; padding-bottom: 80px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; color: #333; padding-bottom: 90px; }
         
         header { 
             background-color: #00695c; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
@@ -53,10 +53,12 @@
         .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; }
         .item-name { font-weight: bold; color: #333; font-size: 16px; flex: 1; text-align: right; }
         .item-price { color: #00695c; font-weight: bold; font-size: 18px; white-space: nowrap; }
-        .item-footer { display: flex; justify-content: space-between; align-items: center; gap: 15px; }
-        .qty-input { width: 80px; padding: 10px; text-align: center; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
-        .add-btn { background-color: #00695c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1; transition: all 0.3s ease; }
+        .item-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .qty-input { width: 70px; padding: 10px; text-align: center; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
+        .add-btn { background-color: #00695c; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1; transition: all 0.3s ease; }
         .add-btn:hover { background-color: #004d40; transform: scale(1.02); }
+        .fav-btn { background: none; border: none; cursor: pointer; font-size: 24px; padding: 0 5px; transition: transform 0.2s; }
+        .fav-btn:hover { transform: scale(1.2); }
 
         .cart-section { background: #e0f2f1; padding: 25px; border-radius: 12px; border: 2px solid #00695c; box-shadow: 0 5px 15px rgba(0, 105, 92, 0.15); }
         .cart-section h2 { color: #000; border-bottom: 2px solid #00695c; padding-bottom: 10px; margin-top: 0; }
@@ -64,7 +66,6 @@
         .customer-info input { padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; transition: border-color 0.3s; }
         .customer-info input:focus { border-color: #00695c; outline: none; }
         
-        /* قسم طرق الدفع */
         .payment-section { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
         .payment-section h3 { margin: 0 0 15px 0; color: #00695c; font-size: 18px; }
         .payment-option { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer; font-size: 16px; }
@@ -83,13 +84,30 @@
         .remove-btn { background-color: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px; margin-right: 10px; transition: all 0.3s; }
         .remove-btn:hover { background-color: #cc0000; }
 
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #fff; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-around; padding: 10px 0; z-index: 999; border-top: 3px solid #00695c; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #00695c; font-weight: bold; font-size: 14px; cursor: pointer; padding: 5px 15px; border-radius: 8px; transition: background-color 0.3s; position: relative; }
+        /* صفحة طلباتي والمفضلة */
+        .history-item { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
+        .history-date { font-weight: bold; color: #00695c; }
+        .history-total { font-weight: bold; }
+        .reorder-btn { background-color: #00695c; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; margin-top: 10px; width: 100%; }
+        
+        /* صفحة تواصل معنا */
+        .contact-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; }
+        .contact-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; font-size: 18px; }
+        .contact-item:last-child { border-bottom: none; }
+        .contact-item a { background-color: #00695c; color: #fff; text-decoration: none; padding: 8px 20px; border-radius: 50px; font-size: 16px; font-weight: bold; transition: 0.3s; }
+        .contact-item a:hover { background-color: #004d40; }
+        .whatsapp-btn-large { display: block; background-color: #25D366; color: #fff; text-decoration: none; padding: 15px; border-radius: 8px; font-size: 18px; font-weight: bold; margin-top: 20px; text-align: center; }
+        .whatsapp-btn-large:hover { background-color: #128C7E; }
+
+        /* الفوتر الجديد بـ 5 أزرار */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #fff; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-around; padding: 8px 0; z-index: 999; border-top: 3px solid #00695c; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #00695c; font-weight: bold; font-size: 12px; cursor: pointer; padding: 5px; border-radius: 8px; transition: background-color 0.3s; position: relative; flex: 1; }
         .nav-item:hover { background-color: #f4f7f6; }
         .nav-item.active { color: #000; }
-        .nav-icon { width: 24px; height: 24px; margin-bottom: 4px; fill: #00695c; }
+        .nav-icon { width: 24px; height: 24px; margin-bottom: 2px; fill: #00695c; }
         .nav-item.active .nav-icon { fill: #000; }
-        .cart-badge { position: absolute; top: -5px; right: -5px; background-color: #ff4d4d; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none; }
+        .cart-badge { position: absolute; top: 0; right: 15px; background-color: #ff4d4d; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none; }
 
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -101,6 +119,7 @@
             .item-price { font-size: 16px; } 
             .header-title { font-size: 22px; } 
             .logo-circle { width: 70px; height: 70px; }
+            .nav-item { font-size: 11px; }
         }
     </style>
 </head>
@@ -128,6 +147,7 @@
     </header>
 
     <div class="container">
+        <!-- الرئيسية -->
         <div id="view-home" class="view">
             <div class="search-container">
                 <input type="text" id="searchInput" class="search-input" placeholder="ابحث عن صنف... (مثال: جوانتي، شامبو، كريم)" oninput="filterProducts()">
@@ -141,6 +161,13 @@
             <div class="product-list" id="productList"><p style="text-align:center; color:#00695c; font-size:18px;">جاري تحميل الأصناف...</p></div>
         </div>
 
+        <!-- المفضلة -->
+        <div id="view-favorites" class="view" style="display: none;">
+            <h2 style="color:#00695c; text-align:center;">المفضلة</h2>
+            <div class="product-list" id="favoritesList"></div>
+        </div>
+
+        <!-- السلة -->
         <div id="view-cart" class="view" style="display: none;">
             <div class="cart-section" id="cartSection">
                 <h2>تأكيد الطلب</h2>
@@ -149,8 +176,6 @@
                     <input type="text" id="clientAddress" placeholder="العنوان بالتفصيل">
                     <input type="text" id="clientPhone" placeholder="رقم الموبايل">
                 </div>
-                
-                <!-- قسم طرق الدفع -->
                 <div class="payment-section">
                     <h3>طريقة الدفع</h3>
                     <label class="payment-option">
@@ -162,7 +187,7 @@
                         تحويل عبر إنستا باي (InstaPay)
                     </label>
                     <div id="instapay-details" class="payment-details">
-                        برجاء التحويل على رقم الحساب التالي وإرسال إيصال التحويل عند تأكيد الطلب:<br>
+                        برجاء التحويل على رقم الحساب التالي وإرسال إيصال التحويل:<br>
                         الرقم: <span class="copy-text">01220202473</span><br>
                         الاسم: <span class="copy-text">احمد محمد فتح الله</span>
                     </div>
@@ -174,7 +199,6 @@
                         سيقوم مندوبنا بإحضار ماكينة الدفع (فيزا) عند توصيل الطلب إليك.
                     </div>
                 </div>
-
                 <div class="order-list" id="cartDisplay"><div><span>لا توجد أصناف في السلة بعد</span></div></div>
                 <div class="action-buttons">
                     <button class="submit-btn" onclick="sendOrder()">تأكيد الطلب</button>
@@ -182,22 +206,75 @@
                 </div>
             </div>
         </div>
+
+        <!-- طلباتي -->
+        <div id="view-orders" class="view" style="display: none;">
+            <h2 style="color:#00695c; text-align:center;">طلباتي السابقة</h2>
+            <div id="ordersList"><p style="text-align:center; color:#888; font-size:18px;">لا توجد طلبات سابقة.</p></div>
+        </div>
+
+        <!-- تواصل معنا -->
+        <div id="view-contact" class="view" style="display: none;">
+            <h2 style="color:#00695c; text-align:center;">تواصل معنا</h2>
+            <div class="contact-card">
+                <div class="contact-item">
+                    <span>01274906271</span>
+                    <a href="tel:01274906271">اتصال</a>
+                </div>
+                <div class="contact-item">
+                    <span>01204767870</span>
+                    <a href="tel:01204767870">اتصال</a>
+                </div>
+                <div class="contact-item">
+                    <span>01501224733</span>
+                    <a href="tel:01501224733">اتصال</a>
+                </div>
+                <div class="contact-item">
+                    <span>5010048 (أرضي)</span>
+                    <a href="tel:5010048">اتصال</a>
+                </div>
+                <div class="contact-item">
+                    <span>5003717 (أرضي)</span>
+                    <a href="tel:5003717">اتصال</a>
+                </div>
+                <div class="contact-item">
+                    <span>5013813 (أرضي)</span>
+                    <a href="tel:5013813">اتصال</a>
+                </div>
+                <div class="contact-item">
+                    <span style="color:#ff4d4d;">01220202473 (شكاوي)</span>
+                    <a href="tel:01220202473" style="background-color:#ff4d4d;">اتصال</a>
+                </div>
+                <a href="https://wa.me/201274906271" class="whatsapp-btn-large" target="_blank">
+                    مراسلتنا على واتساب
+                </a>
+            </div>
+        </div>
     </div>
 
+    <!-- الفوتر الجديد -->
     <nav class="bottom-nav">
         <div class="nav-item active" onclick="switchView('home', event)">
             <svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
             الرئيسية
+        </div>
+        <div class="nav-item" onclick="switchView('favorites', event)">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            المفضلة
         </div>
         <div class="nav-item" onclick="switchView('cart', event)">
             <svg class="nav-icon" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
             <span class="cart-badge" id="cartBadge">0</span>
             السلة
         </div>
-        <a href="https://wa.me/201274906271" class="nav-item" target="_blank">
-            <svg class="nav-icon" viewBox="0 0 24 24" style="fill: #25D366;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/></svg>
-            واتساب
-        </a>
+        <div class="nav-item" onclick="switchView('orders', event)">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+            طلباتي
+        </div>
+        <div class="nav-item" onclick="switchView('contact', event)">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+            تواصل
+        </div>
     </nav>
 
     <script>
@@ -205,6 +282,8 @@
         let offerProducts = [];
         let currentProducts = []; 
         let cart = [];
+        let favorites = JSON.parse(localStorage.getItem('treePharma_favorites')) || [];
+        let myOrders = JSON.parse(localStorage.getItem('treePharma_orders')) || [];
 
         function toggleCallMenu() { document.getElementById("callDropdown").classList.toggle("show"); }
         window.onclick = function(event) {
@@ -233,6 +312,8 @@
             if(filtered.length === 0) { listDiv.innerHTML = '<p style="text-align:center; color:red; font-size:20px; padding:20px;">لا يوجد صنف بهذا الاسم</p>'; return; }
             filtered.forEach(p => {
                 let originalIndex = currentProducts.indexOf(p);
+                let isFav = favorites.some(f => f.name === p.name);
+                let heart = isFav ? '❤️' : '🤍';
                 listDiv.innerHTML += `
                     <div class="list-item">
                         <div class="item-header">
@@ -240,15 +321,45 @@
                             <span class="item-price">${p.price} ج.م</span>
                         </div>
                         <div class="item-footer">
+                            <button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price})">${heart}</button>
                             <input type="number" class="qty-input" id="qty${originalIndex}" placeholder="الكمية" min="1">
-                            <button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'qty${originalIndex}')">إضافة للسلة</button>
+                            <button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'qty${originalIndex}')">إضافة</button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // ===== كود المفضلة =====
+        function toggleFavorite(name, price) {
+            let index = favorites.findIndex(f => f.name === name);
+            if (index > -1) { favorites.splice(index, 1); } 
+            else { favorites.push({ name, price }); }
+            localStorage.setItem('treePharma_favorites', JSON.stringify(favorites));
+            filterProducts(); // تحديث القلوب
+            renderFavorites(); // تحديث صفحة المفضلة
+        }
+
+        function renderFavorites() {
+            let favDiv = document.getElementById('favoritesList'); favDiv.innerHTML = '';
+            if (favorites.length === 0) { favDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد أصناف في المفضلة.</p>'; return; }
+            favorites.forEach(p => {
+                favDiv.innerHTML += `
+                    <div class="list-item">
+                        <div class="item-header">
+                            <span class="item-name">${p.name}</span>
+                            <span class="item-price">${p.price} ج.م</span>
+                        </div>
+                        <div class="item-footer">
+                            <button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price})">❤️</button>
+                            <input type="number" class="qty-input" placeholder="0" min="1" id="favQty${p.name.replace(/\s/g, '')}">
+                            <button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'favQty${p.name.replace(/\s/g, '')}')">إضافة للسلة</button>
                         </div>
                     </div>`;
             });
         }
 
         window.onload = function() {
-            fetchProducts(); 
+            fetchProducts(); renderFavorites(); renderOrders();
             let savedData = localStorage.getItem('treePharma_customer');
             if (savedData) { let customer = JSON.parse(savedData); document.getElementById('clientName').value = customer.name || ''; document.getElementById('clientAddress').value = customer.address || ''; document.getElementById('clientPhone').value = customer.phone || ''; }
         };
@@ -285,26 +396,51 @@
             else { badge.style.display = 'none'; }
         }
 
-        // دالة إظهار تفاصيل الدفع
         function togglePaymentInfo() {
             let selectedMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
             document.getElementById('instapay-details').classList.remove('active');
             document.getElementById('paymob-details').classList.remove('active');
-
-            if (selectedMethod === 'إنستا باي') {
-                document.getElementById('instapay-details').classList.add('active');
-            } else if (selectedMethod === 'ماكينة فيزا (PayMob)') {
-                document.getElementById('paymob-details').classList.add('active');
-            }
+            if (selectedMethod === 'إنستا باي') document.getElementById('instapay-details').classList.add('active');
+            else if (selectedMethod === 'ماكينة فيزا (PayMob)') document.getElementById('paymob-details').classList.add('active');
         }
 
         function switchView(viewName, event) {
-            document.getElementById('view-home').style.display = 'none';
-            document.getElementById('view-cart').style.display = 'none';
+            let views = ['home', 'favorites', 'cart', 'orders', 'contact'];
+            views.forEach(v => document.getElementById('view-' + v).style.display = 'none');
             document.getElementById('view-' + viewName).style.display = 'block';
+            
             let navItems = document.getElementsByClassName('nav-item');
-            for(let i=0; i<navItems.length; i++) { navItems[i].classList.remove('active'); }
+            for(let i=0; i<navItems.length; i++) navItems[i].classList.remove('active');
             if(event) event.currentTarget.classList.add('active');
+            
+            if(viewName === 'favorites') renderFavorites();
+            if(viewName === 'orders') renderOrders();
+        }
+
+        // ===== كود طلباتي =====
+        function renderOrders() {
+            let ordersDiv = document.getElementById('ordersList'); ordersDiv.innerHTML = '';
+            if (myOrders.length === 0) { ordersDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد طلبات سابقة.</p>'; return; }
+            myOrders.forEach((order, index) => {
+                let itemsText = order.items.map(item => `${item.name} (${item.qty})`).join('، ');
+                ordersDiv.innerHTML += `
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-date">تاريخ الطلب: ${order.date}</span>
+                            <span class="history-total">${order.total} ج.م</span>
+                        </div>
+                        <p>${itemsText}</p>
+                        <button class="reorder-btn" onclick="reorder(${index})">إعادة طلب هذه الأصناف</button>
+                    </div>`;
+            });
+        }
+
+        function reorder(index) {
+            let order = myOrders[index];
+            cart = [...cart, ...order.items.map(item => ({ ...item, id: Date.now() + Math.random() }))];
+            updateCartDisplay(); updateCartBadge();
+            alert("تم إضافة أصناف الطلب السابق إلى السلة.");
+            switchView('cart', event);
         }
 
         function sendOrder() {
@@ -314,15 +450,19 @@
             if (cart.length === 0) { alert("برجاء إضافة أصناف للسلة أولاً."); return; }
             if (!name || !address || !phone) { alert("برجاء إدخال اسم العميل والعنوان ورقم الموبايل."); return; }
             
-            // جلب طريقة الدفع المختارة
             let paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-            
             let customerData = { name: name, address: address, phone: phone };
             localStorage.setItem('treePharma_customer', JSON.stringify(customerData));
             
             let itemsText = "", total = 0;
             cart.forEach(item => { let itemTotal = item.price * item.qty; total += itemTotal; itemsText += `- ${item.name} (الكمية: ${item.qty}) = ${itemTotal} ج.م\n`; });
-            itemsText += `\n*طريقة الدفع المطلوبة: ${paymentMethod}*`; // إضافة طريقة الدفع لرسالة التليجرام
+            itemsText += `\n*طريقة الدفع المطلوبة: ${paymentMethod}*`;
+
+            // حفظ الطلب في طلباتي
+            myOrders.unshift({ date: new Date().toLocaleDateString('en-GB'), items: [...cart], total: total });
+            if (myOrders.length > 5) myOrders.pop();
+            localStorage.setItem('treePharma_orders', JSON.stringify(myOrders));
+            renderOrders();
 
             const orderData = { name: name, phone: phone, address: address, items: itemsText, total: total };
             const GAS_URL = "https://script.google.com/macros/s/AKfycbxsZ88Sk_3rWPhUSf4BaSVPoqey4K296wxqLLe-yPqHdDWEU3Qz7w8aBQKsgmt5VCik/exec";
@@ -369,23 +509,19 @@
             let printWindow = window.open('', '_blank'); printWindow.document.open(); printWindow.document.write(catalogContents); printWindow.document.close(); setTimeout(function() { printWindow.print(); }, 500);
         }
 
-        // ===== كود تسجيل التطبيق وتحديثه أوتوماتيكياً =====
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('service-worker.js').then(reg => {
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
                         newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                window.location.reload();
-                            }
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) window.location.reload();
                         });
                     });
                 });
             });
         }
 
-        // ===== كود زرار تثبيت التطبيق =====
         let deferredPrompt; const installBtn = document.getElementById('installAppBtn');
         window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'block'; });
         installBtn.addEventListener('click', async () => {
