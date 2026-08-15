@@ -24,17 +24,7 @@
         .logo-circle img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .header-title { margin: 0; font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: 1px; }
         .header-right { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 10px; }
-        .call-container { position: relative; display: inline-block; }
-        .call-btn { background-color: transparent; color: #ffffff; border: none; padding: 5px 0; font-size: 20px; font-weight: 800; cursor: pointer; text-shadow: 1px 1px 3px rgba(0,0,0,0.3); }
-        .call-btn:hover { color: #e0f2f1; }
         .install-btn { background-color: #ffffff; color: #00695c; border: none; padding: 8px 20px; border-radius: 50px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: none; transition: all 0.3s; }
-        .call-dropdown { display: none; position: absolute; top: 110%; left: 0; background-color: #fff; min-width: 220px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); border-radius: 10px; z-index: 1000; padding: 10px; border: 1px solid #ddd; animation: fadeIn 0.3s ease-out; }
-        .call-dropdown.show { display: block; }
-        .call-dropdown a { display: block; color: #00695c; font-weight: bold; padding: 12px; text-decoration: none; border-radius: 6px; text-align: center; transition: background-color 0.3s; font-size: 17px; }
-        .call-dropdown a:hover { background-color: #f4f7f6; }
-        .dropdown-separator { height: 1px; background-color: #ddd; margin: 8px 0; }
-        .complaint-label { color: #ff4d4d; font-size: 14px; font-weight: bold; margin: 5px 0; text-align: center; }
-        .complaint-number { color: #000 !important; border: 2px solid #ff4d4d !important; margin-top: 5px; }
 
         .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; animation: fadeIn 1.5s ease-out; }
         .search-container { margin-bottom: 20px; text-align: center; }
@@ -128,17 +118,6 @@
             <h1 class="header-title">Tree Pharma</h1>
         </div>
         <div class="header-right">
-            <div class="call-container">
-                <button class="call-btn" onclick="toggleCallMenu()">اتصل بنا</button>
-                <div class="call-dropdown" id="callDropdown">
-                    <a href="tel:01274906271">01274906271</a>
-                    <a href="tel:01204767870">01204767870</a>
-                    <a href="tel:01501224733">01501224733</a>
-                    <div class="dropdown-separator"></div>
-                    <p class="complaint-label">رقم الشكاوي</p>
-                    <a href="tel:01220202473" class="complaint-number">01220202473</a>
-                </div>
-            </div>
             <button id="installAppBtn" class="install-btn">تحميل الابليكشن</button>
         </div>
     </header>
@@ -276,14 +255,6 @@
         let favorites = JSON.parse(localStorage.getItem('treePharma_favorites')) || [];
         let myOrders = JSON.parse(localStorage.getItem('treePharma_orders')) || [];
 
-        function toggleCallMenu() { document.getElementById("callDropdown").classList.toggle("show"); }
-        window.onclick = function(event) {
-            if (!event.target.matches('.call-btn')) {
-                var dropdowns = document.getElementsByClassName("call-dropdown");
-                for (let i = 0; i < dropdowns.length; i++) { if (dropdowns[i].classList.contains('show')) dropdowns[i].classList.remove('show'); }
-            }
-        }
-
         async function fetchProducts() {
             try {
                 let resAll = await fetch('data.json'); allProducts = await resAll.json();
@@ -320,23 +291,18 @@
             });
         }
 
-        // ===== كود المفضلة (معدل للسرعة) =====
         function toggleFavorite(name, price, btnElement) {
             let index = favorites.findIndex(f => f.name === name);
             if (index > -1) {
                 favorites.splice(index, 1);
-                if(btnElement) btnElement.innerText = '🤍'; // تحديث الزرار فوراً
+                if(btnElement) btnElement.innerText = '🤍';
             } else {
                 favorites.push({ name, price });
-                if(btnElement) btnElement.innerText = '❤️'; // تحديث الزرار فوراً
+                if(btnElement) btnElement.innerText = '❤️';
             }
             localStorage.setItem('treePharma_favorites', JSON.stringify(favorites));
-            
-            // تحديث صفحة المفضلة في الخلفية من غير تأثير على سرعة الضغط
             setTimeout(() => {
-                if(document.getElementById('view-favorites').style.display === 'block') {
-                    renderFavorites();
-                }
+                if(document.getElementById('view-favorites').style.display === 'block') renderFavorites();
             }, 50);
         }
 
