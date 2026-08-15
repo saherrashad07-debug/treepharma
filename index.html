@@ -255,43 +255,58 @@
         let favorites = JSON.parse(localStorage.getItem('treePharma_favorites')) || [];
         let myOrders = JSON.parse(localStorage.getItem('treePharma_orders')) || [];
 
-        // ===== نظام التحميل الفوري (LocalStorage Cache) =====
+        // ===== نظام التحميل المحسن (بدون انقطاع) =====
         async function fetchProducts() {
+            let listDiv = document.getElementById('productList');
+            
             // 1. محاولة عرض الأصناف المحفوظة على الموبايل أولاً (للظهور الفوري)
             let cachedAll = localStorage.getItem('treePharma_data');
             let cachedOffers = localStorage.getItem('treePharma_offers');
             
             if (cachedAll) {
-                allProducts = JSON.parse(cachedAll);
-                currentProducts = allProducts;
-                filterProducts(); 
+                try {
+                    allProducts = JSON.parse(cachedAll);
+                    currentProducts = allProducts;
+                    filterProducts(); 
+                } catch(e) { localStorage.removeItem('treePharma_data'); }
             }
             if (cachedOffers) {
-                offerProducts = JSON.parse(cachedOffers);
+                try { offerProducts = JSON.parse(cachedOffers); } catch(e) { localStorage.removeItem('treePharma_offers'); }
             }
 
             // 2. سحب البيانات الحديثة من الإنترنت في الخلفية
             try {
                 let resAll = await fetch('data.json');
+                if (!resAll.ok) throw new Error('Network response was not ok');
                 let freshAll = await resAll.json();
                 
-                // لو فيه تحديث في الأسعار، حدّث الذاكرة والشاشة
-                if (JSON.stringify(freshAll) !== JSON.stringify(allProducts)) {
-                    allProducts = freshAll;
-                    localStorage.setItem('treePharma_data', JSON.stringify(allProducts));
-                    if (document.getElementById("btnAll").classList.contains("active")) filterProducts();
+                allProducts = freshAll;
+                localStorage.setItem('treePharma_data', JSON.stringify(allProducts));
+                
+                // تحديث الشاشة لو العميل واقف في قسم "كل الأصناف"
+                if (document.getElementById("btnAll").classList.contains("active")) {
+                    currentProducts = allProducts;
+                    filterProducts();
                 }
-            } catch (e) {}
+            } catch (error) {
+                console.error("Error fetching data.json:", error);
+                // لو حصل خطأ في النت ومفيش أصناف محفوظة، اعرض رسالة
+                if (!cachedAll) {
+                    listDiv.innerHTML = '<p style="text-align:center; color:red; font-size:18px;">تعذر تحميل الأصناف. برجاء التحقق من الإنترنت.</p>';
+                }
+            }
 
+            // 3. سحب العروض
             try {
                 let resOffers = await fetch('offers.json');
+                if (!resOffers.ok) throw new Error('Network response was not ok');
                 let freshOffers = await resOffers.json();
-                if (JSON.stringify(freshOffers) !== JSON.stringify(offerProducts)) {
-                    offerProducts = freshOffers;
-                    localStorage.setItem('treePharma_offers', JSON.stringify(offerProducts));
-                    if (document.getElementById("btnOffers").classList.contains("active")) filterProducts();
-                }
-            } catch (e) {}
+                offerProducts = freshOffers;
+                localStorage.setItem('treePharma_offers', JSON.stringify(offerProducts));
+            } catch (error) {
+                console.error("Error fetching offers.json:", error);
+                offerProducts = []; // لو حصل خطأ، خلي العروض فاضية
+            }
         }
 
         function showAllProducts() { 
@@ -308,13 +323,18 @@
             filterProducts(); 
         }
 
-        // ===== نظام عرض الأصناف السريع (بدون تعليق) =====
+        // ===== نظام عرض الأصناف السريع =====
         function filterProducts() {
             let searchText = document.getElementById('searchInput').value.toLowerCase();
             let listDiv = document.getElementById('productList');
             
             if (currentProducts.length === 0) { 
-                listDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد أصناف.</p>'; 
+                // لو مفيش أصناف (مثلاً قسم العروض فاضي)، اعرض رسالة مناسبة
+                if (document.getElementById("btnOffers").classList.contains("active")) {
+                    listDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد عروض حالياً.</p>'; 
+                } else {
+                    listDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">جاري تحميل الأصناف...</p>'; 
+                }
                 return; 
             }
             
@@ -325,7 +345,6 @@
                 return; 
             }
 
-            // بناء الـ HTML مرة واحدة في الذاكرة (أسرع بكثير من innerHTML +=)
             let htmlContent = '';
             filtered.forEach(p => {
                 let originalIndex = currentProducts.indexOf(p);
@@ -345,7 +364,6 @@
                     </div>`;
             });
             
-            // طباعة الـ HTML مرة واحدة في الشاشة
             listDiv.innerHTML = htmlContent;
         }
 
@@ -539,15 +557,11 @@
             let printWindow = window.open('', '_blank'); printWindow.document.open(); printWindow.document.write(catalogContents); printWindow.document.close(); setTimeout(function() { printWindow.print(); }, 500);
         }
 
+        // ===== كود تسجيل التطبيق (بدون تحديث فجائي) =====
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('service-worker.js').then(reg => {
-                    reg.addEventListener('updatefound', () => {
-                        const newWorker = reg.installing;
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) window.location.reload();
-                        });
-                    });
+                    // تم إزالة كود التحديث التلقائي الفجائي لمنع انقطاع تحميل الأصناف
                 });
             });
         }
