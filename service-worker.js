@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tree-pharma-cache-v1';
+const CACHE_NAME = 'tree-pharma-cache-v2';
 const urlsToCache = [
   './',
   './index.html',
@@ -12,7 +12,7 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
   );
-  self.skipWaiting();
+  self.skipWaiting(); // مهم جداً عشان يفعل النسخة الجديدة على طول
 });
 
 self.addEventListener('activate', event => {
@@ -24,14 +24,21 @@ self.addEventListener('activate', event => {
       );
     })
   );
-  self.clients.claim();
+  self.clients.claim(); // مهم جداً عشان يسيطر على الصفحة فوراً
 });
 
+// هنا بقوله دايماً روح هات من النت الأول، ولو النت فاصل ارجع للنسخة المحفوظة
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then(response => {
-        return response || fetch(event.request);
+        // لو فيه نت، احفظ النسخة الجديدة
+        const responseClone = response.clone();
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, responseClone);
+        });
+        return response;
       })
+      .catch(() => caches.match(event.request)) // لو النت فاصل، افتح المحفوظ
   );
 });
