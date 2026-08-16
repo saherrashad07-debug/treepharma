@@ -11,13 +11,13 @@
       "src": "logo.jpg.jpg",
       "sizes": "192x192",
       "type": "image/jpg",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "logo.jpg.jpg",
       "sizes": "512x512",
       "type": "image/jpg",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
