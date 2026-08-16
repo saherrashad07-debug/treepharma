@@ -30,10 +30,13 @@
         .search-container { margin-bottom: 20px; text-align: center; }
         .search-input { width: 100%; max-width: 500px; padding: 12px; font-size: 16px; border: 2px solid #00695c; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: box-shadow 0.3s; }
         .search-input:focus { box-shadow: 0 0 10px rgba(0, 105, 92, 0.4); outline: none; }
-        .view-buttons { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-        .view-btn { background-color: #fff; color: #00695c; border: 2px solid #00695c; padding: 10px 25px; border-radius: 50px; cursor: pointer; font-size: 16px; font-weight: bold; transition: all 0.3s; }
+        
+        /* تعديل الأزرار لتستوعب 3 أقسام */
+        .view-buttons { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .view-btn { background-color: #fff; color: #00695c; border: 2px solid #00695c; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-size: 15px; font-weight: bold; transition: all 0.3s; }
         .view-btn.active { background-color: #00695c; color: #fff; }
         .view-btn:hover { transform: translateY(-2px); }
+        
         .catalog-btn { background-color: #00695c; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 15px; width: 100%; max-width: 500px; transition: all 0.3s; }
         .catalog-btn:hover { background-color: #004d40; transform: translateY(-2px); }
 
@@ -132,10 +135,14 @@
                 <br>
                 <button class="catalog-btn" onclick="printCatalog()">تحميل قائمة الأسعار</button>
             </div>
+            
+            <!-- الأزرار الجديدة للأقسام -->
             <div class="view-buttons">
-                <button class="view-btn active" id="btnAll" onclick="showAllProducts()">كل الأصناف</button>
-                <button class="view-btn" id="btnOffers" onclick="showWeeklyOffers()">العرض الأسبوعي</button>
+                <button class="view-btn active" id="btnMedical" onclick="showMedical()">طبية</button>
+                <button class="view-btn" id="btnCosmetics" onclick="showCosmetics()">تجميل</button>
+                <button class="view-btn" id="btnOffers" onclick="showWeeklyOffers()">العروض</button>
             </div>
+            
             <div class="product-list" id="productList"><p style="text-align:center; color:#00695c; font-size:18px;">جاري تحميل الأصناف...</p></div>
         </div>
 
@@ -191,37 +198,14 @@
         <div id="view-contact" class="view" style="display: none;">
             <h2 style="color:#00695c; text-align:center;">تواصل معنا</h2>
             <div class="contact-card">
-                <div class="contact-item">
-                    <span>01274906271</span>
-                    <a href="tel:01274906271">اتصال</a>
-                </div>
-                <div class="contact-item">
-                    <span>01204767870</span>
-                    <a href="tel:01204767870">اتصال</a>
-                </div>
-                <div class="contact-item">
-                    <span>01501224733</span>
-                    <a href="tel:01501224733">اتصال</a>
-                </div>
-                <div class="contact-item">
-                    <span>5010048 (أرضي)</span>
-                    <a href="tel:5010048">اتصال</a>
-                </div>
-                <div class="contact-item">
-                    <span>5003717 (أرضي)</span>
-                    <a href="tel:5003717">اتصال</a>
-                </div>
-                <div class="contact-item">
-                    <span>5013813 (أرضي)</span>
-                    <a href="tel:5013813">اتصال</a>
-                </div>
-                <div class="contact-item">
-                    <span style="color:#ff4d4d;">01220202473 (شكاوي)</span>
-                    <a href="tel:01220202473" style="background-color:#ff4d4d;">اتصال</a>
-                </div>
-                <a href="https://wa.me/201274906271" class="whatsapp-btn-large" target="_blank">
-                    مراسلتنا على واتساب
-                </a>
+                <div class="contact-item"><span>01274906271</span><a href="tel:01274906271">اتصال</a></div>
+                <div class="contact-item"><span>01204767870</span><a href="tel:01204767870">اتصال</a></div>
+                <div class="contact-item"><span>01501224733</span><a href="tel:01501224733">اتصال</a></div>
+                <div class="contact-item"><span>5010048 (أرضي)</span><a href="tel:5010048">اتصال</a></div>
+                <div class="contact-item"><span>5003717 (أرضي)</span><a href="tel:5003717">اتصال</a></div>
+                <div class="contact-item"><span>5013813 (أرضي)</span><a href="tel:5013813">اتصال</a></div>
+                <div class="contact-item"><span style="color:#ff4d4d;">01220202473 (شكاوي)</span><a href="tel:01220202473" style="background-color:#ff4d4d;">اتصال</a></div>
+                <a href="https://wa.me/201274906271" class="whatsapp-btn-large" target="_blank">مراسلتنا على واتساب</a>
             </div>
         </div>
     </div>
@@ -251,7 +235,8 @@
     </nav>
 
     <script>
-        let allProducts = []; 
+        let medicalProducts = []; 
+        let cosmeticsProducts = [];
         let offerProducts = [];
         let currentProducts = []; 
         let cart = [];
@@ -261,61 +246,46 @@
         async function fetchProducts() {
             let listDiv = document.getElementById('productList');
             
-            let cachedAll = localStorage.getItem('treePharma_data');
-            let cachedOffers = localStorage.getItem('treePharma_offers');
+            let cachedMed = localStorage.getItem('treePharma_medical');
+            let cachedCos = localStorage.getItem('treePharma_cosmetics');
+            let cachedOff = localStorage.getItem('treePharma_offers');
             
-            if (cachedAll) {
-                try {
-                    allProducts = JSON.parse(cachedAll);
-                    currentProducts = allProducts;
-                    filterProducts(); 
-                } catch(e) { localStorage.removeItem('treePharma_data'); }
-            }
-            if (cachedOffers) {
-                try { offerProducts = JSON.parse(cachedOffers); } catch(e) { localStorage.removeItem('treePharma_offers'); }
-            }
+            if (cachedMed) { try { medicalProducts = JSON.parse(cachedMed); currentProducts = medicalProducts; filterProducts(); } catch(e) { localStorage.removeItem('treePharma_medical'); } }
+            if (cachedCos) { try { cosmeticsProducts = JSON.parse(cachedCos); } catch(e) { localStorage.removeItem('treePharma_cosmetics'); } }
+            if (cachedOff) { try { offerProducts = JSON.parse(cachedOff); } catch(e) { localStorage.removeItem('treePharma_offers'); } }
 
             try {
-                let resAll = await fetch('data.json?v=' + Date.now());
-                if (!resAll.ok) throw new Error('Network response was not ok');
-                let freshAll = await resAll.json();
-                
-                allProducts = freshAll;
-                localStorage.setItem('treePharma_data', JSON.stringify(allProducts));
-                
-                if (document.getElementById("btnAll").classList.contains("active")) {
-                    currentProducts = allProducts;
-                    filterProducts();
-                }
-            } catch (error) {
-                if (!cachedAll) {
-                    listDiv.innerHTML = '<p style="text-align:center; color:red; font-size:18px;">تعذر تحميل الأصناف. برجاء التحقق من الإنترنت.</p>';
-                }
-            }
+                let resMed = await fetch('medical.json?v=' + Date.now());
+                if (!resMed.ok) throw new Error('Net error');
+                medicalProducts = await resMed.json();
+                localStorage.setItem('treePharma_medical', JSON.stringify(medicalProducts));
+                if (document.getElementById("btnMedical").classList.contains("active")) { currentProducts = medicalProducts; filterProducts(); }
+            } catch (error) { if (!cachedMed) listDiv.innerHTML = '<p style="text-align:center; color:red; font-size:18px;">تعذر تحميل الأصناف الطبية.</p>'; }
 
             try {
-                let resOffers = await fetch('offers.json?v=' + Date.now());
-                if (!resOffers.ok) throw new Error('Network response was not ok');
-                let freshOffers = await resOffers.json();
-                offerProducts = freshOffers;
+                let resCos = await fetch('cosmetics.json?v=' + Date.now());
+                if (!resCos.ok) throw new Error('Net error');
+                cosmeticsProducts = await resCos.json();
+                localStorage.setItem('treePharma_cosmetics', JSON.stringify(cosmeticsProducts));
+            } catch (error) { if (!cachedCos) console.log("Cosmetics fetch error"); }
+
+            try {
+                let resOff = await fetch('offers.json?v=' + Date.now());
+                if (!resOff.ok) throw new Error('Net error');
+                offerProducts = await resOff.json();
                 localStorage.setItem('treePharma_offers', JSON.stringify(offerProducts));
-            } catch (error) {
-                offerProducts = [];
-            }
+            } catch (error) { offerProducts = []; }
         }
 
-        function showAllProducts() { 
-            currentProducts = allProducts; 
-            document.getElementById("btnAll").classList.add("active"); 
-            document.getElementById("btnOffers").classList.remove("active"); 
-            filterProducts(); 
-        }
+        function showMedical() { currentProducts = medicalProducts; setActiveBtn('btnMedical'); filterProducts(); }
+        function showCosmetics() { currentProducts = cosmeticsProducts; setActiveBtn('btnCosmetics'); filterProducts(); }
+        function showWeeklyOffers() { currentProducts = offerProducts; setActiveBtn('btnOffers'); filterProducts(); }
         
-        function showWeeklyOffers() { 
-            currentProducts = offerProducts; 
-            document.getElementById("btnOffers").classList.add("active"); 
-            document.getElementById("btnAll").classList.remove("active"); 
-            filterProducts(); 
+        function setActiveBtn(btnId) {
+            document.getElementById("btnMedical").classList.remove("active");
+            document.getElementById("btnCosmetics").classList.remove("active");
+            document.getElementById("btnOffers").classList.remove("active");
+            document.getElementById(btnId).classList.add("active");
         }
 
         function filterProducts() {
@@ -323,20 +293,13 @@
             let listDiv = document.getElementById('productList');
             
             if (currentProducts.length === 0) { 
-                if (document.getElementById("btnOffers").classList.contains("active")) {
-                    listDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد عروض حالياً.</p>'; 
-                } else {
-                    listDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">جاري تحميل الأصناف...</p>'; 
-                }
+                if (document.getElementById("btnOffers").classList.contains("active")) listDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد عروض حالياً.</p>'; 
+                else listDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">جاري تحميل الأصناف...</p>'; 
                 return; 
             }
             
             let filtered = currentProducts.filter(p => p.name && p.name.toLowerCase().includes(searchText));
-            
-            if(filtered.length === 0) { 
-                listDiv.innerHTML = '<p style="text-align:center; color:red; font-size:20px; padding:20px;">لا يوجد صنف بهذا الاسم</p>'; 
-                return; 
-            }
+            if(filtered.length === 0) { listDiv.innerHTML = '<p style="text-align:center; color:red; font-size:20px; padding:20px;">لا يوجد صنف بهذا الاسم</p>'; return; }
 
             let htmlContent = '';
             filtered.forEach(p => {
@@ -359,37 +322,25 @@
                         </div>
                     </div>`;
             });
-            
             listDiv.innerHTML = htmlContent;
         }
 
         function toggleFavorite(name, price, btnElement) {
             let index = favorites.findIndex(f => f.name === name);
-            if (index > -1) {
-                favorites.splice(index, 1);
-                if(btnElement) btnElement.innerText = '🤍';
-            } else {
-                favorites.push({ name, price });
-                if(btnElement) btnElement.innerText = '❤️';
-            }
+            if (index > -1) { favorites.splice(index, 1); if(btnElement) btnElement.innerText = '🤍'; } 
+            else { favorites.push({ name, price }); if(btnElement) btnElement.innerText = '❤️'; }
             localStorage.setItem('treePharma_favorites', JSON.stringify(favorites));
-            setTimeout(() => {
-                if(document.getElementById('view-favorites').style.display === 'block') renderFavorites();
-            }, 50);
+            setTimeout(() => { if(document.getElementById('view-favorites').style.display === 'block') renderFavorites(); }, 50);
         }
 
         function renderFavorites() {
             let favDiv = document.getElementById('favoritesList'); 
             if (favorites.length === 0) { favDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد أصناف في المفضلة.</p>'; return; }
-            
             let htmlContent = '';
             favorites.forEach(p => {
                 htmlContent += `
                     <div class="list-item">
-                        <div class="item-header">
-                            <span class="item-name">${p.name}</span>
-                            <span class="item-price">${p.price} ج.م</span>
-                        </div>
+                        <div class="item-header"><span class="item-name">${p.name}</span><span class="item-price">${p.price} ج.م</span></div>
                         <div class="item-footer">
                             <button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price}, this)">❤️</button>
                             <input type="number" class="qty-input" placeholder="0" min="1" id="favQty${p.name.replace(/\s/g, '')}">
@@ -407,15 +358,11 @@
         };
 
         function addToCart(productName, price, qtyId) {
-            let qtyInput = document.getElementById(qtyId);
-            let quantity = parseInt(qtyInput.value);
+            let qtyInput = document.getElementById(qtyId); let quantity = parseInt(qtyInput.value);
             if (quantity > 0) {
                 let existingItem = cart.find(item => item.name === productName);
-                if (existingItem) { existingItem.qty += quantity; } 
-                else { cart.push({ id: Date.now(), name: productName, price: price, qty: quantity }); }
-                updateCartDisplay(); updateCartBadge();
-                alert("تم إضافة " + productName + " إلى السلة.");
-                qtyInput.value = "";
+                if (existingItem) { existingItem.qty += quantity; } else { cart.push({ id: Date.now(), name: productName, price: price, qty: quantity }); }
+                updateCartDisplay(); updateCartBadge(); alert("تم إضافة " + productName + " إلى السلة."); qtyInput.value = "";
             } else { alert("برجاء كتابة كمية صحيحة."); }
         }
 
@@ -425,19 +372,14 @@
             let cartDiv = document.getElementById('cartDisplay'); 
             if (cart.length === 0) { cartDiv.innerHTML = '<div><span>لا توجد أصناف في السلة بعد</span></div>'; return; }
             let total = 0, htmlContent = '';
-            cart.forEach(item => {
-                let itemTotal = item.price * item.qty; total += itemTotal;
-                htmlContent += `<div><span>${item.name} (الكمية: ${item.qty}) - ${itemTotal} ج.م</span><button class="remove-btn" onclick="removeFromCart(${item.id})">حذف X</button></div>`;
-            });
+            cart.forEach(item => { let itemTotal = item.price * item.qty; total += itemTotal; htmlContent += `<div><span>${item.name} (الكمية: ${item.qty}) - ${itemTotal} ج.م</span><button class="remove-btn" onclick="removeFromCart(${item.id})">حذف X</button></div>`; });
             htmlContent += `<div style="font-weight: bold; font-size: 20px; color: #00695c; margin-top: 10px; border-top: 2px solid #000; padding-top: 10px;"><span>الإجمالي:</span><span>${total} ج.م</span></div>`;
             cartDiv.innerHTML = htmlContent;
         }
 
         function updateCartBadge() {
-            let badge = document.getElementById('cartBadge');
-            let totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
-            if(totalQty > 0) { badge.style.display = 'block'; badge.innerText = totalQty; } 
-            else { badge.style.display = 'none'; }
+            let badge = document.getElementById('cartBadge'); let totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+            if(totalQty > 0) { badge.style.display = 'block'; badge.innerText = totalQty; } else { badge.style.display = 'none'; }
         }
 
         function togglePaymentInfo() {
@@ -452,11 +394,9 @@
             let views = ['home', 'favorites', 'cart', 'orders', 'contact'];
             views.forEach(v => document.getElementById('view-' + v).style.display = 'none');
             document.getElementById('view-' + viewName).style.display = 'block';
-            
             let navItems = document.getElementsByClassName('nav-item');
             for(let i=0; i<navItems.length; i++) navItems[i].classList.remove('active');
             if(event) event.currentTarget.classList.add('active');
-            
             if(viewName === 'favorites') renderFavorites();
             if(viewName === 'orders') renderOrders();
         }
@@ -467,15 +407,7 @@
             let htmlContent = '';
             myOrders.forEach((order, index) => {
                 let itemsText = order.items.map(item => `${item.name} (${item.qty})`).join('، ');
-                htmlContent += `
-                    <div class="history-item">
-                        <div class="history-header">
-                            <span class="history-date">تاريخ الطلب: ${order.date}</span>
-                            <span class="history-total">${order.total} ج.م</span>
-                        </div>
-                        <p>${itemsText}</p>
-                        <button class="reorder-btn" onclick="reorder(${index})">إعادة طلب هذه الأصناف</button>
-                    </div>`;
+                htmlContent += `<div class="history-item"><div class="history-header"><span class="history-date">تاريخ الطلب: ${order.date}</span><span class="history-total">${order.total} ج.م</span></div><p>${itemsText}</p><button class="reorder-btn" onclick="reorder(${index})">إعادة طلب هذه الأصناف</button></div>`;
             });
             ordersDiv.innerHTML = htmlContent;
         }
@@ -483,39 +415,25 @@
         function reorder(index) {
             let order = myOrders[index];
             cart = [...cart, ...order.items.map(item => ({ ...item, id: Date.now() + Math.random() }))];
-            updateCartDisplay(); updateCartBadge();
-            alert("تم إضافة أصناف الطلب السابق إلى السلة.");
-            switchView('cart', event);
+            updateCartDisplay(); updateCartBadge(); alert("تم إضافة أصناف الطلب السابق إلى السلة."); switchView('cart', event);
         }
 
         function sendOrder() {
-            let name = document.getElementById('clientName').value;
-            let address = document.getElementById('clientAddress').value;
-            let phone = document.getElementById('clientPhone').value;
+            let name = document.getElementById('clientName').value; let address = document.getElementById('clientAddress').value; let phone = document.getElementById('clientPhone').value;
             if (cart.length === 0) { alert("برجاء إضافة أصناف للسلة أولاً."); return; }
             if (!name || !address || !phone) { alert("برجاء إدخال اسم العميل والعنوان ورقم الموبايل."); return; }
-            
             let paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-            let customerData = { name: name, address: address, phone: phone };
-            localStorage.setItem('treePharma_customer', JSON.stringify(customerData));
-            
+            localStorage.setItem('treePharma_customer', JSON.stringify({ name, address, phone }));
             let itemsText = "", total = 0;
             cart.forEach(item => { let itemTotal = item.price * item.qty; total += itemTotal; itemsText += `- ${item.name} (الكمية: ${item.qty}) = ${itemTotal} ج.م\n`; });
             itemsText += `\n*طريقة الدفع المطلوبة: ${paymentMethod}*`;
-
             myOrders.unshift({ date: new Date().toLocaleDateString('en-GB'), items: [...cart], total: total });
             if (myOrders.length > 5) myOrders.pop();
             localStorage.setItem('treePharma_orders', JSON.stringify(myOrders));
             renderOrders();
-
-            const orderData = { name: name, phone: phone, address: address, items: itemsText, total: total };
+            const orderData = { name, phone, address, items: itemsText, total };
             const GAS_URL = "https://script.google.com/macros/s/AKfycbxsZ88Sk_3rWPhUSf4BaSVPoqey4K296wxqLLe-yPqHdDWEU3Qz7w8aBQKsgmt5VCik/exec";
-            
-            fetch(GAS_URL, {
-                method: 'POST', mode: 'no-cors', 
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(orderData)
-            })
+            fetch(GAS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(orderData) })
             .then(() => {
                 alert("تم استلام طلبك بنجاح! سيتم التواصل معك قريباً.");
                 cart = []; updateCartDisplay(); updateCartBadge();
@@ -526,62 +444,40 @@
         }
 
         function printOrder() {
-            let name = document.getElementById('clientName').value;
-            let address = document.getElementById('clientAddress').value;
-            let phone = document.getElementById('clientPhone').value;
+            let name = document.getElementById('clientName').value; let address = document.getElementById('clientAddress').value; let phone = document.getElementById('clientPhone').value;
             let paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
             if (cart.length === 0) { alert("السلة فارغة، لا يمكن طباعة الطلب."); return; }
             let printContents = `<html dir="rtl" lang="ar"><head><title>طباعة طلب - Tree Pharma</title><style>body{font-family:'Segoe UI',Tahoma,sans-serif;padding:20px}h1{color:#00695c;text-align:center;margin-bottom:5px}h2{font-size:18px;border-bottom:2px solid #000;padding-bottom:5px}.header-info{text-align:center;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #ddd;padding:8px;text-align:center}th{background-color:#f4f7f6}.total{text-align:left;font-size:20px;font-weight:bold;margin-top:20px}.payment-info{margin-top:15px;font-weight:bold;color:#00695c}</style></head><body><div class="header-info"><h1>Tree Pharma</h1></div><h2>بيانات العميل:</h2><p><strong>اسم العميل:</strong> ${name}</p><p><strong>العنوان:</strong> ${address}</p><p><strong>الموبايل:</strong> ${phone}</p><h2>تفاصيل الطلب:</h2><table><tr><th>الصنف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>`;
             let total = 0;
-            cart.forEach(item => {
-                let itemTotal = item.price * item.qty; total += itemTotal;
-                printContents += `<tr><td>${item.name}</td><td>${item.qty}</td><td>${item.price} ج.م</td><td>${itemTotal} ج.م</td></tr>`;
-            });
+            cart.forEach(item => { let itemTotal = item.price * item.qty; total += itemTotal; printContents += `<tr><td>${item.name}</td><td>${item.qty}</td><td>${item.price} ج.م</td><td>${itemTotal} ج.م</td></tr>`; });
             printContents += `</table><div class="total">الإجمالي: ${total} ج.م</div><div class="payment-info">طريقة الدفع: ${paymentMethod}</div></body></html>`;
-            let printWindow = window.open('', '_blank');
-            printWindow.document.open();
-            printWindow.document.write(printContents);
-            printWindow.document.close();
-            setTimeout(function() { printWindow.print(); }, 500);
+            let printWindow = window.open('', '_blank'); printWindow.document.open(); printWindow.document.write(printContents); printWindow.document.close(); setTimeout(function() { printWindow.print(); }, 500);
         }
 
         function printCatalog() {
-            if (allProducts.length === 0) { alert("لم يتم تحمل الأصناف بعد."); return; }
+            let allProds = [...medicalProducts, ...cosmeticsProducts];
+            if (allProds.length === 0) { alert("لم يتم تحمل الأصناف بعد."); return; }
             let catalogContents = `<html dir="rtl" lang="ar"><head><title>قائمة أسعار - Tree Pharma</title><style>body{font-family:'Segoe UI',Tahoma,sans-serif;padding:20px}h1{color:#00695c;text-align:center;margin-bottom:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:right}th{background-color:#00695c;color:white}tr:nth-child(even){background-color:#f9f9f9}</style></head><body><h1>قائمة أسعار Tree Pharma</h1><table><tr><th>اسم الصنف</th><th>سعر الصيدلي</th></tr>`;
-            allProducts.forEach(p => { catalogContents += `<tr><td>${p.name}</td><td>${p.price} ج.م</td></tr>`; });
+            allProds.forEach(p => { catalogContents += `<tr><td>${p.name}</td><td>${p.price} ج.م</td></tr>`; });
             catalogContents += `</table></body></html>`;
             let printWindow = window.open('', '_blank'); printWindow.document.open(); printWindow.document.write(catalogContents); printWindow.document.close(); setTimeout(function() { printWindow.print(); }, 500);
         }
 
-        // ===== كود تسجيل التطبيق وتحديثه أوتوماتيكياً =====
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('service-worker.js').then(reg => {
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                window.location.reload();
-                            }
-                        });
+                        newWorker.addEventListener('statechange', () => { if (newWorker.state === 'installed' && navigator.serviceWorker.controller) window.location.reload(); });
                     });
                 });
-
-                // الكود السحري: لو الـ Service Worker غير سيطرته، اعمل ريفرش فوراً
-                let refreshing;
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    if (refreshing) return;
-                    window.location.reload();
-                    refreshing = true;
-                });
+                let refreshing; navigator.serviceWorker.addEventListener('controllerchange', () => { if (refreshing) return; window.location.reload(); refreshing = true; });
             });
         }
 
         let deferredPrompt; const installBtn = document.getElementById('installAppBtn');
         window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'block'; });
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; installBtn.style.display = 'none'; deferredPrompt = null; }
-        });
+        installBtn.addEventListener('click', async () => { if (deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; installBtn.style.display = 'none'; deferredPrompt = null; } });
         window.addEventListener('appinstalled', () => { installBtn.style.display = 'none'; deferredPrompt = null; });
     </script>
 </body>
