@@ -31,7 +31,6 @@
         .search-input { width: 100%; max-width: 500px; padding: 12px; font-size: 16px; border: 2px solid #00695c; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: box-shadow 0.3s; }
         .search-input:focus { box-shadow: 0 0 10px rgba(0, 105, 92, 0.4); outline: none; }
         
-        /* تعديل الأزرار لتستوعب 3 أقسام */
         .view-buttons { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .view-btn { background-color: #fff; color: #00695c; border: 2px solid #00695c; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-size: 15px; font-weight: bold; transition: all 0.3s; }
         .view-btn.active { background-color: #00695c; color: #fff; }
@@ -136,9 +135,9 @@
                 <button class="catalog-btn" onclick="printCatalog()">تحميل قائمة الأسعار</button>
             </div>
             
-            <!-- الأزرار الجديدة للأقسام -->
             <div class="view-buttons">
-                <button class="view-btn active" id="btnMedical" onclick="showMedical()">طبية</button>
+                <button class="view-btn active" id="btnAll" onclick="showAllProducts()">كل الأصناف</button>
+                <button class="view-btn" id="btnMedical" onclick="showMedical()">طبية</button>
                 <button class="view-btn" id="btnCosmetics" onclick="showCosmetics()">تجميل</button>
                 <button class="view-btn" id="btnOffers" onclick="showWeeklyOffers()">العروض</button>
             </div>
@@ -250,16 +249,20 @@
             let cachedCos = localStorage.getItem('treePharma_cosmetics');
             let cachedOff = localStorage.getItem('treePharma_offers');
             
-            if (cachedMed) { try { medicalProducts = JSON.parse(cachedMed); currentProducts = medicalProducts; filterProducts(); } catch(e) { localStorage.removeItem('treePharma_medical'); } }
+            if (cachedMed) { try { medicalProducts = JSON.parse(cachedMed); } catch(e) { localStorage.removeItem('treePharma_medical'); } }
             if (cachedCos) { try { cosmeticsProducts = JSON.parse(cachedCos); } catch(e) { localStorage.removeItem('treePharma_cosmetics'); } }
             if (cachedOff) { try { offerProducts = JSON.parse(cachedOff); } catch(e) { localStorage.removeItem('treePharma_offers'); } }
+
+            currentProducts = [...medicalProducts, ...cosmeticsProducts];
+            if (document.getElementById("btnAll").classList.contains("active")) filterProducts();
 
             try {
                 let resMed = await fetch('medical.json?v=' + Date.now());
                 if (!resMed.ok) throw new Error('Net error');
                 medicalProducts = await resMed.json();
                 localStorage.setItem('treePharma_medical', JSON.stringify(medicalProducts));
-                if (document.getElementById("btnMedical").classList.contains("active")) { currentProducts = medicalProducts; filterProducts(); }
+                if (document.getElementById("btnAll").classList.contains("active")) { currentProducts = [...medicalProducts, ...cosmeticsProducts]; filterProducts(); }
+                else if (document.getElementById("btnMedical").classList.contains("active")) { currentProducts = medicalProducts; filterProducts(); }
             } catch (error) { if (!cachedMed) listDiv.innerHTML = '<p style="text-align:center; color:red; font-size:18px;">تعذر تحميل الأصناف الطبية.</p>'; }
 
             try {
@@ -267,6 +270,8 @@
                 if (!resCos.ok) throw new Error('Net error');
                 cosmeticsProducts = await resCos.json();
                 localStorage.setItem('treePharma_cosmetics', JSON.stringify(cosmeticsProducts));
+                if (document.getElementById("btnAll").classList.contains("active")) { currentProducts = [...medicalProducts, ...cosmeticsProducts]; filterProducts(); }
+                else if (document.getElementById("btnCosmetics").classList.contains("active")) { currentProducts = cosmeticsProducts; filterProducts(); }
             } catch (error) { if (!cachedCos) console.log("Cosmetics fetch error"); }
 
             try {
@@ -277,11 +282,13 @@
             } catch (error) { offerProducts = []; }
         }
 
+        function showAllProducts() { currentProducts = [...medicalProducts, ...cosmeticsProducts]; setActiveBtn('btnAll'); filterProducts(); }
         function showMedical() { currentProducts = medicalProducts; setActiveBtn('btnMedical'); filterProducts(); }
         function showCosmetics() { currentProducts = cosmeticsProducts; setActiveBtn('btnCosmetics'); filterProducts(); }
         function showWeeklyOffers() { currentProducts = offerProducts; setActiveBtn('btnOffers'); filterProducts(); }
         
         function setActiveBtn(btnId) {
+            document.getElementById("btnAll").classList.remove("active");
             document.getElementById("btnMedical").classList.remove("active");
             document.getElementById("btnCosmetics").classList.remove("active");
             document.getElementById("btnOffers").classList.remove("active");
