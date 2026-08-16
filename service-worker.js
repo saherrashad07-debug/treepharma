@@ -1,10 +1,8 @@
-const CACHE_NAME = 'tree-pharma-cache-v2';
+const CACHE_NAME = 'tree-pharma-cache-v3';
 const urlsToCache = [
   './',
   './index.html',
-  './logo.jpg.jpg',
-  './data.json',
-  './offers.json'
+  './logo.jpg.jpg'
 ];
 
 self.addEventListener('install', event => {
@@ -12,7 +10,7 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
   );
-  self.skipWaiting(); // مهم جداً عشان يفعل النسخة الجديدة على طول
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
@@ -24,21 +22,32 @@ self.addEventListener('activate', event => {
       );
     })
   );
-  self.clients.claim(); // مهم جداً عشان يسيطر على الصفحة فوراً
+  self.clients.claim();
 });
 
-// هنا بقوله دايماً روح هات من النت الأول، ولو النت فاصل ارجع للنسخة المحفوظة
+// هنا بقوله دايماً هات ملفات JSON من النت مباشرة (عشان التحديثات توصل فوراً)
 self.addEventListener('fetch', event => {
+  const requestUrl = new URL(event.request.url);
+  
+  if (requestUrl.pathname.endsWith('.json')) {
+    // ملفات الأسعار والعروض: دايماً من النت
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // باقي الملفات (صور وكود): من الذاكرة عشان سرعة الفتح
   event.respondWith(
-    fetch(event.request)
+    caches.match(event.request)
       .then(response => {
-        // لو فيه نت، احفظ النسخة الجديدة
-        const responseClone = response.clone();
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, responseClone);
+        return response || fetch(event.request).then(fetchRes => {
+          return caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, fetchRes.clone());
+            return fetchRes;
+          });
         });
-        return response;
       })
-      .catch(() => caches.match(event.request)) // لو النت فاصل، افتح المحفوظ
   );
 });
