@@ -263,6 +263,17 @@
         let favorites = JSON.parse(localStorage.getItem('treePharma_favorites')) || [];
         let myOrders = JSON.parse(localStorage.getItem('treePharma_orders')) || [];
 
+        // دالة لترتيب الأصناف أبجدياً
+        function sortProductsByName(arr) {
+            return arr.sort((a, b) => {
+                const nameA = (a.name || "").toLowerCase();
+                const nameB = (b.name || "").toLowerCase();
+                if (nameA < nameB) return -1;
+                if (nameA > nameB) return 1;
+                return 0;
+            });
+        }
+
         async function fetchProducts() {
             let listDiv = document.getElementById('productList');
             
@@ -278,7 +289,11 @@
                 try { cosmeticsProducts = JSON.parse(cachedCosmetics); } catch(e) { localStorage.removeItem('treePharma_cosmetics'); }
             }
 
+            // ترتيب البيانات المخزنة قبل دمجها
+            medicalProducts = sortProductsByName(medicalProducts);
+            cosmeticsProducts = sortProductsByName(cosmeticsProducts);
             allProducts = [...medicalProducts, ...cosmeticsProducts];
+            allProducts = sortProductsByName(allProducts);
 
             if (allProducts.length > 0 && document.getElementById("btnAll").classList.contains("active")) {
                 currentProducts = allProducts;
@@ -286,7 +301,7 @@
             }
 
             if (cachedOffers) {
-                try { offerProducts = JSON.parse(cachedOffers); } catch(e) { localStorage.removeItem('treePharma_offers'); }
+                try { offerProducts = sortProductsByName(JSON.parse(cachedOffers)); } catch(e) { localStorage.removeItem('treePharma_offers'); }
             }
 
             // جلب البيانات الطبية
@@ -294,6 +309,7 @@
                 let resMed = await fetch('medical.json?v=' + Date.now());
                 if (resMed.ok) {
                     medicalProducts = await resMed.json();
+                    medicalProducts = sortProductsByName(medicalProducts); // ترتيب بعد الجلب
                     localStorage.setItem('treePharma_medical', JSON.stringify(medicalProducts));
                 }
             } catch (error) {}
@@ -303,12 +319,14 @@
                 let resCos = await fetch('cosmetics.json?v=' + Date.now());
                 if (resCos.ok) {
                     cosmeticsProducts = await resCos.json();
+                    cosmeticsProducts = sortProductsByName(cosmeticsProducts); // ترتيب بعد الجلب
                     localStorage.setItem('treePharma_cosmetics', JSON.stringify(cosmeticsProducts));
                 }
             } catch (error) {}
 
-            // دمج البيانات لزر "كل الأصناف"
+            // دمج البيانات لزر "كل الأصناف" وترتيبها
             allProducts = [...medicalProducts, ...cosmeticsProducts];
+            allProducts = sortProductsByName(allProducts);
 
             if (document.getElementById("btnAll").classList.contains("active")) {
                 currentProducts = allProducts;
@@ -324,6 +342,7 @@
                 let resOffers = await fetch('offers.json?v=' + Date.now());
                 if (resOffers.ok) {
                     offerProducts = await resOffers.json();
+                    offerProducts = sortProductsByName(offerProducts); // ترتيب بعد الجلب
                     localStorage.setItem('treePharma_offers', JSON.stringify(offerProducts));
                 }
             } catch (error) {
@@ -377,6 +396,7 @@
             }
             
             let filtered = currentProducts.filter(p => p.name && p.name.toLowerCase().includes(searchText));
+            filtered = sortProductsByName(filtered); // التأكد من الترتيب الأبجدي بعد البحث
             
             if(filtered.length === 0) { 
                 listDiv.innerHTML = '<p style="text-align:center; color:red; font-size:20px; padding:20px;">لا يوجد صنف بهذا الاسم</p>'; 
@@ -427,8 +447,9 @@
             let favDiv = document.getElementById('favoritesList'); 
             if (favorites.length === 0) { favDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد أصناف في المفضلة.</p>'; return; }
             
+            let sortedFavs = sortProductsByName([...favorites]); // ترتيب المفضلة أبجدياً
             let htmlContent = '';
-            favorites.forEach(p => {
+            sortedFavs.forEach(p => {
                 htmlContent += `
                     <div class="list-item">
                         <div class="item-header">
@@ -578,7 +599,8 @@
             if (cart.length === 0) { alert("السلة فارغة، لا يمكن طباعة الطلب."); return; }
             let printContents = `<html dir="rtl" lang="ar"><head><title>طباعة طلب - Tree Pharma</title><style>body{font-family:'Segoe UI',Tahoma,sans-serif;padding:20px}h1{color:#00695c;text-align:center;margin-bottom:5px}h2{font-size:18px;border-bottom:2px solid #000;padding-bottom:5px}.header-info{text-align:center;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #ddd;padding:8px;text-align:center}th{background-color:#f4f7f6}.total{text-align:left;font-size:20px;font-weight:bold;margin-top:20px}.payment-info{margin-top:15px;font-weight:bold;color:#00695c}</style></head><body><div class="header-info"><h1>Tree Pharma</h1></div><h2>بيانات العميل:</h2><p><strong>اسم العميل:</strong> ${name}</p><p><strong>العنوان:</strong> ${address}</p><p><strong>الموبايل:</strong> ${phone}</p><h2>تفاصيل الطلب:</h2><table><tr><th>الصنف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>`;
             let total = 0;
-            cart.forEach(item => {
+            let sortedCart = sortProductsByName([...cart]); // ترتيب السلة في الطباعة
+            sortedCart.forEach(item => {
                 let itemTotal = item.price * item.qty; total += itemTotal;
                 printContents += `<tr><td>${item.name}</td><td>${item.qty}</td><td>${item.price} ج.م</td><td>${itemTotal} ج.م</td></tr>`;
             });
@@ -612,7 +634,6 @@
                     });
                 });
 
-                // الكود السحري: لو الـ Service Worker غير سيطرته، اعمل ريفرش فوراً
                 let refreshing;
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
                     if (refreshing) return;
