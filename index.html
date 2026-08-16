@@ -41,7 +41,6 @@
         .list-item { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: box-shadow 0.3s; }
         .list-item:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        /* تم تعديل هذا السطر لعرض الصورة كاملة بدون قص */
         .item-image { width: 100%; max-height: 300px; object-fit: contain; border-radius: 8px; margin-bottom: 15px; background-color: #f9f9f9; }
 
         .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; }
@@ -554,10 +553,21 @@
             let printWindow = window.open('', '_blank'); printWindow.document.open(); printWindow.document.write(catalogContents); printWindow.document.close(); setTimeout(function() { printWindow.print(); }, 500);
         }
 
+        // ===== كود تسجيل التطبيق وتحديثه أوتوماتيكياً بأمان =====
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('service-worker.js').then(reg => {
-                    // تم إزالة كود التحديث التلقائي الفجائي لمنع انقطاع تحميل الأصناف
+                    // الاستماع لتحديثات الـ Service Worker
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            // لو فيه نسخة جديدة اتنزلت وجاهزة تشتغل، وفيه نسخة قديمة شغالة
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // اعمل تحديث للصفحة فوراً عشان العميل يشوف الجديد
+                                window.location.reload();
+                            }
+                        });
+                    });
                 });
             });
         }
