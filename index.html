@@ -553,21 +553,26 @@
             let printWindow = window.open('', '_blank'); printWindow.document.open(); printWindow.document.write(catalogContents); printWindow.document.close(); setTimeout(function() { printWindow.print(); }, 500);
         }
 
-        // ===== كود تسجيل التطبيق وتحديثه أوتوماتيكياً بأمان =====
+        // ===== كود تسجيل التطبيق وتحديثه أوتوماتيكياً =====
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('service-worker.js').then(reg => {
-                    // الاستماع لتحديثات الـ Service Worker
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
                         newWorker.addEventListener('statechange', () => {
-                            // لو فيه نسخة جديدة اتنزلت وجاهزة تشتغل، وفيه نسخة قديمة شغالة
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                // اعمل تحديث للصفحة فوراً عشان العميل يشوف الجديد
                                 window.location.reload();
                             }
                         });
                     });
+                });
+
+                // الكود السحري: لو الـ Service Worker غير سيطرته، اعمل ريفرش فوراً
+                let refreshing;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (refreshing) return;
+                    window.location.reload();
+                    refreshing = true;
                 });
             });
         }
