@@ -12,20 +12,18 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Tree Pharma">
 
+    <!-- مكتبة Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; color: #333; padding-bottom: 90px; }
-        
-        header { 
-            background-color: #00695c; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15); animation: fadeInDown 1s ease-out; position: relative;
-        }
+        header { background-color: #00695c; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; box-shadow: 0 4px 15px rgba(0,0,0,0.15); animation: fadeInDown 1s ease-out; position: relative; }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .logo-circle { background-color: #ffffff; border-radius: 50%; width: 90px; height: 90px; display: flex; justify-content: center; align-items: center; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.2); padding: 10px; }
         .logo-circle img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .header-title { margin: 0; font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: 1px; }
         .header-right { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 10px; }
         .install-btn { background-color: #ffffff; color: #00695c; border: none; padding: 8px 20px; border-radius: 50px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: none; transition: all 0.3s; }
-
         .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; animation: fadeIn 1.5s ease-out; }
         .search-container { margin-bottom: 20px; text-align: center; }
         .search-input { width: 100%; max-width: 500px; padding: 12px; font-size: 16px; border: 2px solid #00695c; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: box-shadow 0.3s; }
@@ -36,13 +34,10 @@
         .view-btn:hover { transform: translateY(-2px); }
         .catalog-btn { background-color: #00695c; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 15px; width: 100%; max-width: 500px; transition: all 0.3s; }
         .catalog-btn:hover { background-color: #004d40; transform: translateY(-2px); }
-
         .product-list { display: flex; flex-direction: column; gap: 15px; }
         .list-item { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: box-shadow 0.3s; }
         .list-item:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        
         .item-image { width: 100%; max-height: 300px; object-fit: contain; border-radius: 8px; margin-bottom: 15px; background-color: #f9f9f9; }
-
         .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; }
         .item-name { font-weight: bold; color: #333; font-size: 16px; flex: 1; text-align: right; }
         .item-price { color: #00695c; font-weight: bold; font-size: 18px; white-space: nowrap; }
@@ -52,13 +47,11 @@
         .add-btn:hover { background-color: #004d40; transform: scale(1.02); }
         .fav-btn { background: none; border: none; cursor: pointer; font-size: 24px; padding: 0 5px; transition: transform 0.2s; }
         .fav-btn:hover { transform: scale(1.2); }
-
         .cart-section { background: #e0f2f1; padding: 25px; border-radius: 12px; border: 2px solid #00695c; box-shadow: 0 5px 15px rgba(0, 105, 92, 0.15); }
         .cart-section h2 { color: #000; border-bottom: 2px solid #00695c; padding-bottom: 10px; margin-top: 0; }
         .customer-info { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 8px; }
         .customer-info input { padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; transition: border-color 0.3s; }
         .customer-info input:focus { border-color: #00695c; outline: none; }
-        
         .payment-section { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
         .payment-section h3 { margin: 0 0 15px 0; color: #00695c; font-size: 18px; }
         .payment-option { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer; font-size: 16px; }
@@ -66,29 +59,24 @@
         .payment-details { display: none; margin-top: 10px; padding: 15px; background-color: #f9f9f9; border: 1px dashed #00695c; border-radius: 8px; font-size: 15px; line-height: 1.6; }
         .payment-details.active { display: block; animation: fadeIn 0.3s ease-out; }
         .copy-text { font-weight: bold; color: #00695c; user-select: all; }
-
         .order-list { margin-bottom: 20px; font-size: 16px; }
         .order-list div { padding: 10px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
-        
         .cart-item-controls { display: flex; align-items: center; gap: 10px; }
         .qty-btn { background-color: #00695c; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; transition: 0.2s; }
         .qty-btn:hover { background-color: #004d40; }
         .cart-item-qty { font-size: 16px; font-weight: bold; min-width: 20px; text-align: center; }
         .remove-btn { background-color: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px; transition: all 0.3s; }
         .remove-btn:hover { background-color: #cc0000; }
-
         .action-buttons { display: flex; gap: 15px; }
         .submit-btn { background-color: #00695c; color: #fff; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: all 0.3s; flex: 2; }
         .submit-btn:hover { background-color: #004d40; transform: translateY(-2px); }
         .print-btn { background-color: #000; color: #fff; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: all 0.3s; flex: 1; }
         .print-btn:hover { background-color: #333; transform: translateY(-2px); }
-
         .history-item { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
         .history-date { font-weight: bold; color: #00695c; }
         .history-total { font-weight: bold; }
         .reorder-btn { background-color: #00695c; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; margin-top: 10px; width: 100%; }
-        
         .contact-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; }
         .contact-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; font-size: 18px; }
         .contact-item:last-child { border-bottom: none; }
@@ -96,14 +84,11 @@
         .contact-item a:hover { background-color: #004d40; }
         .whatsapp-btn-large { display: block; background-color: #25D366; color: #fff; text-decoration: none; padding: 15px; border-radius: 8px; font-size: 18px; font-weight: bold; margin-top: 20px; text-align: center; }
         .whatsapp-btn-large:hover { background-color: #128C7E; }
-
-        /* صندوق طلب صنف غير موجود */
         .missing-item-banner { background: #f9f9f9; border: 2px dashed #00695c; border-radius: 12px; padding: 20px; text-align: center; margin-top: 30px; }
         .missing-item-banner h3 { color: #00695c; margin: 0 0 10px; font-size: 18px; }
         .missing-item-banner p { color: #666; margin: 0 0 15px; font-size: 15px; }
         .missing-item-btn { background-color: #00695c; color: #fff; text-decoration: none; padding: 12px 25px; border-radius: 50px; font-size: 16px; font-weight: bold; display: inline-block; transition: 0.3s; }
         .missing-item-btn:hover { background-color: #004d40; transform: translateY(-2px); }
-
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #fff; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-around; padding: 8px 0; z-index: 999; border-top: 3px solid #00695c; }
         .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #00695c; font-weight: bold; font-size: 12px; cursor: pointer; padding: 5px; border-radius: 8px; transition: background-color 0.3s; position: relative; flex: 1; }
         .nav-item:hover { background-color: #f4f7f6; }
@@ -111,16 +96,19 @@
         .nav-icon { width: 24px; height: 24px; margin-bottom: 2px; fill: #00695c; }
         .nav-item.active .nav-icon { fill: #000; }
         .cart-badge { position: absolute; top: 0; right: 15px; background-color: #ff4d4d; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none; }
-
-        /* تنسيق الإشعارات المنبثقة (Toast) */
         #toastContainer { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none; }
         .toast { background-color: #00695c; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 16px; text-align: center; animation: slideUp 0.3s ease-out; opacity: 1; transition: opacity 0.5s ease-in-out; }
         .toast.error { background-color: #d32f2f; }
         .toast.hide { opacity: 0; }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* تنسيقات لوحة التحكم (Admin) */
+        .admin-box { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .admin-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
+        .admin-btn { background-color: #00695c; color: #fff; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; }
+        .admin-product-item { display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
         
         @media (max-width: 600px) { 
             header { flex-direction: column; text-align: center; }
@@ -149,6 +137,36 @@
     <div id="toastContainer"></div>
 
     <div class="container">
+        <!-- صفحة الأدمن (تظهر فقط لو الرابط #admin) -->
+        <div id="view-admin" class="view" style="display: none;">
+            <h2 style="color:#00695c; text-align:center;">لوحة تحكم الإدارة</h2>
+            <div id="adminLoginBox" class="admin-box">
+                <h3 style="text-align:center; margin-top:0;">تسجيل الدخول</h3>
+                <input type="email" id="adminEmail" class="admin-input" placeholder="الإيميل" value="admin@treepharma.com">
+                <input type="password" id="adminPass" class="admin-input" placeholder="كلمة المرور">
+                <button class="admin-btn" onclick="adminLogin()">دخول لوحة التحكم</button>
+            </div>
+            <div id="adminDashboard" style="display:none;">
+                <div class="admin-box">
+                    <h3 style="margin-top:0;">إضافة صنف جديد</h3>
+                    <input type="text" id="pName" class="admin-input" placeholder="اسم الصنف">
+                    <input type="number" id="pPrice" class="admin-input" placeholder="السعر">
+                    <select id="pCategory" class="admin-input">
+                        <option value="medical">طبية</option>
+                        <option value="cosmetics">تجميل</option>
+                        <option value="offers">عروض</option>
+                    </select>
+                    <input type="file" id="pImage" class="admin-input" accept="image/*">
+                    <button class="admin-btn" onclick="addProduct()">حفظ ونشر الصنف</button>
+                </div>
+                <div class="admin-box">
+                    <h3 style="margin-top:0;">الأصناف الحالية</h3>
+                    <div id="adminProductList"></div>
+                </div>
+                <button class="admin-btn" style="background-color:#d32f2f;" onclick="adminLogout()">تسجيل الخروج</button>
+            </div>
+        </div>
+
         <div id="view-home" class="view">
             <div class="search-container">
                 <input type="text" id="searchInput" class="search-input" placeholder="ابحث عن صنف... (مثال: جوانتي، شامبو، كريم)" oninput="filterProducts()">
@@ -179,23 +197,14 @@
                 </div>
                 <div class="payment-section">
                     <h3>طريقة الدفع</h3>
-                    <label class="payment-option">
-                        <input type="radio" name="paymentMethod" value="كاش عند الاستلام" checked onchange="togglePaymentInfo()"> 
-                        دفع كاش عند الاستلام
-                    </label>
-                    <label class="payment-option">
-                        <input type="radio" name="paymentMethod" value="إنستا باي" onchange="togglePaymentInfo()"> 
-                        تحويل عبر إنستا باي (InstaPay)
-                    </label>
+                    <label class="payment-option"><input type="radio" name="paymentMethod" value="كاش عند الاستلام" checked onchange="togglePaymentInfo()"> دفع كاش عند الاستلام</label>
+                    <label class="payment-option"><input type="radio" name="paymentMethod" value="إنستا باي" onchange="togglePaymentInfo()"> تحويل عبر إنستا باي (InstaPay)</label>
                     <div id="instapay-details" class="payment-details">
                         برجاء التحويل على رقم الحساب التالي وإرسال إيصال التحويل:<br>
                         الرقم: <span class="copy-text">01220202473</span><br>
                         الاسم: <span class="copy-text">احمد محمد فتح الله</span>
                     </div>
-                    <label class="payment-option">
-                        <input type="radio" name="paymentMethod" value="ماكينة فيزا (PayMob)" onchange="togglePaymentInfo()"> 
-                        الدفع عبر ماكينة فيزا (PayMob)
-                    </label>
+                    <label class="payment-option"><input type="radio" name="paymentMethod" value="ماكينة فيزا (PayMob)" onchange="togglePaymentInfo()"> الدفع عبر ماكينة فيزا (PayMob)</label>
                     <div id="paymob-details" class="payment-details">
                         سيقوم مندوبنا بإحضار ماكينة الدفع (فيزا) عند توصيل الطلب إليك.
                     </div>
@@ -216,39 +225,14 @@
         <div id="view-contact" class="view" style="display: none;">
             <h2 style="color:#00695c; text-align:center;">تواصل معنا</h2>
             <div class="contact-card">
-                <div class="contact-item">
-                    <span>01274906271</span>
-                    <a href="tel:01274906271">اتصال</a>
-                </div>
-                <div class="contact-item">
-                    <span>01204767870</span>
-                    <a href="tel:01204767870">اتصال</a>
-                </div>
-                <div class="contact-item">
-                    <span>01501224733</span>
-                    <a href="tel:01501224733">اتصال</a>
-                </div>
-                <div class="contact-item">
-                    <span>5010048 (أرضي)</span>
-                    <a href="tel:5010048">اتصال</a>
-                </div>
-                <div class="contact-item">
-                    <span>5003717 (أرضي)</span>
-                    <a href="tel:5003717">اتصال</a>
-                </div>
-                <div class="contact-item">
-                    <span>5013813 (أرضي)</span>
-                    <a href="tel:5013813">اتصال</a>
-                </div>
-                <div class="contact-item">
-                    <span style="color:#ff4d4d;">01220202473 (شكاوي)</span>
-                    <a href="tel:01220202473" style="background-color:#ff4d4d;">اتصال</a>
-                </div>
-                <a href="https://wa.me/201274906271" class="whatsapp-btn-large" target="_blank">
-                    مراسلتنا على واتساب
-                </a>
-
-                <!-- صندوق طلب صنف غير موجود -->
+                <div class="contact-item"><span>01274906271</span><a href="tel:01274906271">اتصال</a></div>
+                <div class="contact-item"><span>01204767870</span><a href="tel:01204767870">اتصال</a></div>
+                <div class="contact-item"><span>01501224733</span><a href="tel:01501224733">اتصال</a></div>
+                <div class="contact-item"><span>5010048 (أرضي)</span><a href="tel:5010048">اتصال</a></div>
+                <div class="contact-item"><span>5003717 (أرضي)</span><a href="tel:5003717">اتصال</a></div>
+                <div class="contact-item"><span>5013813 (أرضي)</span><a href="tel:5013813">اتصال</a></div>
+                <div class="contact-item"><span style="color:#ff4d4d;">01220202473 (شكاوي)</span><a href="tel:01220202473" style="background-color:#ff4d4d;">اتصال</a></div>
+                <a href="https://wa.me/201274906271" class="whatsapp-btn-large" target="_blank">مراسلتنا على واتساب</a>
                 <div class="missing-item-banner">
                     <h3>لم تجد ما تبحث عنه؟</h3>
                     <p>يمكنك طلب أي صنف غير موجود بالقائمة وسنوفره لك في أسرع وقت.</p>
@@ -260,29 +244,29 @@
 
     <nav class="bottom-nav">
         <div class="nav-item active" onclick="switchView('home', event)">
-            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-            الرئيسية
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>الرئيسية
         </div>
         <div class="nav-item" onclick="switchView('favorites', event)">
-            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-            المفضلة
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>المفضلة
         </div>
         <div class="nav-item" onclick="switchView('cart', event)">
             <svg class="nav-icon" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
-            <span class="cart-badge" id="cartBadge">0</span>
-            السلة
+            <span class="cart-badge" id="cartBadge">0</span>السلة
         </div>
         <div class="nav-item" onclick="switchView('orders', event)">
-            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-            طلباتي
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>طلباتي
         </div>
         <div class="nav-item" onclick="switchView('contact', event)">
-            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-            تواصل
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>تواصل
         </div>
     </nav>
 
     <script>
+        // ===== إعدادات Supabase =====
+        const SUPABASE_URL = 'https://xspkizefwwhqdhxxewvj.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_JTxJIB3ess8YXhxhnB-qzQ_cSyQVCjz';
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         let allProducts = []; 
         let medicalProducts = [];
         let cosmeticsProducts = [];
@@ -292,7 +276,6 @@
         let favorites = JSON.parse(localStorage.getItem('treePharma_favorites')) || [];
         let myOrders = JSON.parse(localStorage.getItem('treePharma_orders')) || [];
 
-        // دالة لترتيب الأصناف أبجدياً
         function sortProductsByName(arr) {
             return arr.sort((a, b) => {
                 const nameA = (a.name || "").toLowerCase();
@@ -303,88 +286,53 @@
             });
         }
 
-        // دالة الإشعارات المنبثقة (Toast)
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = 'toast' + (type === 'error' ? ' error' : '');
             toast.innerText = message;
             container.appendChild(toast);
-
-            // اختفاء بعد 5 ثواني
-            setTimeout(() => {
-                toast.classList.add('hide');
-                setTimeout(() => toast.remove(), 500);
-            }, 5000);
+            setTimeout(() => { toast.classList.add('hide'); setTimeout(() => toast.remove(), 500); }, 5000);
         }
 
+        // ===== جلب الأصناف من Supabase =====
         async function fetchProducts() {
             let listDiv = document.getElementById('productList');
-            
-            let cachedMedical = localStorage.getItem('treePharma_medical');
-            let cachedCosmetics = localStorage.getItem('treePharma_cosmetics');
-            let cachedOffers = localStorage.getItem('treePharma_offers');
-            
-            if (cachedMedical) {
-                try { medicalProducts = JSON.parse(cachedMedical); } catch(e) { localStorage.removeItem('treePharma_medical'); }
-            }
-            if (cachedCosmetics) {
-                try { cosmeticsProducts = JSON.parse(cachedCosmetics); } catch(e) { localStorage.removeItem('treePharma_cosmetics'); }
-            }
-
-            medicalProducts = sortProductsByName(medicalProducts);
-            cosmeticsProducts = sortProductsByName(cosmeticsProducts);
-            allProducts = [...medicalProducts, ...cosmeticsProducts];
-            allProducts = sortProductsByName(allProducts);
-
-            if (allProducts.length > 0 && document.getElementById("btnAll").classList.contains("active")) {
-                currentProducts = allProducts;
-                filterProducts(); 
-            }
-
-            if (cachedOffers) {
-                try { offerProducts = sortProductsByName(JSON.parse(cachedOffers)); } catch(e) { localStorage.removeItem('treePharma_offers'); }
-            }
-
             try {
-                let resMed = await fetch('medical.json?v=' + Date.now());
-                if (resMed.ok) {
-                    medicalProducts = await resMed.json();
-                    medicalProducts = sortProductsByName(medicalProducts); 
-                    localStorage.setItem('treePharma_medical', JSON.stringify(medicalProducts));
-                }
-            } catch (error) {}
+                const { data, error } = await sb.from('products').select('*');
+                if (error) throw error;
+                
+                allProducts = data || [];
+                medicalProducts = allProducts.filter(p => p.category === 'medical');
+                cosmeticsProducts = allProducts.filter(p => p.category === 'cosmetics');
+                offerProducts = allProducts.filter(p => p.category === 'offers');
+                
+                medicalProducts = sortProductsByName(medicalProducts);
+                cosmeticsProducts = sortProductsByName(cosmeticsProducts);
+                offerProducts = sortProductsByName(offerProducts);
+                allProducts = sortProductsByName(allProducts);
 
-            try {
-                let resCos = await fetch('cosmetics.json?v=' + Date.now());
-                if (resCos.ok) {
-                    cosmeticsProducts = await resCos.json();
-                    cosmeticsProducts = sortProductsByName(cosmeticsProducts); 
-                    localStorage.setItem('treePharma_cosmetics', JSON.stringify(cosmeticsProducts));
-                }
-            } catch (error) {}
+                localStorage.setItem('treePharma_data', JSON.stringify(allProducts)); // حفظ للعمل أوفلاين
 
-            allProducts = [...medicalProducts, ...cosmeticsProducts];
-            allProducts = sortProductsByName(allProducts);
-
-            if (document.getElementById("btnAll").classList.contains("active")) {
-                currentProducts = allProducts;
-                filterProducts();
-            }
-
-            if (allProducts.length === 0 && !cachedMedical && !cachedCosmetics) {
-                listDiv.innerHTML = '<p style="text-align:center; color:red; font-size:18px;">تعذر تحميل الأصناف. برجاء التحقق من الإنترنت.</p>';
-            }
-
-            try {
-                let resOffers = await fetch('offers.json?v=' + Date.now());
-                if (resOffers.ok) {
-                    offerProducts = await resOffers.json();
-                    offerProducts = sortProductsByName(offerProducts); 
-                    localStorage.setItem('treePharma_offers', JSON.stringify(offerProducts));
+                if (document.getElementById("btnAll").classList.contains("active")) {
+                    currentProducts = allProducts;
+                    filterProducts(); 
                 }
             } catch (error) {
-                offerProducts = [];
+                // لو مفيش نت، اقرأ من الكاش المحلي
+                let cached = localStorage.getItem('treePharma_data');
+                if (cached) {
+                    allProducts = JSON.parse(cached);
+                    medicalProducts = allProducts.filter(p => p.category === 'medical');
+                    cosmeticsProducts = allProducts.filter(p => p.category === 'cosmetics');
+                    offerProducts = allProducts.filter(p => p.category === 'offers');
+                    if (document.getElementById("btnAll").classList.contains("active")) {
+                        currentProducts = allProducts;
+                        filterProducts(); 
+                    }
+                } else {
+                    listDiv.innerHTML = '<p style="text-align:center; color:red; font-size:18px;">تعذر تحميل الأصناف. برجاء التحقق من الإنترنت.</p>';
+                }
             }
         }
 
@@ -396,58 +344,26 @@
             document.getElementById(btnId).classList.add("active");
         }
 
-        function showAllProducts() { 
-            currentProducts = allProducts; 
-            setActiveButton("btnAll");
-            filterProducts(); 
-        }
-
-        function showMedicalProducts() { 
-            currentProducts = medicalProducts; 
-            setActiveButton("btnMedical");
-            filterProducts(); 
-        }
-
-        function showCosmeticsProducts() { 
-            currentProducts = cosmeticsProducts; 
-            setActiveButton("btnCosmetics");
-            filterProducts(); 
-        }
-        
-        function showWeeklyOffers() { 
-            currentProducts = offerProducts; 
-            setActiveButton("btnOffers");
-            filterProducts(); 
-        }
+        function showAllProducts() { currentProducts = allProducts; setActiveButton("btnAll"); filterProducts(); }
+        function showMedicalProducts() { currentProducts = medicalProducts; setActiveButton("btnMedical"); filterProducts(); }
+        function showCosmeticsProducts() { currentProducts = cosmeticsProducts; setActiveButton("btnCosmetics"); filterProducts(); }
+        function showWeeklyOffers() { currentProducts = offerProducts; setActiveButton("btnOffers"); filterProducts(); }
 
         function filterProducts() {
             let searchText = document.getElementById('searchInput').value.toLowerCase();
             let listDiv = document.getElementById('productList');
-            
             if (currentProducts.length === 0) { 
-                if (document.getElementById("btnOffers").classList.contains("active")) {
-                    listDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد عروض حالياً.</p>'; 
-                } else {
-                    listDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد أصناف في هذا القسم.</p>'; 
-                }
+                listDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد أصناف في هذا القسم.</p>'; 
                 return; 
             }
-            
             let filtered = currentProducts.filter(p => p.name && p.name.toLowerCase().includes(searchText));
             filtered = sortProductsByName(filtered); 
-            
-            if(filtered.length === 0) { 
-                listDiv.innerHTML = '<p style="text-align:center; color:red; font-size:20px; padding:20px;">لا يوجد صنف بهذا الاسم</p>'; 
-                return; 
-            }
-
+            if(filtered.length === 0) { listDiv.innerHTML = '<p style="text-align:center; color:red; font-size:20px; padding:20px;">لا يوجد صنف بهذا الاسم</p>'; return; }
             let htmlContent = '';
             filtered.forEach(p => {
-                let originalIndex = currentProducts.indexOf(p);
                 let isFav = favorites.some(f => f.name === p.name);
                 let heart = isFav ? '❤️' : '🤍';
-                let imageHTML = p.image ? `<img src="${p.image}" alt="${p.name}" class="item-image">` : '';
-                
+                let imageHTML = p.image_url ? `<img src="${p.image_url}" alt="${p.name}" class="item-image">` : '';
                 htmlContent += `
                     <div class="list-item">
                         ${imageHTML}
@@ -457,12 +373,11 @@
                         </div>
                         <div class="item-footer">
                             <button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price}, this)">${heart}</button>
-                            <input type="number" class="qty-input" id="qty${originalIndex}" placeholder="الكمية" min="1">
-                            <button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'qty${originalIndex}')">إضافة</button>
+                            <input type="number" class="qty-input" id="qty_${p.id}" placeholder="الكمية" min="1">
+                            <button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'qty_${p.id}')">إضافة</button>
                         </div>
                     </div>`;
             });
-            
             listDiv.innerHTML = htmlContent;
         }
 
@@ -478,15 +393,12 @@
                 showToast("تمت إضافة الصنف إلى المفضلة ❤️");
             }
             localStorage.setItem('treePharma_favorites', JSON.stringify(favorites));
-            setTimeout(() => {
-                if(document.getElementById('view-favorites').style.display === 'block') renderFavorites();
-            }, 50);
+            setTimeout(() => { if(document.getElementById('view-favorites').style.display === 'block') renderFavorites(); }, 50);
         }
 
         function renderFavorites() {
             let favDiv = document.getElementById('favoritesList'); 
             if (favorites.length === 0) { favDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد أصناف في المفضلة.</p>'; return; }
-            
             let sortedFavs = sortProductsByName([...favorites]); 
             let htmlContent = '';
             sortedFavs.forEach(p => {
@@ -507,7 +419,14 @@
         }
 
         window.onload = function() {
-            fetchProducts(); renderFavorites(); renderOrders();
+            if (window.location.hash === '#admin') {
+                document.getElementById('view-admin').style.display = 'block';
+                document.getElementById('view-home').style.display = 'none';
+                checkAdminSession();
+            } else {
+                fetchProducts(); 
+            }
+            renderFavorites(); renderOrders();
             let savedData = localStorage.getItem('treePharma_customer');
             if (savedData) { let customer = JSON.parse(savedData); document.getElementById('clientName').value = customer.name || ''; document.getElementById('clientAddress').value = customer.address || ''; document.getElementById('clientPhone').value = customer.phone || ''; }
         };
@@ -522,29 +441,19 @@
                 updateCartDisplay(); updateCartBadge();
                 showToast("تم إضافة " + productName + " إلى السلة ✔️");
                 qtyInput.value = "";
-            } else { 
-                showToast("برجاء كتابة كمية صحيحة.", "error"); 
-            }
+            } else { showToast("برجاء كتابة كمية صحيحة.", "error"); }
         }
 
-        // دالة تعديل الكمية في السلة (زيادة ونقصان)
         function changeQty(itemId, delta) {
             let item = cart.find(i => i.id === itemId);
             if (item) {
                 item.qty += delta;
-                if (item.qty <= 0) {
-                    cart = cart.filter(i => i.id !== itemId);
-                    showToast("تم حذف الصنف من السلة.");
-                }
+                if (item.qty <= 0) { cart = cart.filter(i => i.id !== itemId); showToast("تم حذف الصنف من السلة."); }
                 updateCartDisplay(); updateCartBadge();
             }
         }
 
-        function removeFromCart(itemId) { 
-            cart = cart.filter(item => item.id !== itemId); 
-            updateCartDisplay(); updateCartBadge(); 
-            showToast("تم حذف الصنف من السلة.");
-        }
+        function removeFromCart(itemId) { cart = cart.filter(item => item.id !== itemId); updateCartDisplay(); updateCartBadge(); showToast("تم حذف الصنف من السلة."); }
 
         function updateCartDisplay() {
             let cartDiv = document.getElementById('cartDisplay'); 
@@ -552,16 +461,7 @@
             let total = 0, htmlContent = '';
             cart.forEach(item => {
                 let itemTotal = item.price * item.qty; total += itemTotal;
-                htmlContent += `
-                    <div>
-                        <span style="flex:1;">${item.name} - ${itemTotal} ج.م</span>
-                        <div class="cart-item-controls">
-                            <button class="qty-btn" onclick="changeQty(${item.id}, -1)">-</button>
-                            <span class="cart-item-qty">${item.qty}</span>
-                            <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
-                            <button class="remove-btn" onclick="removeFromCart(${item.id})">حذف</button>
-                        </div>
-                    </div>`;
+                htmlContent += `<div><span style="flex:1;">${item.name} - ${itemTotal} ج.م</span><div class="cart-item-controls"><button class="qty-btn" onclick="changeQty(${item.id}, -1)">-</button><span class="cart-item-qty">${item.qty}</span><button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button><button class="remove-btn" onclick="removeFromCart(${item.id})">حذف</button></div></div>`;
             });
             htmlContent += `<div style="font-weight: bold; font-size: 20px; color: #00695c; margin-top: 10px; border-top: 2px solid #000; padding-top: 10px;"><span>الإجمالي:</span><span>${total} ج.م</span></div>`;
             cartDiv.innerHTML = htmlContent;
@@ -570,8 +470,7 @@
         function updateCartBadge() {
             let badge = document.getElementById('cartBadge');
             let totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
-            if(totalQty > 0) { badge.style.display = 'block'; badge.innerText = totalQty; } 
-            else { badge.style.display = 'none'; }
+            if(totalQty > 0) { badge.style.display = 'block'; badge.innerText = totalQty; } else { badge.style.display = 'none'; }
         }
 
         function togglePaymentInfo() {
@@ -586,11 +485,9 @@
             let views = ['home', 'favorites', 'cart', 'orders', 'contact'];
             views.forEach(v => document.getElementById('view-' + v).style.display = 'none');
             document.getElementById('view-' + viewName).style.display = 'block';
-            
             let navItems = document.getElementsByClassName('nav-item');
             for(let i=0; i<navItems.length; i++) navItems[i].classList.remove('active');
             if(event) event.currentTarget.classList.add('active');
-            
             if(viewName === 'favorites') renderFavorites();
             if(viewName === 'orders') renderOrders();
         }
@@ -601,15 +498,7 @@
             let htmlContent = '';
             myOrders.forEach((order, index) => {
                 let itemsText = order.items.map(item => `${item.name} (${item.qty})`).join('، ');
-                htmlContent += `
-                    <div class="history-item">
-                        <div class="history-header">
-                            <span class="history-date">تاريخ الطلب: ${order.date}</span>
-                            <span class="history-total">${order.total} ج.م</span>
-                        </div>
-                        <p>${itemsText}</p>
-                        <button class="reorder-btn" onclick="reorder(${index})">إعادة طلب هذه الأصناف</button>
-                    </div>`;
+                htmlContent += `<div class="history-item"><div class="history-header"><span class="history-date">تاريخ الطلب: ${order.date}</span><span class="history-total">${order.total} ج.م</span></div><p>${itemsText}</p><button class="reorder-btn" onclick="reorder(${index})">إعادة طلب هذه الأصناف</button></div>`;
             });
             ordersDiv.innerHTML = htmlContent;
         }
@@ -628,28 +517,19 @@
             let phone = document.getElementById('clientPhone').value;
             if (cart.length === 0) { showToast("برجاء إضافة أصناف للسلة أولاً.", "error"); return; }
             if (!name || !address || !phone) { showToast("برجاء إدخال اسم العميل والعنوان ورقم الموبايل.", "error"); return; }
-            
             let paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
             let customerData = { name: name, address: address, phone: phone };
             localStorage.setItem('treePharma_customer', JSON.stringify(customerData));
-            
             let itemsText = "", total = 0;
             cart.forEach(item => { let itemTotal = item.price * item.qty; total += itemTotal; itemsText += `- ${item.name} (الكمية: ${item.qty}) = ${itemTotal} ج.م\n`; });
             itemsText += `\n*طريقة الدفع المطلوبة: ${paymentMethod}*`;
-
             myOrders.unshift({ date: new Date().toLocaleDateString('en-GB'), items: [...cart], total: total });
             if (myOrders.length > 5) myOrders.pop();
             localStorage.setItem('treePharma_orders', JSON.stringify(myOrders));
             renderOrders();
-
             const orderData = { name: name, phone: phone, address: address, items: itemsText, total: total };
             const GAS_URL = "https://script.google.com/macros/s/AKfycbxsZ88Sk_3rWPhUSf4BaSVPoqey4K296wxqLLe-yPqHdDWEU3Qz7w8aBQKsgmt5VCik/exec";
-            
-            fetch(GAS_URL, {
-                method: 'POST', mode: 'no-cors', 
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(orderData)
-            })
+            fetch(GAS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(orderData) })
             .then(() => {
                 showToast("تم استلام طلبك بنجاح! سيتم التواصل معك قريباً ✔️");
                 cart = []; updateCartDisplay(); updateCartBadge();
@@ -668,10 +548,7 @@
             let printContents = `<html dir="rtl" lang="ar"><head><title>طباعة طلب - Tree Pharma</title><style>body{font-family:'Segoe UI',Tahoma,sans-serif;padding:20px}h1{color:#00695c;text-align:center;margin-bottom:5px}h2{font-size:18px;border-bottom:2px solid #000;padding-bottom:5px}.header-info{text-align:center;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #ddd;padding:8px;text-align:center}th{background-color:#f4f7f6}.total{text-align:left;font-size:20px;font-weight:bold;margin-top:20px}.payment-info{margin-top:15px;font-weight:bold;color:#00695c}</style></head><body><div class="header-info"><h1>Tree Pharma</h1></div><h2>بيانات العميل:</h2><p><strong>اسم العميل:</strong> ${name}</p><p><strong>العنوان:</strong> ${address}</p><p><strong>الموبايل:</strong> ${phone}</p><h2>تفاصيل الطلب:</h2><table><tr><th>الصنف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>`;
             let total = 0;
             let sortedCart = sortProductsByName([...cart]); 
-            sortedCart.forEach(item => {
-                let itemTotal = item.price * item.qty; total += itemTotal;
-                printContents += `<tr><td>${item.name}</td><td>${item.qty}</td><td>${item.price} ج.م</td><td>${itemTotal} ج.م</td></tr>`;
-            });
+            sortedCart.forEach(item => { let itemTotal = item.price * item.qty; total += itemTotal; printContents += `<tr><td>${item.name}</td><td>${item.qty}</td><td>${item.price} ج.م</td><td>${itemTotal} ج.م</td></tr>`; });
             printContents += `</table><div class="total">الإجمالي: ${total} ج.م</div><div class="payment-info">طريقة الدفع: ${paymentMethod}</div></body></html>`;
             let printWindow = window.open('', '_blank');
             printWindow.document.open();
@@ -688,6 +565,80 @@
             let printWindow = window.open('', '_blank'); printWindow.document.open(); printWindow.document.write(catalogContents); printWindow.document.close(); setTimeout(function() { printWindow.print(); }, 500);
         }
 
+        // ===== دوال لوحة تحكم الأدمن (Admin) =====
+        async function checkAdminSession() {
+            const { data: { session } } = await sb.auth.getSession();
+            if (session) {
+                document.getElementById('adminLoginBox').style.display = 'none';
+                document.getElementById('adminDashboard').style.display = 'block';
+                loadAdminProducts();
+            }
+        }
+
+        async function adminLogin() {
+            const email = document.getElementById('adminEmail').value;
+            const pass = document.getElementById('adminPass').value;
+            const { data, error } = await sb.auth.signInWithPassword({ email: email, password: pass });
+            if (error) { showToast("خطأ في الإيميل أو كلمة المرور", "error"); }
+            else { showToast("تم تسجيل الدخول بنجاح"); checkAdminSession(); }
+        }
+
+        async function adminLogout() {
+            await sb.auth.signOut();
+            document.getElementById('adminLoginBox').style.display = 'block';
+            document.getElementById('adminDashboard').style.display = 'none';
+        }
+
+        async function addProduct() {
+            const name = document.getElementById('pName').value;
+            const price = document.getElementById('pPrice').value;
+            const category = document.getElementById('pCategory').value;
+            const fileInput = document.getElementById('pImage');
+            
+            if (!name || !price) { showToast("برجاء إدخال الاسم والسعر", "error"); return; }
+            
+            let imageUrl = '';
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const fileName = `${Date.now()}_${file.name}`;
+                const { data, error } = await sb.storage.from('products').upload(fileName, file);
+                if (error) { showToast("فشل رفع الصورة", "error"); return; }
+                imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${fileName}`;
+            }
+
+            const { error } = await sb.from('products').insert([{ name, price, category, image_url: imageUrl }]);
+            if (!error) {
+                showToast("تم إضافة الصنف بنجاح ✔️");
+                document.getElementById('pName').value = '';
+                document.getElementById('pPrice').value = '';
+                document.getElementById('pImage').value = '';
+                loadAdminProducts();
+                fetchProducts(); // تحديث واجهة العميل فوراً
+            } else { showToast("حدث خطأ أثناء الحفظ", "error"); }
+        }
+
+        async function loadAdminProducts() {
+            const { data, error } = await sb.from('products').select('*');
+            if (data) {
+                let listDiv = document.getElementById('adminProductList');
+                if(data.length === 0) { listDiv.innerHTML = '<p>لا توجد أصناف مضافة.</p>'; return; }
+                let htmlContent = '';
+                data.forEach(p => {
+                    htmlContent += `
+                        <div class="admin-product-item">
+                            <span>${p.name} - ${p.price} ج.م (${p.category})</span>
+                            <button class="remove-btn" onclick="deleteProduct(${p.id})">حذف</button>
+                        </div>`;
+                });
+                listDiv.innerHTML = htmlContent;
+            }
+        }
+
+        async function deleteProduct(id) {
+            const { error } = await sb.from('products').delete().eq('id', id);
+            if (!error) { showToast("تم حذف الصنف"); loadAdminProducts(); fetchProducts(); }
+        }
+
         // ===== كود تسجيل التطبيق وتحديثه أوتوماتيكياً =====
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -701,7 +652,6 @@
                         });
                     });
                 });
-
                 let refreshing;
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
                     if (refreshing) return;
