@@ -177,7 +177,13 @@
                     <h3 style="margin-top:0;">الأصناف الحالية (يمكنك تعديل الصور من هنا)</h3>
                     <div id="adminProductList"></div>
                 </div>
-                <button class="admin-btn" style="background-color:#d32f2f;" onclick="adminLogout()">تسجيل الخروج</button>
+                
+                <!-- زرار مسح كل الأصناف -->
+                <div class="admin-box" style="text-align:center;">
+                    <button class="admin-btn" style="background-color:#d32f2f; width:100%;" onclick="deleteAllProducts()">مسح جميع الأصناف (تنبيه: سيتم حذف كل الأصناف نهائياً)</button>
+                </div>
+
+                <button class="admin-btn" style="background-color:#000;" onclick="adminLogout()">تسجيل الخروج</button>
             </div>
         </div>
 
@@ -700,6 +706,19 @@
         async function deleteProduct(id) {
             const { error } = await sb.from('products').delete().eq('id', id);
             if (!error) { showToast("تم حذف الصنف"); loadAdminProducts(); fetchProducts(); }
+        }
+
+        // دالة مسح جميع الأصناف
+        async function deleteAllProducts() {
+            if (!confirm("هل أنت متأكد تماماً؟ سيتم مسح كل الأصناف من الموقع ولا يمكن التراجع عن هذا الإجراء!")) return;
+            const { error } = await sb.from('products').delete().neq('id', 0);
+            if (!error) {
+                showToast("تم مسح جميع الأصناف بنجاح");
+                loadAdminProducts(); 
+                fetchProducts(); 
+            } else {
+                showToast("حدث خطأ أثناء مسح الأصناف", "error");
+            }
         }
 
         // ===== كود تسجيل التطبيق وتحديثه أوتوماتيكياً =====
