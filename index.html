@@ -108,7 +108,7 @@
         .admin-box { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .admin-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
         .admin-btn { background-color: #00695c; color: #fff; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; }
-        .admin-product-item { display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
+        .admin-product-item { display: flex; flex-direction: column; gap: 10px; background: #f9f9f9; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
         
         @media (max-width: 600px) { 
             header { flex-direction: column; text-align: center; }
@@ -137,7 +137,7 @@
     <div id="toastContainer"></div>
 
     <div class="container">
-        <!-- صفحة الأدمن (تظهر فقط لو الرابط #admin) -->
+        <!-- صفحة الأدمن -->
         <div id="view-admin" class="view" style="display: none;">
             <h2 style="color:#00695c; text-align:center;">لوحة تحكم الإدارة</h2>
             <div id="adminLoginBox" class="admin-box">
@@ -148,7 +148,7 @@
             </div>
             <div id="adminDashboard" style="display:none;">
                 <div class="admin-box">
-                    <h3 style="margin-top:0;">إضافة صنف جديد</h3>
+                    <h3 style="margin-top:0;">إضافة صنف جديد (فردي)</h3>
                     <input type="text" id="pName" class="admin-input" placeholder="اسم الصنف">
                     <input type="number" id="pPrice" class="admin-input" placeholder="السعر">
                     <select id="pCategory" class="admin-input">
@@ -159,8 +159,22 @@
                     <input type="file" id="pImage" class="admin-input" accept="image/*">
                     <button class="admin-btn" onclick="addProduct()">حفظ ونشر الصنف</button>
                 </div>
+
+                <!-- صندوق الإضافة بالجملة -->
                 <div class="admin-box">
-                    <h3 style="margin-top:0;">الأصناف الحالية</h3>
+                    <h3 style="margin-top:0;">إضافة أصناف بالجملة (نسخ ولصق)</h3>
+                    <p style="font-size:14px; color:#666; margin-bottom:15px;">انسخ محتوى ملف الـ JSON القديم بتاعك والصقه هنا. سيتم رفع كل الأصناف دفعة واحدة بدون صور، وتقدر تعدل الصور بعدين.</p>
+                    <select id="bulkCategory" class="admin-input">
+                        <option value="medical">طبية</option>
+                        <option value="cosmetics">تجميل</option>
+                        <option value="offers">عروض</option>
+                    </select>
+                    <textarea id="bulkJson" class="admin-input" rows="6" placeholder='[{"name":"صنف 1","price":10}, {"name":"صنف 2","price":20}]'></textarea>
+                    <button class="admin-btn" style="background-color:#004d40;" onclick="bulkAddProducts()">رفع الأصناف دفعة واحدة</button>
+                </div>
+
+                <div class="admin-box">
+                    <h3 style="margin-top:0;">الأصناف الحالية (يمكنك تعديل الصور من هنا)</h3>
                     <div id="adminProductList"></div>
                 </div>
                 <button class="admin-btn" style="background-color:#d32f2f;" onclick="adminLogout()">تسجيل الخروج</button>
@@ -617,6 +631,37 @@
             } else { showToast("حدث خطأ أثناء الحفظ", "error"); }
         }
 
+        // دالة الإضافة بالجملة (نسخ ولصق JSON)
+        async function bulkAddProducts() {
+            const jsonText = document.getElementById('bulkJson').value;
+            const category = document.getElementById('bulkCategory').value;
+            if (!jsonText) { showToast("الرجاء لصق أكواد الأصناف أولاً", "error"); return; }
+            
+            try {
+                let parsedData = JSON.parse(jsonText);
+                if (!Array.isArray(parsedData)) parsedData = [parsedData]; // لو صنف واحد
+                
+                const itemsToInsert = parsedData.map(p => ({
+                    name: p.name,
+                    price: p.price,
+                    category: p.category || category,
+                    image_url: '' // فاضي مؤقتاً
+                }));
+
+                const { error } = await sb.from('products').insert(itemsToInsert);
+                if (!error) {
+                    showToast(`تم إضافة ${itemsToInsert.length} صنف بنجاح ✔️`);
+                    document.getElementById('bulkJson').value = '';
+                    loadAdminProducts();
+                    fetchProducts();
+                } else {
+                    showToast("حدث خطأ في الإدخال", "error");
+                }
+            } catch (e) {
+                showToast("صيغة JSON غير صحيحة. تأكد من نسخ الملف بشكل سليم", "error");
+            }
+        }
+
         async function loadAdminProducts() {
             const { data, error } = await sb.from('products').select('*');
             if (data) {
@@ -626,12 +671,30 @@
                 data.forEach(p => {
                     htmlContent += `
                         <div class="admin-product-item">
-                            <span>${p.name} - ${p.price} ج.م (${p.category})</span>
-                            <button class="remove-btn" onclick="deleteProduct(${p.id})">حذف</button>
+                            <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+                                <span><strong>${p.name}</strong> - ${p.price} ج.م</span>
+                                <button class="remove-btn" onclick="deleteProduct(${p.id})">حذف</button>
+                            </div>
+                            <div style="display:flex; gap:10px; width:100%; align-items:center;">
+                                <input type="file" id="img_${p.id}" class="admin-input" accept="image/*" style="margin-bottom:0; padding:5px; flex:1;">
+                                <button class="admin-btn" style="width:auto; padding: 8px 15px; margin-bottom:0;" onclick="updateProductImage(${p.id}, 'img_${p.id}')">رفع صورة</button>
+                            </div>
                         </div>`;
                 });
                 listDiv.innerHTML = htmlContent;
             }
+        }
+
+        async function updateProductImage(id, fileInputId) {
+            const fileInput = document.getElementById(fileInputId);
+            if (fileInput.files.length === 0) { showToast("برجاء اختيار صورة أولاً", "error"); return; }
+            const file = fileInput.files[0];
+            const fileName = `${Date.now()}_${file.name}`;
+            const { data, error } = await sb.storage.from('products').upload(fileName, file);
+            if (error) { showToast("فشل رفع الصورة", "error"); return; }
+            const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${fileName}`;
+            const { err } = await sb.from('products').update({ image_url: imageUrl }).eq('id', id);
+            if (!err) { showToast("تم تحديث صورة الصنف بنجاح ✔️"); loadAdminProducts(); fetchProducts(); }
         }
 
         async function deleteProduct(id) {
