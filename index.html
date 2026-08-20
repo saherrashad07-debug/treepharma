@@ -44,7 +44,6 @@
         .item-image { max-width: 90%; max-height: 90%; object-fit: contain; cursor: pointer; transition: transform 0.2s; }
         .item-image:hover { transform: scale(1.05); }
         
-        /* تنسيق اسم الصنف والسعر وزرار القلب */
         .item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 12px; }
         .item-info { flex: 1; text-align: right; word-break: break-word; }
         .item-name { font-weight: bold; color: #333; font-size: 14px; line-height: 1.3; display: block; }
@@ -124,6 +123,7 @@
         .admin-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
         .admin-btn { background-color: #00695c; color: #fff; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; }
         .admin-product-item { display: flex; flex-direction: column; gap: 10px; background: #f9f9f9; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+        .admin-category-header { background: #e0f2f1; color: #00695c; padding: 10px 15px; border-radius: 8px; margin-top: 25px; font-weight: bold; font-size: 16px; border-right: 4px solid #00695c; }
         
         /* تنسيقات البوت (Chatbot) */
         .chatbot-container { position: fixed; bottom: 100px; left: 20px; z-index: 1000; }
@@ -227,7 +227,7 @@
                 </div>
 
                 <div class="admin-box">
-                    <h3 style="margin-top:0;">الأصناف الحالية (يمكنك تعديل الصور من هنا)</h3>
+                    <h3 style="margin-top:0;">الأصناف الحالية (مقسمة حسب القسم)</h3>
                     <div id="adminProductList"></div>
                 </div>
                 
@@ -809,9 +809,16 @@
             if (data) {
                 let listDiv = document.getElementById('adminProductList');
                 if(data.length === 0) { listDiv.innerHTML = '<p>لا توجد أصناف مضافة.</p>'; return; }
-                let htmlContent = '';
+
+                // ترتيب الأصناف أبجدياً قبل عرضها في الأدمن
+                data.sort((a,b) => (a.name || "").toLowerCase().localeCompare((b.name || "").toLowerCase()));
+
+                let medicalHTML = '';
+                let cosmeticsHTML = '';
+                let offersHTML = '';
+
                 data.forEach(p => {
-                    htmlContent += `
+                    let itemHTML = `
                         <div class="admin-product-item">
                             <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
                                 <span><strong>${p.name}</strong> - ${p.price} ج.م</span>
@@ -822,7 +829,26 @@
                                 <button class="admin-btn" style="width:auto; padding: 8px 15px; margin-bottom:0;" onclick="updateProductImage(${p.id}, 'img_${p.id}')">رفع صورة</button>
                             </div>
                         </div>`;
+
+                    if (p.category === 'medical') medicalHTML += itemHTML;
+                    else if (p.category === 'cosmetics') cosmeticsHTML += itemHTML;
+                    else if (p.category === 'offers') offersHTML += itemHTML;
                 });
+
+                let htmlContent = '';
+                if (medicalHTML) {
+                    htmlContent += `<div class="admin-category-header">أصناف طبية (${medicalHTML.split('admin-product-item').length - 1})</div>`;
+                    htmlContent += medicalHTML;
+                }
+                if (cosmeticsHTML) {
+                    htmlContent += `<div class="admin-category-header">أصناف تجميل (${cosmeticsHTML.split('admin-product-item').length - 1})</div>`;
+                    htmlContent += cosmeticsHTML;
+                }
+                if (offersHTML) {
+                    htmlContent += `<div class="admin-category-header">العروض الأسبوعية (${offersHTML.split('admin-product-item').length - 1})</div>`;
+                    htmlContent += offersHTML;
+                }
+
                 listDiv.innerHTML = htmlContent;
             }
         }
