@@ -110,6 +110,21 @@
         .admin-btn { background-color: #00695c; color: #fff; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; }
         .admin-product-item { display: flex; flex-direction: column; gap: 10px; background: #f9f9f9; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
         
+        /* تنسيقات البوت (Chatbot) */
+        .chatbot-container { position: fixed; bottom: 100px; left: 20px; z-index: 1000; }
+        .chatbot-toggle { background-color: #00695c; color: white; border: none; border-radius: 50%; width: 55px; height: 55px; font-size: 24px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; transition: transform 0.3s; }
+        .chatbot-toggle:hover { transform: scale(1.1); }
+        .chatbox { display: none; position: absolute; bottom: 65px; left: 0; width: 320px; max-width: calc(100vw - 40px); background: white; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); overflow: hidden; flex-direction: column; height: 400px; }
+        .chatbox.active { display: flex; }
+        .chatbox-header { background-color: #00695c; color: white; padding: 15px; font-weight: bold; text-align: center; }
+        .chatbox-body { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #f9f9f9; }
+        .chat-msg { max-width: 80%; padding: 10px; border-radius: 8px; font-size: 14px; line-height: 1.4; white-space: pre-line; }
+        .bot-msg { background: #e0f2f1; align-self: flex-start; border-bottom-left-radius: 0; }
+        .user-msg { background: #00695c; color: white; align-self: flex-end; border-bottom-right-radius: 0; }
+        .chatbox-footer { padding: 10px; border-top: 1px solid #eee; display: flex; gap: 10px; }
+        .chatbox-footer input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+        .chatbox-footer button { background-color: #00695c; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        
         @media (max-width: 600px) { 
             header { flex-direction: column; text-align: center; }
             .header-right { width: 100%; align-items: center; margin-top: 10px; }
@@ -136,6 +151,21 @@
 
     <div id="toastContainer"></div>
 
+    <!-- واجهة البوت -->
+    <div class="chatbot-container">
+        <div class="chatbox" id="chatbox">
+            <div class="chatbox-header">مساعد Tree Pharma</div>
+            <div class="chatbox-body" id="chatboxBody">
+                <div class="chat-msg bot-msg">أهلاً بك في Tree Pharma! إزاي أقدر أساعدك؟ (تقدر تسألني عن الاسعار , صنف معين, الدفع او التوصيل)</div>
+            </div>
+            <div class="chatbox-footer">
+                <input type="text" id="chatInput" placeholder="اكتب سؤالك هنا..." onkeypress="handleChatKeyPress(event)">
+                <button onclick="sendChatMessage()">إرسال</button>
+            </div>
+        </div>
+        <button class="chatbot-toggle" onclick="toggleChatbot()">💬</button>
+    </div>
+
     <div class="container">
         <!-- صفحة الأدمن -->
         <div id="view-admin" class="view" style="display: none;">
@@ -160,10 +190,8 @@
                     <button class="admin-btn" onclick="addProduct()">حفظ ونشر الصنف</button>
                 </div>
 
-                <!-- صندوق الإضافة بالجملة -->
                 <div class="admin-box">
                     <h3 style="margin-top:0;">إضافة أصناف بالجملة (نسخ ولصق)</h3>
-                    <p style="font-size:14px; color:#666; margin-bottom:15px;">انسخ محتوى ملف الـ JSON القديم بتاعك والصقه هنا. سيتم رفع كل الأصناف دفعة واحدة بدون صور، وتقدر تعدل الصور بعدين.</p>
                     <select id="bulkCategory" class="admin-input">
                         <option value="medical">طبية</option>
                         <option value="cosmetics">تجميل</option>
@@ -178,9 +206,8 @@
                     <div id="adminProductList"></div>
                 </div>
                 
-                <!-- زرار مسح كل الأصناف -->
                 <div class="admin-box" style="text-align:center;">
-                    <button class="admin-btn" style="background-color:#d32f2f; width:100%;" onclick="deleteAllProducts()">مسح جميع الأصناف (تنبيه: سيتم حذف كل الأصناف نهائياً)</button>
+                    <button class="admin-btn" style="background-color:#d32f2f; width:100%;" onclick="deleteAllProducts()">مسح جميع الأصناف</button>
                 </div>
 
                 <button class="admin-btn" style="background-color:#000;" onclick="adminLogout()">تسجيل الخروج</button>
@@ -315,6 +342,65 @@
             setTimeout(() => { toast.classList.add('hide'); setTimeout(() => toast.remove(), 500); }, 5000);
         }
 
+        // ===== دوال البحث الذكي (Fuzzy Search) =====
+        function normalizeArabic(text) {
+            if (!text) return "";
+            return text.toString().toLowerCase()
+                .replace(/[أإآ]/g, 'ا')
+                .replace(/ى/g, 'ي')
+                .replace(/ة/g, 'ه')
+                .replace(/[^\w\s\u0600-\u06FF]/g, '');
+        }
+
+        function levenshtein(a, b) {
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+            for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    const cost = a[j - 1] === b[i - 1] ? 0 : 1;
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j] + 1,
+                        matrix[i][j - 1] + 1,
+                        matrix[i - 1][j - 1] + cost
+                    );
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+
+        function findProductFuzzy(query) {
+            const normalizedQuery = normalizeArabic(query);
+            if (!normalizedQuery) return null;
+
+            let bestMatch = null;
+            let minDistance = Infinity;
+
+            for (let p of allProducts) {
+                if (!p.name) continue;
+                const productName = normalizeArabic(p.name);
+                
+                if (productName.includes(normalizedQuery)) {
+                    return p;
+                }
+
+                const words = productName.split(' ');
+                for (let word of words) {
+                    const dist = levenshtein(normalizedQuery, word);
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        bestMatch = p;
+                    }
+                }
+            }
+
+            if (bestMatch && minDistance <= Math.max(2, Math.floor(normalizedQuery.length / 2))) {
+                return bestMatch;
+            }
+
+            return null;
+        }
+
         // ===== جلب الأصناف من Supabase =====
         async function fetchProducts() {
             let listDiv = document.getElementById('productList');
@@ -332,14 +418,13 @@
                 offerProducts = sortProductsByName(offerProducts);
                 allProducts = sortProductsByName(allProducts);
 
-                localStorage.setItem('treePharma_data', JSON.stringify(allProducts)); // حفظ للعمل أوفلاين
+                localStorage.setItem('treePharma_data', JSON.stringify(allProducts));
 
                 if (document.getElementById("btnAll").classList.contains("active")) {
                     currentProducts = allProducts;
                     filterProducts(); 
                 }
             } catch (error) {
-                // لو مفيش نت، اقرأ من الكاش المحلي
                 let cached = localStorage.getItem('treePharma_data');
                 if (cached) {
                     allProducts = JSON.parse(cached);
@@ -633,11 +718,10 @@
                 document.getElementById('pPrice').value = '';
                 document.getElementById('pImage').value = '';
                 loadAdminProducts();
-                fetchProducts(); // تحديث واجهة العميل فوراً
+                fetchProducts();
             } else { showToast("حدث خطأ أثناء الحفظ", "error"); }
         }
 
-        // دالة الإضافة بالجملة (نسخ ولصق JSON)
         async function bulkAddProducts() {
             const jsonText = document.getElementById('bulkJson').value;
             const category = document.getElementById('bulkCategory').value;
@@ -645,13 +729,13 @@
             
             try {
                 let parsedData = JSON.parse(jsonText);
-                if (!Array.isArray(parsedData)) parsedData = [parsedData]; // لو صنف واحد
+                if (!Array.isArray(parsedData)) parsedData = [parsedData];
                 
                 const itemsToInsert = parsedData.map(p => ({
                     name: p.name,
                     price: p.price,
                     category: p.category || category,
-                    image_url: '' // فاضي مؤقتاً
+                    image_url: ''
                 }));
 
                 const { error } = await sb.from('products').insert(itemsToInsert);
@@ -660,12 +744,8 @@
                     document.getElementById('bulkJson').value = '';
                     loadAdminProducts();
                     fetchProducts();
-                } else {
-                    showToast("حدث خطأ في الإدخال", "error");
-                }
-            } catch (e) {
-                showToast("صيغة JSON غير صحيحة. تأكد من نسخ الملف بشكل سليم", "error");
-            }
+                } else { showToast("حدث خطأ في الإدخال", "error"); }
+            } catch (e) { showToast("صيغة JSON غير صحيحة", "error"); }
         }
 
         async function loadAdminProducts() {
@@ -708,16 +788,93 @@
             if (!error) { showToast("تم حذف الصنف"); loadAdminProducts(); fetchProducts(); }
         }
 
-        // دالة مسح جميع الأصناف
         async function deleteAllProducts() {
-            if (!confirm("هل أنت متأكد تماماً؟ سيتم مسح كل الأصناف من الموقع ولا يمكن التراجع عن هذا الإجراء!")) return;
+            if (!confirm("هل أنت متأكد تماماً؟ سيتم مسح كل الأصناف نهائياً!")) return;
             const { error } = await sb.from('products').delete().neq('id', 0);
-            if (!error) {
-                showToast("تم مسح جميع الأصناف بنجاح");
-                loadAdminProducts(); 
-                fetchProducts(); 
-            } else {
-                showToast("حدث خطأ أثناء مسح الأصناف", "error");
+            if (!error) { showToast("تم مسح جميع الأصناف"); loadAdminProducts(); fetchProducts(); }
+            else { showToast("حدث خطأ", "error"); }
+        }
+
+        // ===== كود مساعد الدردشة (Chatbot) =====
+        function toggleChatbot() {
+            document.getElementById('chatbox').classList.toggle('active');
+        }
+
+        function appendMessage(text, sender) {
+            const body = document.getElementById('chatboxBody');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-msg ${sender}-msg`;
+            msgDiv.innerText = text;
+            body.appendChild(msgDiv);
+            body.scrollTop = body.scrollHeight;
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            appendMessage(text, 'user');
+            input.value = '';
+            
+            setTimeout(() => {
+                const reply = getBotReply(text);
+                appendMessage(reply, 'bot');
+            }, 500);
+        }
+
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter') sendChatMessage();
+        }
+
+        function getBotReply(message) {
+            const msg = message.toLowerCase();
+
+            // 1. الدفع
+            if (msg.includes('دفع') || msg.includes('فيزا') || msg.includes('كاش') || msg.includes('انستا') || msg.includes('إنستا') || msg.includes('باي') || msg.includes('حواله')) {
+                return "لدينا 3 طرق للدفع لراحتك، ويمكنك اختيار الأنسب لك عند تأكيد الطلب من السلة:\n1. الدفع كاش عند الاستلام.\n2. تحويل عبر إنستا باي (InstaPay).\n3. الدفع عبر ماكينة فيزا (PayMob) عند التوصيل.";
+            }
+            
+            // 2. التوصيل
+            if (msg.includes('توصيل') || msg.includes('شحن') || msg.includes('ميعاد') || msg.includes('موعد') || msg.includes('يوصل') || msg.includes('الاوردر') || msg.includes('الطلب')) {
+                return "مواعيد التوصيل لدينا تبدأ بعد الساعة 5 مساءً يومياً.\nوإذا كنت بحاجة لاستلام الطلب في وقت أسرع أو موعد محدد، يمكنك التواصل مع خدمة العملاء من قسم 'تواصل معنا'، وسيتم تجهيز طلبك وتوصيله في الوقت الذي يناسبك.";
+            }
+
+            // 3. التحية
+            if (msg.includes('سلام') || msg.includes('مرحبا') || msg.includes('هاي') || msg.includes('هلا') || msg.includes('السلام') || msg.includes('صباح') || msg.includes('مساء')) {
+                return "أهلاً بك في Tree Pharma! إزاي أقدر أساعدك؟ (تقدر تسألني عن الاسعار , صنف معين, الدفع او التوصيل)";
+            }
+
+            // 4. بحث ذكي في الأسعار (Fuzzy Search)
+            let foundProduct = findProductFuzzy(message);
+            if (foundProduct) {
+                return `سعر ${foundProduct.name} هو ${foundProduct.price} ج.م.`;
+            }
+
+            // 5. صنف غير موجود (الإبلاغ)
+            notifyMissingProduct(message);
+            return "نأسف، هذا الصنف غير متوفر حالياً، وسنبذل جهداً لتوفيره في أقرب وقت.\n(تم تسجيل طلبك وإبلاغ الإدارة تلقائياً للعمل على توفيره، وسيتم التواصل معك فور توفره).";
+        }
+
+        async function notifyMissingProduct(productName) {
+            const GAS_URL = "https://script.google.com/macros/s/AKfycbxsZ88Sk_3rWPhUSf4BaSVPoqey4K296wxqLLe-yPqHdDWEU3Qz7w8aBQKsgmt5VCik/exec";
+            const data = { 
+                type: 'missing_product', 
+                name: 'استفسار بوت', 
+                phone: 'من البوت', 
+                address: 'من البوت', 
+                items: `العميل سأل عن صنف غير موجود: ${productName}`, 
+                total: 0 
+            };
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(data)
+                });
+            } catch (e) {
+                console.error("Notification error", e);
             }
         }
 
