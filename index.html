@@ -37,12 +37,11 @@
         
         /* تصميم الشبكة (Grid) للأصناف */
         .product-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
-        .list-item { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: box-shadow 0.3s; display: flex; flex-direction: column; justify-content: space-between; }
+        .list-item { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: box-shadow 0.3s; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
         .list-item:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .item-image-container { width: 100%; aspect-ratio: 1 / 1; background-color: #f9f9f9; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         .item-image { max-width: 100%; max-height: 100%; object-fit: contain; cursor: pointer; transition: transform 0.2s; }
         .item-image:hover { transform: scale(1.05); }
-        .item-image-placeholder { color: #ccc; font-size: 12px; text-align: center; }
         
         .item-header { display: flex; flex-direction: column; margin-bottom: 10px; gap: 5px; }
         .item-name { font-weight: bold; color: #333; font-size: 14px; text-align: center; min-height: 40px; }
@@ -51,7 +50,7 @@
         .qty-input { width: 100%; padding: 8px; text-align: center; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
         .add-btn { background-color: #00695c; color: white; border: none; padding: 8px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; transition: all 0.3s ease; }
         .add-btn:hover { background-color: #004d40; transform: scale(1.02); }
-        .fav-btn { background: none; border: none; cursor: pointer; font-size: 20px; padding: 0; transition: transform 0.2s; position: absolute; top: 10px; right: 10px; background-color: rgba(255,255,255,0.8); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
+        .fav-btn { background: none; border: none; cursor: pointer; font-size: 20px; padding: 0; transition: transform 0.2s; position: absolute; top: 10px; right: 10px; background-color: rgba(255,255,255,0.8); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; z-index: 2; }
         .fav-btn:hover { transform: scale(1.2); }
 
         /* تكبير الصورة (Lightbox) */
@@ -501,17 +500,25 @@
             let filtered = currentProducts.filter(p => p.name && p.name.toLowerCase().includes(searchText));
             filtered = sortProductsByName(filtered); 
             if(filtered.length === 0) { listDiv.innerHTML = '<p style="text-align:center; color:red; font-size:20px; padding:20px;">لا يوجد صنف بهذا الاسم</p>'; return; }
+            
+            // التحقق هل إنت فاتح قسم طبية ولا لأ
+            let isMedicalView = document.getElementById("btnMedical").classList.contains("active");
+            
             let htmlContent = '';
             filtered.forEach(p => {
                 let isFav = favorites.some(f => f.name === p.name);
                 let heart = isFav ? '❤️' : '🤍';
-                let imageHTML = p.image_url 
-                    ? `<img src="${p.image_url}" alt="${p.name}" class="item-image" onclick="openLightbox('${p.image_url}')">` 
-                    : '<div class="item-image-placeholder">Tree Pharma</div>';
+                
+                // لو إنت في قسم طبية وفي صورة، اعرضها. غير كده متعرضش أي حاجة.
+                let imageHTML = '';
+                if (isMedicalView && p.image_url) {
+                    imageHTML = `<div class="item-image-container"><img src="${p.image_url}" alt="${p.name}" class="item-image" onclick="openLightbox('${p.image_url}')"></div>`;
+                }
+                
                 htmlContent += `
-                    <div class="list-item" style="position:relative;">
+                    <div class="list-item">
                         <button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price}, this)">${heart}</button>
-                        <div class="item-image-container">${imageHTML}</div>
+                        ${imageHTML}
                         <div class="item-header">
                             <span class="item-name">${p.name}</span>
                             <span class="item-price">${p.price} ج.م</span>
@@ -547,7 +554,7 @@
             let htmlContent = '';
             sortedFavs.forEach(p => {
                 htmlContent += `
-                    <div class="list-item" style="position:relative;">
+                    <div class="list-item">
                         <button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price}, this)">❤️</button>
                         <div class="item-header">
                             <span class="item-name">${p.name}</span>
