@@ -34,29 +34,41 @@
         .view-btn:hover { transform: translateY(-2px); }
         .catalog-btn { background-color: #00695c; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 15px; width: 100%; max-width: 500px; transition: all 0.3s; }
         .catalog-btn:hover { background-color: #004d40; transform: translateY(-2px); }
-        .product-list { display: flex; flex-direction: column; gap: 15px; }
-        .list-item { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: box-shadow 0.3s; }
+        
+        /* تصميم الشبكة (Grid) للأصناف */
+        .product-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        .list-item { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: box-shadow 0.3s; display: flex; flex-direction: column; justify-content: space-between; }
         .list-item:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .item-image { width: 100%; max-height: 300px; object-fit: contain; border-radius: 8px; margin-bottom: 15px; background-color: #f9f9f9; }
-        .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; }
-        .item-name { font-weight: bold; color: #333; font-size: 16px; flex: 1; text-align: right; }
-        .item-price { color: #00695c; font-weight: bold; font-size: 18px; white-space: nowrap; }
-        .item-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-        .qty-input { width: 70px; padding: 10px; text-align: center; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
-        .add-btn { background-color: #00695c; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1; transition: all 0.3s ease; }
+        .item-image-container { width: 100%; aspect-ratio: 1 / 1; background-color: #f9f9f9; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .item-image { max-width: 100%; max-height: 100%; object-fit: contain; cursor: pointer; transition: transform 0.2s; }
+        .item-image:hover { transform: scale(1.05); }
+        .item-image-placeholder { color: #ccc; font-size: 12px; text-align: center; }
+        
+        .item-header { display: flex; flex-direction: column; margin-bottom: 10px; gap: 5px; }
+        .item-name { font-weight: bold; color: #333; font-size: 14px; text-align: center; min-height: 40px; }
+        .item-price { color: #00695c; font-weight: bold; font-size: 16px; text-align: center; }
+        .item-footer { display: flex; flex-direction: column; gap: 8px; }
+        .qty-input { width: 100%; padding: 8px; text-align: center; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+        .add-btn { background-color: #00695c; color: white; border: none; padding: 8px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; transition: all 0.3s ease; }
         .add-btn:hover { background-color: #004d40; transform: scale(1.02); }
-        .fav-btn { background: none; border: none; cursor: pointer; font-size: 24px; padding: 0 5px; transition: transform 0.2s; }
+        .fav-btn { background: none; border: none; cursor: pointer; font-size: 20px; padding: 0; transition: transform 0.2s; position: absolute; top: 10px; right: 10px; background-color: rgba(255,255,255,0.8); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
         .fav-btn:hover { transform: scale(1.2); }
-        .cart-section { background: #e0f2f1; padding: 25px; border-radius: 12px; border: 2px solid #00695c; box-shadow: 0 5px 15px rgba(0, 105, 92, 0.15); }
+
+        /* تكبير الصورة (Lightbox) */
+        #lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); z-index: 10001; justify-content: center; align-items: center; cursor: zoom-out; }
+        #lightbox.active { display: flex; }
+        #lightbox img { max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 8px; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
+
+        .cart-section { background: #fff; padding: 25px; border-radius: 12px; border: 1px solid #ddd; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .cart-section h2 { color: #000; border-bottom: 2px solid #00695c; padding-bottom: 10px; margin-top: 0; }
-        .customer-info { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 8px; }
+        .customer-info { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; background: #f9f9f9; padding: 15px; border-radius: 8px; }
         .customer-info input { padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; transition: border-color 0.3s; }
         .customer-info input:focus { border-color: #00695c; outline: none; }
-        .payment-section { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .payment-section { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
         .payment-section h3 { margin: 0 0 15px 0; color: #00695c; font-size: 18px; }
         .payment-option { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer; font-size: 16px; }
         .payment-option input { width: 20px; height: 20px; accent-color: #00695c; }
-        .payment-details { display: none; margin-top: 10px; padding: 15px; background-color: #f9f9f9; border: 1px dashed #00695c; border-radius: 8px; font-size: 15px; line-height: 1.6; }
+        .payment-details { display: none; margin-top: 10px; padding: 15px; background-color: #fff; border: 1px dashed #00695c; border-radius: 8px; font-size: 15px; line-height: 1.6; }
         .payment-details.active { display: block; animation: fadeIn 0.3s ease-out; }
         .copy-text { font-weight: bold; color: #00695c; user-select: all; }
         .order-list { margin-bottom: 20px; font-size: 16px; }
@@ -128,12 +140,13 @@
         @media (max-width: 600px) { 
             header { flex-direction: column; text-align: center; }
             .header-right { width: 100%; align-items: center; margin-top: 10px; }
-            .item-name { font-size: 14px; } 
-            .item-price { font-size: 16px; } 
+            .item-name { font-size: 13px; } 
+            .item-price { font-size: 14px; } 
             .header-title { font-size: 22px; } 
             .logo-circle { width: 70px; height: 70px; }
             .nav-item { font-size: 11px; }
             .view-btn { padding: 8px 15px; font-size: 14px; }
+            .product-list { grid-template-columns: repeat(2, 1fr); gap: 10px; }
         }
     </style>
 </head>
@@ -150,6 +163,11 @@
     </header>
 
     <div id="toastContainer"></div>
+
+    <!-- تكبير الصورة (Lightbox) -->
+    <div id="lightbox" onclick="closeLightbox()">
+        <img id="lightboxImg" src="" alt="صورة مكبرة">
+    </div>
 
     <!-- واجهة البوت -->
     <div class="chatbot-container">
@@ -401,6 +419,15 @@
             return null;
         }
 
+        // ===== دوال تكبير الصورة (Lightbox) =====
+        function openLightbox(url) {
+            document.getElementById('lightboxImg').src = url;
+            document.getElementById('lightbox').classList.add('active');
+        }
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+        }
+
         // ===== جلب الأصناف من Supabase =====
         async function fetchProducts() {
             let listDiv = document.getElementById('productList');
@@ -408,14 +435,24 @@
                 const { data, error } = await sb.from('products').select('*');
                 if (error) throw error;
                 
-                allProducts = data || [];
-                medicalProducts = allProducts.filter(p => p.category === 'medical');
-                cosmeticsProducts = allProducts.filter(p => p.category === 'cosmetics');
-                offerProducts = allProducts.filter(p => p.category === 'offers');
+                let rawData = data || [];
+                
+                medicalProducts = rawData.filter(p => p.category === 'medical');
+                cosmeticsProducts = rawData.filter(p => p.category === 'cosmetics');
+                offerProducts = rawData.filter(p => p.category === 'offers');
                 
                 medicalProducts = sortProductsByName(medicalProducts);
                 cosmeticsProducts = sortProductsByName(cosmeticsProducts);
                 offerProducts = sortProductsByName(offerProducts);
+                
+                allProducts = [...offerProducts, ...medicalProducts, ...cosmeticsProducts];
+                const seenNames = new Set();
+                allProducts = allProducts.filter(p => {
+                    const nameLower = (p.name || "").toLowerCase().trim();
+                    if (seenNames.has(nameLower)) return false;
+                    seenNames.add(nameLower);
+                    return true;
+                });
                 allProducts = sortProductsByName(allProducts);
 
                 localStorage.setItem('treePharma_data', JSON.stringify(allProducts));
@@ -468,18 +505,20 @@
             filtered.forEach(p => {
                 let isFav = favorites.some(f => f.name === p.name);
                 let heart = isFav ? '❤️' : '🤍';
-                let imageHTML = p.image_url ? `<img src="${p.image_url}" alt="${p.name}" class="item-image">` : '';
+                let imageHTML = p.image_url 
+                    ? `<img src="${p.image_url}" alt="${p.name}" class="item-image" onclick="openLightbox('${p.image_url}')">` 
+                    : '<div class="item-image-placeholder">Tree Pharma</div>';
                 htmlContent += `
-                    <div class="list-item">
-                        ${imageHTML}
+                    <div class="list-item" style="position:relative;">
+                        <button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price}, this)">${heart}</button>
+                        <div class="item-image-container">${imageHTML}</div>
                         <div class="item-header">
                             <span class="item-name">${p.name}</span>
                             <span class="item-price">${p.price} ج.م</span>
                         </div>
                         <div class="item-footer">
-                            <button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price}, this)">${heart}</button>
                             <input type="number" class="qty-input" id="qty_${p.id}" placeholder="الكمية" min="1">
-                            <button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'qty_${p.id}')">إضافة</button>
+                            <button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'qty_${p.id}')">إضافة للسلة</button>
                         </div>
                     </div>`;
             });
@@ -508,13 +547,13 @@
             let htmlContent = '';
             sortedFavs.forEach(p => {
                 htmlContent += `
-                    <div class="list-item">
+                    <div class="list-item" style="position:relative;">
+                        <button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price}, this)">❤️</button>
                         <div class="item-header">
                             <span class="item-name">${p.name}</span>
                             <span class="item-price">${p.price} ج.م</span>
                         </div>
                         <div class="item-footer">
-                            <button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price}, this)">❤️</button>
                             <input type="number" class="qty-input" placeholder="0" min="1" id="favQty${p.name.replace(/\s/g, '')}">
                             <button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'favQty${p.name.replace(/\s/g, '')}')">إضافة للسلة</button>
                         </div>
@@ -830,28 +869,23 @@
         function getBotReply(message) {
             const msg = message.toLowerCase();
 
-            // 1. الدفع
             if (msg.includes('دفع') || msg.includes('فيزا') || msg.includes('كاش') || msg.includes('انستا') || msg.includes('إنستا') || msg.includes('باي') || msg.includes('حواله')) {
                 return "لدينا 3 طرق للدفع لراحتك، ويمكنك اختيار الأنسب لك عند تأكيد الطلب من السلة:\n1. الدفع كاش عند الاستلام.\n2. تحويل عبر إنستا باي (InstaPay).\n3. الدفع عبر ماكينة فيزا (PayMob) عند التوصيل.";
             }
             
-            // 2. التوصيل
             if (msg.includes('توصيل') || msg.includes('شحن') || msg.includes('ميعاد') || msg.includes('موعد') || msg.includes('يوصل') || msg.includes('الاوردر') || msg.includes('الطلب')) {
                 return "مواعيد التوصيل لدينا تبدأ بعد الساعة 5 مساءً يومياً.\nوإذا كنت بحاجة لاستلام الطلب في وقت أسرع أو موعد محدد، يمكنك التواصل مع خدمة العملاء من قسم 'تواصل معنا'، وسيتم تجهيز طلبك وتوصيله في الوقت الذي يناسبك.";
             }
 
-            // 3. التحية
             if (msg.includes('سلام') || msg.includes('مرحبا') || msg.includes('هاي') || msg.includes('هلا') || msg.includes('السلام') || msg.includes('صباح') || msg.includes('مساء')) {
                 return "أهلاً بك في Tree Pharma! إزاي أقدر أساعدك؟ (تقدر تسألني عن الاسعار , صنف معين, الدفع او التوصيل)";
             }
 
-            // 4. بحث ذكي في الأسعار (Fuzzy Search)
             let foundProduct = findProductFuzzy(message);
             if (foundProduct) {
                 return `سعر ${foundProduct.name} هو ${foundProduct.price} ج.م.`;
             }
 
-            // 5. صنف غير موجود (الإبلاغ)
             notifyMissingProduct(message);
             return "نأسف، هذا الصنف غير متوفر حالياً، وسنبذل جهداً لتوفيره في أقرب وقت.\n(تم تسجيل طلبك وإبلاغ الإدارة تلقائياً للعمل على توفيره، وسيتم التواصل معك فور توفره).";
         }
