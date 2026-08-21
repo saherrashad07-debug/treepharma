@@ -231,7 +231,7 @@
                 </div>
 
                 <div class="admin-box">
-                    <h3 style="margin-top:0;">الأصناف الحالية (مقسمة حسب القسم)</h3>
+                    <h3 style="margin-top:0;">الأصناف الحالية (يمكنك التعديل على الاسم أو السعر أو الصورة مباشرة)</h3>
                     <div id="adminProductList"></div>
                 </div>
                 
@@ -825,13 +825,14 @@
                 data.forEach(p => {
                     let itemHTML = `
                         <div class="admin-product-item">
-                            <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
-                                <span><strong>${p.name}</strong> - ${p.price} ج.م</span>
-                                <button class="remove-btn" onclick="deleteProduct(${p.id})">حذف</button>
+                            <div style="display:flex; gap:10px; width:100%; align-items:center; margin-bottom:10px;">
+                                <input type="text" id="edit_name_${p.id}" value="${p.name}" class="admin-input" style="flex:1; margin-bottom:0; font-weight:bold;" placeholder="الاسم">
+                                <input type="number" id="edit_price_${p.id}" value="${p.price}" class="admin-input" style="width:90px; margin-bottom:0; text-align:center;" placeholder="السعر">
                             </div>
                             <div style="display:flex; gap:10px; width:100%; align-items:center;">
                                 <input type="file" id="img_${p.id}" class="admin-input" accept="image/*" style="margin-bottom:0; padding:5px; flex:1;">
-                                <button class="admin-btn" style="width:auto; padding: 8px 15px; margin-bottom:0;" onclick="updateProductImage(${p.id}, 'img_${p.id}')">رفع صورة</button>
+                                <button class="admin-btn" style="width:auto; padding: 8px 15px; margin-bottom:0; background-color:#004d40;" onclick="updateProduct(${p.id})">حفظ التعديل</button>
+                                <button class="remove-btn" style="padding: 8px 15px; font-size:14px;" onclick="deleteProduct(${p.id})">حذف</button>
                             </div>
                         </div>`;
 
@@ -858,16 +859,29 @@
             }
         }
 
-        async function updateProductImage(id, fileInputId) {
-            const fileInput = document.getElementById(fileInputId);
-            if (fileInput.files.length === 0) { showToast("برجاء اختيار صورة أولاً", "error"); return; }
-            const file = fileInput.files[0];
-            const fileName = `${Date.now()}_${file.name}`;
-            const { data, error } = await sb.storage.from('products').upload(fileName, file);
-            if (error) { showToast("فشل رفع الصورة", "error"); return; }
-            const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${fileName}`;
-            const { err } = await sb.from('products').update({ image_url: imageUrl }).eq('id', id);
-            if (!err) { showToast("تم تحديث صورة الصنف بنجاح ✔️"); loadAdminProducts(); fetchProducts(); }
+        async function updateProduct(id) {
+            const newName = document.getElementById(`edit_name_${id}`).value;
+            const newPrice = document.getElementById(`edit_price_${id}`).value;
+            const fileInput = document.getElementById(`img_${id}`);
+            
+            if (!newName || !newPrice) { showToast("برجاء إدخال الاسم والسعر", "error"); return; }
+            
+            let updateData = { name: newName, price: parseFloat(newPrice) };
+            
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const fileName = `${Date.now()}_${file.name}`;
+                const { data, error: uploadError } = await sb.storage.from('products').upload(fileName, file);
+                if (uploadError) { showToast("فشل رفع الصورة الجديدة", "error"); return; }
+                updateData.image_url = `${SUPABASE_URL}/storage/v1/object/public/products/${fileName}`;
+            }
+
+            const { error } = await sb.from('products').update(updateData).eq('id', id);
+            if (!error) {
+                showToast("تم تحديث بيانات الصنف بنجاح ✔️");
+                loadAdminProducts(); 
+                fetchProducts(); 
+            } else { showToast("حدث خطأ أثناء التحديث", "error"); }
         }
 
         async function deleteProduct(id) {
