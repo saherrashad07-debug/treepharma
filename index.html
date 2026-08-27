@@ -829,7 +829,6 @@
                 repliesDiv.className = 'quick-replies';
                 const btn1 = document.createElement('button'); btn1.className = 'quick-reply-btn'; btn1.innerText = '💳 طرق الدفع'; btn1.onclick = () => simulateUserMessage('طرق الدفع');
                 const btn2 = document.createElement('button'); btn2.className = 'quick-reply-btn'; btn2.innerText = '🚚 التوصيل'; btn2.onclick = () => simulateUserMessage('التوصيل');
-                // تم مسك زرار العروض من هنا
                 repliesDiv.appendChild(btn1); repliesDiv.appendChild(btn2);
                 body.appendChild(repliesDiv);
             }
@@ -850,10 +849,12 @@
             processBotReply(text);
         }
 
+        // دالة الرد الذكي (معدلة لتبعت كل الأصناف للذكاء الاصطناعي)
         async function processBotReply(message) {
             showTypingIndicator();
             const msg = message.toLowerCase();
             
+            // 1. لو سؤال عام عن الدفع أو التوصيل، ارد محلياً بسرعة
             if (msg.includes('دفع') || msg.includes('توصيل') || msg.includes('مرحبا') || msg.includes('سلام')) {
                 hideTypingIndicator();
                 if (msg.includes('دفع')) { appendBotMessage("لدينا 3 طرق للدفع:\n1. كاش عند الاستلام.\n2. تحويل عبر إنستا باي.\n3. ماكينة فيزا عند التوصيل.", true, null); return; }
@@ -861,6 +862,13 @@
                 if (msg.includes('سلام') || msg.includes('مرحبا')) { appendBotMessage("أهلاً بك في Tree Pharma! إزاي أقدر أساعدك؟", true, null); return; }
             }
 
+            // 2. جهز كل الأصناف الموجودة في الموقع كـ Context للذكاء الاصطناعي
+            let fullContext = "";
+            if (allProducts.length > 0) {
+                fullContext = allProducts.map(p => `- ${p.name} (السعر: ${p.price} ج.م)`).join('\n');
+            }
+
+            // 3. ابحث عن الصنف لو العميل كتب اسمه بالظبط عشان نظهر زرار (إضافة للسلة)
             let searchWords = normalizeArabic(message).split(' ');
             let matchedProducts = [];
             for (let p of allProducts) {
@@ -872,32 +880,27 @@
                     }
                 }
             }
-
-            let context = "";
             let cartItem = null;
-
-            if (matchedProducts.length > 0) {
-                context = "المنتجات المتوفرة لدينا هي:\n";
-                matchedProducts.forEach(p => context += `- ${p.name} (سعره ${p.price} ج.م)\n`);
-                if (matchedProducts.length === 1) {
-                    cartItem = { name: matchedProducts[0].name, price: matchedProducts[0].price };
-                }
+            if (matchedProducts.length === 1) {
+                cartItem = { name: matchedProducts[0].name, price: matchedProducts[0].price };
             }
 
+            // 4. ابعت السؤال وكل الأصناف للذكاء الاصطناعي
             const GAS_URL = "https://script.google.com/macros/s/AKfycbxsZ88Sk_3rWPhUSf4BaSVPoqey4K296wxqLLe-yPqHdDWEU3Qz7w8aBQKsgmt5VCik/exec";
             
             try {
                 const response = await fetch(GAS_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ type: 'chat', message: message, context: context })
+                    body: JSON.stringify({ type: 'chat', message: message, context: fullContext })
                 });
                 
                 const data = await response.json();
                 hideTypingIndicator();
                 
                 if (data.reply) {
-                    if (context === "" && (data.reply.includes("غير متوفر") || data.reply.includes("غير موجود"))) {
+                    // لو الذكاء قال إن الصنف مش موجود، ابعت إشعار للأدمن
+                    if (data.reply.includes("غير متوفر") || data.reply.includes("غير موجود") || data.reply.includes("لا يتوفر")) {
                         notifyMissingProduct(message);
                     }
                     appendBotMessage(data.reply, true, cartItem);
