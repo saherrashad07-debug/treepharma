@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tree-pharma-cache-v2'; // تم تغيير رقم الإصدار لإجبار المتصفح على التحديث
+const CACHE_NAME = 'tree-pharma-cache-v3'; // تم تغيير رقم الإصدار لإجبار المتصفح على التحديث
 
 // قائمة الملفات الأساسية للتطبيق
 const urlsToCache = [
