@@ -398,7 +398,26 @@
             if (currentProducts.length === 0) { listDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد أصناف في هذا القسم.</p>'; return; }
             let filtered = currentProducts.filter(p => p.name && p.name.toLowerCase().includes(searchText));
             filtered = sortProductsByName(filtered); 
-            if(filtered.length === 0) { listDiv.innerHTML = '<p style="text-align:center; color:red; font-size:20px; padding:20px;">لا يوجد صنف بهذا الاسم</p>'; return; }
+            
+            // ===== صيد الطلبات الضائعة =====
+            if(filtered.length === 0 && searchText.trim() !== "") { 
+                let missingItemText = searchText.trim();
+                let whatsappMsg = encodeURIComponent("السلام عليكم، أرغب في طلب صنف غير موجود بالقائمة: " + missingItemText);
+                let whatsappLink = `https://wa.me/201274906271?text=${whatsappMsg}`;
+                
+                listDiv.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; background: #fff; border-radius: 12px; border: 2px dashed #00695c; margin-top: 20px;">
+                        <p style="color: #d32f2f; font-size: 20px; font-weight: bold; margin-bottom: 10px;">عذراً، لم نجد "${missingItemText}" في القائمة</p>
+                        <p style="color: #666; font-size: 16px; margin-bottom: 25px;">لكن يمكننا توفيره لك! تواصل معنا وسنوفره في أسرع وقت.</p>
+                        <a href="${whatsappLink}" target="_blank" style="background-color: #25D366; color: #fff; text-decoration: none; padding: 14px 30px; border-radius: 50px; font-size: 18px; font-weight: bold; display: inline-block; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);">
+                            📱 اطلبه الآن عبر واتساب
+                        </a>
+                    </div>
+                `; 
+                return; 
+            }
+            // ==============================
+
             let isMedicalView = document.getElementById("btnMedical").classList.contains("active");
             let htmlContent = '';
             filtered.forEach(p => {
