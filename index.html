@@ -125,35 +125,6 @@
         .admin-product-item { display: flex; flex-direction: column; gap: 10px; background: #f9f9f9; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
         .admin-category-header { background: #e0f2f1; color: #00695c; padding: 10px 15px; border-radius: 8px; margin-top: 25px; font-weight: bold; font-size: 16px; border-right: 4px solid #00695c; }
         
-        .chatbot-container { position: fixed; bottom: 100px; left: 20px; z-index: 1000; }
-        .chatbot-toggle { background-color: #00695c; color: white; border: none; border-radius: 50%; width: 55px; height: 55px; font-size: 24px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; transition: transform 0.3s; }
-        .chatbot-toggle:hover { transform: scale(1.1); }
-        .chatbox { display: none; position: absolute; bottom: 65px; left: 0; width: 320px; max-width: calc(100vw - 40px); background: white; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); overflow: hidden; flex-direction: column; height: 450px; }
-        .chatbox.active { display: flex; }
-        .chatbox-header { background-color: #00695c; color: white; padding: 15px; font-weight: bold; text-align: center; }
-        .chatbox-body { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #f0f2f5; }
-        
-        .chat-msg { max-width: 85%; padding: 10px; border-radius: 8px; font-size: 14px; line-height: 1.4; white-space: pre-line; }
-        .bot-msg { background: #fff; align-self: flex-start; border-bottom-left-radius: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .user-msg { background: #00695c; color: white; align-self: flex-end; border-bottom-right-radius: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        
-        .chat-add-cart-btn { display: block; margin-top: 10px; background: #00695c; color: #fff; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-size: 13px; transition: 0.2s; }
-        .chat-add-cart-btn:hover { background: #004d40; }
-        
-        .quick-replies { display: flex; flex-wrap: wrap; gap: 8px; align-self: flex-end; max-width: 85%; }
-        .quick-reply-btn { background: #fff; border: 1px solid #00695c; color: #00695c; padding: 6px 12px; border-radius: 15px; font-size: 12px; cursor: pointer; transition: 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .quick-reply-btn:hover { background: #00695c; color: #fff; }
-        
-        .typing-indicator { display: flex; gap: 4px; align-self: flex-start; background: #fff; padding: 12px 15px; border-radius: 8px; border-bottom-left-radius: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .typing-dot { width: 8px; height: 8px; background: #888; border-radius: 50%; animation: typing 1.2s infinite ease-in-out; }
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-6px); opacity: 1; } }
-        
-        .chatbox-footer { padding: 10px; border-top: 1px solid #eee; display: flex; gap: 10px; background: #fff; }
-        .chatbox-footer input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; font-size: 14px; }
-        .chatbox-footer button { background-color: #00695c; color: white; border: none; padding: 10px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-        
         @media (max-width: 600px) { 
             header { flex-direction: column; text-align: center; }
             .header-right { width: 100%; align-items: center; margin-top: 10px; }
@@ -168,7 +139,6 @@
             .qty-input { padding: 6px; font-size: 13px; }
             .add-btn { padding: 6px; font-size: 13px; }
             .fav-btn { width: 28px; height: 28px; font-size: 14px; }
-            .chatbox { width: calc(100vw - 40px); }
         }
     </style>
 </head>
@@ -188,18 +158,6 @@
 
     <div id="lightbox" onclick="closeLightbox()">
         <img id="lightboxImg" src="" alt="صورة مكبرة">
-    </div>
-
-    <div class="chatbot-container">
-        <div class="chatbox" id="chatbox">
-            <div class="chatbox-header">مساعد Tree Pharma</div>
-            <div class="chatbox-body" id="chatboxBody"></div>
-            <div class="chatbox-footer">
-                <input type="text" id="chatInput" placeholder="اكتب سؤالك هنا..." onkeypress="handleChatKeyPress(event)">
-                <button onclick="sendChatMessage()">إرسال</button>
-            </div>
-        </div>
-        <button class="chatbot-toggle" onclick="toggleChatbot()">💬</button>
     </div>
 
     <div class="container">
@@ -506,7 +464,6 @@
         }
 
         window.onload = function() {
-            appendBotMessage("أهلاً بك في Tree Pharma! إزاي أقدر أساعدك؟", true);
             if (window.location.hash === '#admin') {
                 document.getElementById('view-admin').style.display = 'block';
                 document.getElementById('view-home').style.display = 'none';
@@ -772,174 +729,6 @@
             const { error } = await sb.from('products').delete().neq('id', 0);
             if (!error) { showToast("تم مسح جميع الأصناف"); loadAdminProducts(); fetchProducts(); }
             else { showToast("حدث خطأ", "error"); }
-        }
-
-        // ===== كود مساعد الدردشة (Chatbot) =====
-        function toggleChatbot() { document.getElementById('chatbox').classList.toggle('active'); }
-
-        function showTypingIndicator() {
-            const body = document.getElementById('chatboxBody');
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'typing-indicator';
-            typingDiv.id = 'typingIndicator';
-            typingDiv.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
-            body.appendChild(typingDiv);
-            body.scrollTop = body.scrollHeight;
-        }
-
-        function hideTypingIndicator() {
-            const typingDiv = document.getElementById('typingIndicator');
-            if (typingDiv) typingDiv.remove();
-        }
-
-        function appendUserMessage(text) {
-            const body = document.getElementById('chatboxBody');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'chat-msg user-msg';
-            msgDiv.innerText = text;
-            body.appendChild(msgDiv);
-            body.scrollTop = body.scrollHeight;
-        }
-
-        function appendBotMessage(text, showQuickReplies = false, cartItem = null) {
-            const body = document.getElementById('chatboxBody');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'chat-msg bot-msg';
-            msgDiv.innerText = text;
-            
-            if (cartItem) {
-                const addBtn = document.createElement('button');
-                addBtn.className = 'chat-add-cart-btn';
-                addBtn.innerText = '➕ إضافة للسلة';
-                addBtn.onclick = () => {
-                    let existingItem = cart.find(item => item.name === cartItem.name);
-                    if (existingItem) { existingItem.qty += 1; } 
-                    else { cart.push({ id: Date.now(), name: cartItem.name, price: cartItem.price, qty: 1 }); }
-                    updateCartDisplay(); updateCartBadge();
-                    showToast("تم إضافة " + cartItem.name + " إلى السلة ✔️");
-                };
-                msgDiv.appendChild(document.createElement('br'));
-                msgDiv.appendChild(addBtn);
-            }
-
-            body.appendChild(msgDiv);
-
-            if (showQuickReplies) {
-                const repliesDiv = document.createElement('div');
-                repliesDiv.className = 'quick-replies';
-                const btn1 = document.createElement('button'); btn1.className = 'quick-reply-btn'; btn1.innerText = '💳 طرق الدفع'; btn1.onclick = () => simulateUserMessage('طرق الدفع');
-                const btn2 = document.createElement('button'); btn2.className = 'quick-reply-btn'; btn2.innerText = '🚚 التوصيل'; btn2.onclick = () => simulateUserMessage('التوصيل');
-                repliesDiv.appendChild(btn1); repliesDiv.appendChild(btn2);
-                body.appendChild(repliesDiv);
-            }
-            body.scrollTop = body.scrollHeight;
-        }
-
-        function simulateUserMessage(text) {
-            appendUserMessage(text);
-            processBotReply(text);
-        }
-
-        function sendChatMessage() {
-            const input = document.getElementById('chatInput');
-            const text = input.value.trim();
-            if (!text) return;
-            appendUserMessage(text);
-            input.value = '';
-            processBotReply(text);
-        }
-
-        // دالة الرد الذكي (معدلة لتبعت كل الأصناف للذكاء الاصطناعي)
-        async function processBotReply(message) {
-            showTypingIndicator();
-            const msg = message.toLowerCase();
-            
-            // 1. لو سؤال عام عن الدفع أو التوصيل، ارد محلياً بسرعة
-            if (msg.includes('دفع') || msg.includes('توصيل') || msg.includes('مرحبا') || msg.includes('سلام')) {
-                hideTypingIndicator();
-                if (msg.includes('دفع')) { appendBotMessage("لدينا 3 طرق للدفع:\n1. كاش عند الاستلام.\n2. تحويل عبر إنستا باي.\n3. ماكينة فيزا عند التوصيل.", true, null); return; }
-                if (msg.includes('توصيل')) { appendBotMessage("التوصيل يبدأ بعد الساعة 5 مساءً يومياً.", true, null); return; }
-                if (msg.includes('سلام') || msg.includes('مرحبا')) { appendBotMessage("أهلاً بك في Tree Pharma! إزاي أقدر أساعدك؟", true, null); return; }
-            }
-
-            // 2. جهز كل الأصناف الموجودة في الموقع كـ Context للذكاء الاصطناعي
-            let fullContext = "";
-            if (allProducts.length > 0) {
-                fullContext = allProducts.map(p => `- ${p.name} (السعر: ${p.price} ج.م)`).join('\n');
-            }
-
-            // 3. ابحث عن الصنف لو العميل كتب اسمه بالظبط عشان نظهر زرار (إضافة للسلة)
-            let searchWords = normalizeArabic(message).split(' ');
-            let matchedProducts = [];
-            for (let p of allProducts) {
-                let pName = normalizeArabic(p.name);
-                for (let word of searchWords) {
-                    if (word.length > 2 && pName.includes(word)) {
-                        matchedProducts.push(p);
-                        break;
-                    }
-                }
-            }
-            let cartItem = null;
-            if (matchedProducts.length === 1) {
-                cartItem = { name: matchedProducts[0].name, price: matchedProducts[0].price };
-            }
-
-            // 4. ابعت السؤال وكل الأصناف للذكاء الاصطناعي
-            const GAS_URL = "https://script.google.com/macros/s/AKfycbxsZ88Sk_3rWPhUSf4BaSVPoqey4K296wxqLLe-yPqHdDWEU3Qz7w8aBQKsgmt5VCik/exec";
-            
-            try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ type: 'chat', message: message, context: fullContext })
-                });
-                
-                const data = await response.json();
-                hideTypingIndicator();
-                
-                if (data.reply) {
-                    // لو الذكاء قال إن الصنف مش موجود، ابعت إشعار للأدمن
-                    if (data.reply.includes("غير متوفر") || data.reply.includes("غير موجود") || data.reply.includes("لا يتوفر")) {
-                        notifyMissingProduct(message);
-                    }
-                    appendBotMessage(data.reply, true, cartItem);
-                } else {
-                    appendBotMessage("عذراً، حدث خطأ في الاتصال.", true, null);
-                }
-            } catch (error) {
-                hideTypingIndicator();
-                if (matchedProducts.length > 0) {
-                    let replyText = "لدينا الأنواع التالية:\n";
-                    matchedProducts.forEach(p => replyText += `🔹 ${p.name} - ${p.price} ج.م\n`);
-                    appendBotMessage(replyText, true, cartItem);
-                } else {
-                    notifyMissingProduct(message);
-                    appendBotMessage("عذراً، هذا الصنف غير متوفر حالياً.", true, null);
-                }
-            }
-        }
-
-        function handleChatKeyPress(event) {
-            if (event.key === 'Enter') sendChatMessage();
-        }
-
-        async function notifyMissingProduct(productName) {
-            const GAS_URL = "https://script.google.com/macros/s/AKfycbxsZ88Sk_3rWPhUSf4BaSVPoqey4K296wxqLLe-yPqHdDWEU3Qz7w8aBQKsgmt5VCik/exec";
-            const data = { 
-                type: 'missing_product', 
-                items: `العميل سأل عن صنف غير موجود: ${productName}`
-            };
-            try {
-                await fetch(GAS_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(data)
-                });
-            } catch (e) {
-                console.error("Notification error", e);
-            }
         }
 
         if ('serviceWorker' in navigator) {
