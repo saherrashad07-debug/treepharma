@@ -591,7 +591,7 @@
             fetch(GAS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(orderData) })
             .then(() => {
                 showToast("تم استلام طلبك بنجاح! سيتم التواصل معك قريباً ✔️");
-                generateInvoice(); // توليد الفاتورة تلقائياً بعد نجاح الطلب
+                generateInvoice(); 
                 cart = []; updateCartDisplay(); updateCartBadge();
                 document.getElementById('clientName').value = ''; document.getElementById('clientAddress').value = ''; document.getElementById('clientPhone').value = '';
                 setTimeout(() => switchView('home', event), 1500);
@@ -599,7 +599,7 @@
             .catch(err => { console.error("Error:", err); showToast("حدث خطأ في الاتصال، برجاء المحاولة مرة أخرى.", "error"); });
         }
 
-        // دالة توليد الفاتورة الاحترافية (بدون رقم فاتورة)
+        // دالة توليد الفاتورة الاحترافية (بدون توقيعات)
         function generateInvoice() {
             let name = document.getElementById('clientName').value;
             let address = document.getElementById('clientAddress').value;
@@ -639,9 +639,6 @@
                         .total-section { text-align: left; margin-bottom: 40px; }
                         .total-row { display: flex; justify-content: flex-end; font-size: 18px; font-weight: bold; color: #00695c; margin-top: 10px; }
                         .total-row span { margin-left: 20px; }
-                        .footer { margin-top: 50px; display: flex; justify-content: space-between; }
-                        .signature { text-align: center; font-size: 14px; color: #888; }
-                        .signature-line { margin-top: 40px; border-top: 1px solid #333; width: 200px; margin-left: auto; margin-right: auto; padding-top: 5px; }
                         .payment-method { background: #f9f9f9; padding: 10px; border-radius: 5px; border: 1px dashed #00695c; margin-bottom: 20px; text-align: center; font-weight: bold; color: #00695c; }
                         @media print { body { -webkit-print-color-adjust: exact; } }
                     </style>
@@ -679,14 +676,6 @@
                     </table>
                     <div class="total-section">
                         <div class="total-row">الإجمالي: <span>${total} ج.م</span></div>
-                    </div>
-                    <div class="footer">
-                        <div class="signature">
-                            <div class="signature-line">توقيع العميل</div>
-                        </div>
-                        <div class="signature">
-                            <div class="signature-line">توقيع المندوب</div>
-                        </div>
                     </div>
                     <script>
                         window.onload = function() { window.print(); }
@@ -807,7 +796,7 @@
             const newName = document.getElementById(`edit_name_${id}`).value;
             const newPrice = document.getElementById(`edit_price_${id}`).value;
             const fileInput = document.getElementById(`img_${id}`);
-            if (!newName || !newPrice) { showToast("برgاء إدخال الاسم والسعر", "error"); return; }
+            if (!newName || !newPrice) { showToast("برجاء إدخال الاسم والسعر", "error"); return; }
             let updateData = { name: newName, price: parseFloat(newPrice) };
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
