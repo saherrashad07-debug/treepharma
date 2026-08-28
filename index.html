@@ -254,7 +254,7 @@
                 <div class="order-list" id="cartDisplay"><div><span>لا توجد أصناف في السلة بعد</span></div></div>
                 <div class="action-buttons">
                     <button class="submit-btn" onclick="sendOrder()">تأكيد الطلب</button>
-                    <button class="print-btn" onclick="printOrder()">طباعة الطلب</button>
+                    <button class="print-btn" onclick="generateInvoice()">طباعة الفاتورة</button>
                 </div>
             </div>
         </div>
@@ -591,6 +591,7 @@
             fetch(GAS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(orderData) })
             .then(() => {
                 showToast("تم استلام طلبك بنجاح! سيتم التواصل معك قريباً ✔️");
+                generateInvoice(); // توليد الفاتورة تلقائياً بعد نجاح الطلب
                 cart = []; updateCartDisplay(); updateCartBadge();
                 document.getElementById('clientName').value = ''; document.getElementById('clientAddress').value = ''; document.getElementById('clientPhone').value = '';
                 setTimeout(() => switchView('home', event), 1500);
@@ -598,22 +599,106 @@
             .catch(err => { console.error("Error:", err); showToast("حدث خطأ في الاتصال، برجاء المحاولة مرة أخرى.", "error"); });
         }
 
-        function printOrder() {
+        // دالة توليد الفاتورة الاحترافية (بدون رقم فاتورة)
+        function generateInvoice() {
             let name = document.getElementById('clientName').value;
             let address = document.getElementById('clientAddress').value;
             let phone = document.getElementById('clientPhone').value;
             let paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-            if (cart.length === 0) { showToast("السلة فارغة، لا يمكن طباعة الطلب.", "error"); return; }
-            let printContents = `<html dir="rtl" lang="ar"><head><title>طباعة طلب - Tree Pharma</title><style>body{font-family:'Segoe UI',Tahoma,sans-serif;padding:20px}h1{color:#00695c;text-align:center;margin-bottom:5px}h2{font-size:18px;border-bottom:2px solid #000;padding-bottom:5px}.header-info{text-align:center;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #ddd;padding:8px;text-align:center}th{background-color:#f4f7f6}.total{text-align:left;font-size:20px;font-weight:bold;margin-top:20px}.payment-info{margin-top:15px;font-weight:bold;color:#00695c}</style></head><body><div class="header-info"><h1>Tree Pharma</h1></div><h2>بيانات العميل:</h2><p><strong>اسم العميل:</strong> ${name}</p><p><strong>العنوان:</strong> ${address}</p><p><strong>الموبايل:</strong> ${phone}</p><h2>تفاصيل الطلب:</h2><table><tr><th>الصنف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>`;
+            
+            if (cart.length === 0) { showToast("السلة فارغة، لا يمكن إنشاء فاتورة.", "error"); return; }
+            
+            let tableRows = '';
             let total = 0;
             let sortedCart = sortProductsByName([...cart]); 
-            sortedCart.forEach(item => { let itemTotal = item.price * item.qty; total += itemTotal; printContents += `<tr><td>${item.name}</td><td>${item.qty}</td><td>${item.price} ج.م</td><td>${itemTotal} ج.م</td></tr>`; });
-            printContents += `</table><div class="total">الإجمالي: ${total} ج.م</div><div class="payment-info">طريقة الدفع: ${paymentMethod}</div></body></html>`;
+            sortedCart.forEach(item => { 
+                let itemTotal = item.price * item.qty; total += itemTotal; 
+                tableRows += `<tr><td>${item.name}</td><td>${item.qty}</td><td>${item.price} ج.م</td><td>${itemTotal} ج.م</td></tr>`; 
+            });
+
+            let currentDate = new Date().toLocaleDateString('en-GB');
+
+            let invoiceHtml = `
+                <!DOCTYPE html>
+                <html lang="ar" dir="rtl">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>فاتورة - Tree Pharma</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, sans-serif; color: #333; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+                        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00695c; padding-bottom: 20px; margin-bottom: 20px; }
+                        .logo { font-size: 24px; font-weight: bold; color: #00695c; }
+                        .invoice-title { font-size: 20px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+                        .details { display: flex; justify-content: space-between; margin-bottom: 30px; }
+                        .details h3 { margin: 0 0 5px 0; color: #00695c; font-size: 14px; }
+                        .details p { margin: 0; font-size: 14px; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                        th, td { padding: 12px; text-align: center; border: 1px solid #ddd; }
+                        th { background-color: #00695c; color: white; font-size: 14px; }
+                        td { font-size: 13px; }
+                        .total-section { text-align: left; margin-bottom: 40px; }
+                        .total-row { display: flex; justify-content: flex-end; font-size: 18px; font-weight: bold; color: #00695c; margin-top: 10px; }
+                        .total-row span { margin-left: 20px; }
+                        .footer { margin-top: 50px; display: flex; justify-content: space-between; }
+                        .signature { text-align: center; font-size: 14px; color: #888; }
+                        .signature-line { margin-top: 40px; border-top: 1px solid #333; width: 200px; margin-left: auto; margin-right: auto; padding-top: 5px; }
+                        .payment-method { background: #f9f9f9; padding: 10px; border-radius: 5px; border: 1px dashed #00695c; margin-bottom: 20px; text-align: center; font-weight: bold; color: #00695c; }
+                        @media print { body { -webkit-print-color-adjust: exact; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div class="logo">Tree Pharma</div>
+                        <div class="invoice-title">فاتورة مبدئية</div>
+                    </div>
+                    <div class="details">
+                        <div>
+                            <h3>بيانات العميل</h3>
+                            <p>${name}</p>
+                            <p>${phone}</p>
+                            <p>${address}</p>
+                        </div>
+                        <div>
+                            <h3>التاريخ</h3>
+                            <p>${currentDate}</p>
+                        </div>
+                    </div>
+                    <div class="payment-method">طريقة الدفع: ${paymentMethod}</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>الصنف</th>
+                                <th>الكمية</th>
+                                <th>السعر</th>
+                                <th>الإجمالي</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                    <div class="total-section">
+                        <div class="total-row">الإجمالي: <span>${total} ج.م</span></div>
+                    </div>
+                    <div class="footer">
+                        <div class="signature">
+                            <div class="signature-line">توقيع العميل</div>
+                        </div>
+                        <div class="signature">
+                            <div class="signature-line">توقيع المندوب</div>
+                        </div>
+                    </div>
+                    <script>
+                        window.onload = function() { window.print(); }
+                    <\/script>
+                </body>
+                </html>
+            `;
+
             let printWindow = window.open('', '_blank');
             printWindow.document.open();
-            printWindow.document.write(printContents);
+            printWindow.document.write(invoiceHtml);
             printWindow.document.close();
-            setTimeout(function() { printWindow.print(); }, 500);
         }
 
         function printCatalog() {
@@ -722,7 +807,7 @@
             const newName = document.getElementById(`edit_name_${id}`).value;
             const newPrice = document.getElementById(`edit_price_${id}`).value;
             const fileInput = document.getElementById(`img_${id}`);
-            if (!newName || !newPrice) { showToast("برجاء إدخال الاسم والسعر", "error"); return; }
+            if (!newName || !newPrice) { showToast("برgاء إدخال الاسم والسعر", "error"); return; }
             let updateData = { name: newName, price: parseFloat(newPrice) };
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
