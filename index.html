@@ -14,19 +14,6 @@
 
     <!-- مكتبة Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- مكتبة OneSignal للإشعارات -->
-    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
-    <script>
-      window.OneSignal = window.OneSignal || [];
-      OneSignal.push(function() {
-        OneSignal.init({
-          appId: "0aeb48f4-bc50-4de0-b3b0-3426536d0d27",
-          notifyButton: { enable: false },
-          allowLocalhostAsSecureOrigin: true,
-        });
-      });
-    </script>
 
     <style>
         * { box-sizing: border-box; }
@@ -138,10 +125,6 @@
         .admin-product-item { display: flex; flex-direction: column; gap: 10px; background: #f9f9f9; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
         .admin-category-header { background: #e0f2f1; color: #00695c; padding: 10px 15px; border-radius: 8px; margin-top: 25px; font-weight: bold; font-size: 16px; border-right: 4px solid #00695c; }
         
-        /* زرار الإشعارات العائم (Floating Bell) */
-        .notify-float-btn { position: fixed; bottom: 100px; left: 20px; background-color: #f57c00; color: #fff; border: none; border-radius: 50%; width: 45px; height: 45px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(245, 124, 0, 0.4); display: flex; align-items: center; justify-content: center; z-index: 998; transition: transform 0.3s; }
-        .notify-float-btn:hover { transform: scale(1.1) rotate(15deg); background-color: #ef6c00; }
-
         @media (max-width: 600px) { 
             header { flex-direction: column; text-align: center; }
             .header-right { width: 100%; align-items: center; margin-top: 10px; }
@@ -172,9 +155,6 @@
     </header>
 
     <div id="toastContainer"></div>
-
-    <!-- زرار الإشعارات العائم -->
-    <button class="notify-float-btn" onclick="subscribeToNotifications()" title="تفعيل إشعارات العروض">🔔</button>
 
     <div id="lightbox" onclick="closeLightbox()">
         <img id="lightboxImg" src="" alt="صورة مكبرة">
@@ -498,18 +478,6 @@
                     </div>`;
             });
             favDiv.innerHTML = htmlContent;
-        }
-
-        // دالة تفعيل الإشعارات عند الضغط على الزرار العائم
-        function subscribeToNotifications() {
-            if (window.OneSignal) {
-                OneSignal.push(function() {
-                    OneSignal.showSlidedownPrompt(); 
-                });
-                showToast("من فضلك اضغط على Allow (سماح) لتصلك العروض 💡");
-            } else {
-                showToast("عذراً، خدمة الإشعارات غير متاحة حالياً.", "error");
-            }
         }
 
         window.onload = function() {
