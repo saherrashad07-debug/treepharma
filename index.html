@@ -14,6 +14,8 @@
 
     <!-- مكتبة Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- مكتبة قراءة ملفات الإكسيل (SheetJS) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
         * { box-sizing: border-box; }
@@ -183,15 +185,17 @@
                     <button class="admin-btn" onclick="addProduct()">حفظ ونشر الصنف</button>
                 </div>
 
+                <!-- صندوق رفع ملف الإكسيل -->
                 <div class="admin-box">
-                    <h3 style="margin-top:0;">إضافة أصناف بالجملة (نسخ ولصق)</h3>
-                    <select id="bulkCategory" class="admin-input">
+                    <h3 style="margin-top:0;">رفع الأصناف من ملف إكسيل (Excel)</h3>
+                    <p style="font-size:14px; color:#666; margin-bottom:15px;">يجب أن يحتوي الملف على عمودين فقط: الأول للاسم (name) والثاني للسعر (price). سيتم إضافة كل الأصناف تحت القسم المختار بالأسفل.</p>
+                    <select id="excelCategory" class="admin-input">
                         <option value="medical">طبية</option>
                         <option value="cosmetics">تجميل</option>
                         <option value="offers">عروض</option>
                     </select>
-                    <textarea id="bulkJson" class="admin-input" rows="6" placeholder='[{"name":"صنف 1","price":10}, {"name":"صنف 2","price":20}]'></textarea>
-                    <button class="admin-btn" style="background-color:#004d40;" onclick="bulkAddProducts()">رفع الأصناف دفعة واحدة</button>
+                    <input type="file" id="excelFile" class="admin-input" accept=".xlsx, .xls, .csv">
+                    <button class="admin-btn" style="background-color:#004d40;" onclick="uploadExcel()">رفع الأصناف من الإكسيل</button>
                 </div>
 
                 <div class="admin-box">
@@ -575,7 +579,7 @@
             let address = document.getElementById('clientAddress').value;
             let phone = document.getElementById('clientPhone').value;
             if (cart.length === 0) { showToast("برجاء إضافة أصناف للسلة أولاً.", "error"); return; }
-            if (!name || !address || !phone) { showToast("برجاء إدخال اسم العميل والعنوان ورقم الموبايل.", "error"); return; }
+            if (!name || !address || !phone) { showToast("برgاء إدخال اسم العميل والعنوان ورقم الموبايل.", "error"); return; }
             let paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
             let customerData = { name: name, address: address, phone: phone };
             localStorage.setItem('treePharma_customer', JSON.stringify(customerData));
@@ -743,21 +747,61 @@
             } else { showToast("حدث خطأ أثناء الحفظ", "error"); }
         }
 
-        async function bulkAddProducts() {
-            const jsonText = document.getElementById('bulkJson').value;
-            const category = document.getElementById('bulkCategory').value;
-            if (!jsonText) { showToast("الرجاء لصق أكواد الأصناف أولاً", "error"); return; }
-            try {
-                let parsedData = JSON.parse(jsonText);
-                if (!Array.isArray(parsedData)) parsedData = [parsedData];
-                const itemsToInsert = parsedData.map(p => ({ name: p.name, price: p.price, category: p.category || category, image_url: '' }));
+        // دالة رفع ملف الإكسيل
+        async function uploadExcel() {
+            const fileInput = document.getElementById('excelFile');
+            const category = document.getElementById('excelCategory').value;
+            
+            if (fileInput.files.length === 0) {
+                showToast("برجاء اختيار ملف إكسيل أولاً", "error");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = async function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 }); // قراءة كـ مصفوفة مصفوفات
+
+                if (json.length < 2) {
+                    showToast("الملف فارغ أو لا يحتوي على بيانات", "error");
+                    return;
+                }
+
+                // تخطي الصف الأول (الرؤوس)
+                const itemsToInsert = [];
+                for (let i = 1; i < json.length; i++) {
+                    const row = json[i];
+                    if (row[0] && row[1]) {
+                        itemsToInsert.push({
+                            name: String(row[0]).trim(),
+                            price: parseFloat(row[1]),
+                            category: category,
+                            image_url: ''
+                        });
+                    }
+                }
+
+                if (itemsToInsert.length === 0) {
+                    showToast("لم يتم العثور على بيانات صحيحة في الملف", "error");
+                    return;
+                }
+
                 const { error } = await sb.from('products').insert(itemsToInsert);
                 if (!error) {
-                    showToast(`تم إضافة ${itemsToInsert.length} صنف بنجاح ✔️`);
-                    document.getElementById('bulkJson').value = '';
-                    loadAdminProducts(); fetchProducts();
-                } else { showToast("حدث خطأ في الإدخال", "error"); }
-            } catch (e) { showToast("صيغة JSON غير صحيحة", "error"); }
+                    showToast(`تم رفع ${itemsToInsert.length} صنف بنجاح ✔️`);
+                    fileInput.value = ''; // مسح الملف بعد الرفع
+                    loadAdminProducts();
+                    fetchProducts();
+                } else {
+                    showToast("حدث خطأ أثناء الإدخال", "error");
+                }
+            };
+            reader.readAsArrayBuffer(file);
         }
 
         async function loadAdminProducts() {
