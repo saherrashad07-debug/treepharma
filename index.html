@@ -42,7 +42,6 @@
         .list-item { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: box-shadow 0.3s; display: flex; flex-direction: column; }
         .list-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         
-        /* === تنسيقات صندوق الصورة وتأثير التحميل === */
         .item-image-container { width: 100%; aspect-ratio: 1 / 1; background-color: #e0f2f1; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; }
         .item-image-container::before { content: ""; position: absolute; width: 24px; height: 24px; border: 3px solid #00695c; border-bottom-color: transparent; border-radius: 50%; animation: img-spin 0.8s linear infinite; z-index: 0; }
         .item-image-container.loaded::before { display: none; }
@@ -50,7 +49,6 @@
         .item-image.loaded { opacity: 1; }
         .item-image:hover { transform: scale(1.05); }
         @keyframes img-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* ========================================= */
 
         .item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 12px; }
         .item-info { flex: 1; text-align: right; word-break: break-word; }
@@ -133,6 +131,14 @@
         .admin-btn { background-color: #00695c; color: #fff; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; }
         .admin-product-item { display: flex; flex-direction: column; gap: 10px; background: #f9f9f9; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
         .admin-category-header { background: #e0f2f1; color: #00695c; padding: 10px 15px; border-radius: 8px; margin-top: 25px; font-weight: bold; font-size: 16px; border-right: 4px solid #00695c; }
+
+        /* تنسيقات التقارير */
+        .report-card { background: #f8f9fa; border: 1px solid #eee; padding: 15px; border-radius: 10px; margin-bottom: 10px; text-align: center; }
+        .report-card h4 { color: #00695c; margin: 0 0 10px 0; font-size: 16px; }
+        .report-card p { font-size: 24px; font-weight: bold; margin: 0; color: #333; }
+        .report-list { background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
+        .report-list-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; }
+        .report-list-item:last-child { border-bottom: none; }
         
         @media (max-width: 600px) { 
             header { flex-direction: column; text-align: center; }
@@ -179,6 +185,33 @@
                 <button class="admin-btn" onclick="adminLogin()">دخول لوحة التحكم</button>
             </div>
             <div id="adminDashboard" style="display:none;">
+                
+                <!-- صندوق التقارير -->
+                <div class="admin-box" style="border: 2px solid #004d40;">
+                    <h3 style="margin-top:0; color:#004d40;">📊 التقارير والمبيعات</h3>
+                    <button class="admin-btn" style="background-color:#004d40; margin-bottom:15px;" onclick="loadReports()">عرض التقارير</button>
+                    <div id="reportsContainer" style="display:none;">
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-bottom:20px;">
+                            <div class="report-card">
+                                <h4>إجمالي الطلبات</h4>
+                                <p id="totalOrders">0</p>
+                            </div>
+                            <div class="report-card">
+                                <h4>إجمالي المبيعات</h4>
+                                <p id="totalSales">0 ج.م</p>
+                            </div>
+                        </div>
+                        <div class="report-list">
+                            <h4 style="color:#00695c; margin-bottom:10px;">🏆 أكثر الأصناف مبيعاً</h4>
+                            <div id="topProducts"></div>
+                        </div>
+                        <div class="report-list">
+                            <h4 style="color:#00695c; margin-bottom:10px;">👥 أفضل العملاء</h4>
+                            <div id="topCustomers"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="admin-box">
                     <h3 style="margin-top:0;">إضافة صنف جديد (فردي)</h3>
                     <input type="text" id="pName" class="admin-input" placeholder="اسم الصنف">
@@ -192,7 +225,6 @@
                     <button class="admin-btn" onclick="addProduct()">حفظ ونشر الصنف</button>
                 </div>
 
-                <!-- صندوق مزامنة الإكسيل السحري -->
                 <div class="admin-box" style="border: 2px solid #004d40;">
                     <h3 style="margin-top:0; color:#004d40;">⚙️ تحديث الأسعار والمخزون (رفع إكسيل)</h3>
                     <p style="font-size:14px; color:#666; margin-bottom:15px;">ارفع ملف إكسيل فيه كل الأصناف المتاحة حالياً. الكود هيرفع الأسعار، ويضيف الجديد، ويخفي أي صنف مش موجود في الملف (بدون مسح صورته).</p>
@@ -362,7 +394,6 @@
         async function fetchProducts() {
             let listDiv = document.getElementById('productList');
             try {
-                // جلب الأصناف النشطة فقط (الظاهرة للعميل)
                 const { data, error } = await sb.from('products').select('*').eq('is_active', true);
                 if (error) throw error;
                 let rawData = data || [];
@@ -615,6 +646,8 @@
             renderOrders();
             const orderData = { name: name, phone: phone, address: address, items: itemsText, total: total };
             const GAS_URL = "https://script.google.com/macros/s/AKfycbxsZ88Sk_3rWPhUSf4BaSVPoqey4K296wxqLLe-yPqHdDWEU3Qz7w8aBQKsgmt5VCik/exec";
+            
+            // 1. إرسال للجوجل شيت والتليجرام (موجود عندك بالفعل)
             fetch(GAS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(orderData) })
             .then(() => {
                 showToast("تم استلام طلبك بنجاح! سيتم التواصل معك قريباً ✔️");
@@ -624,6 +657,72 @@
                 setTimeout(() => switchView('home', event), 1500);
             })
             .catch(err => { console.error("Error:", err); showToast("حدث خطأ في الاتصال، برجاء المحاولة مرة أخرى.", "error"); });
+
+            // 2. حفظ الطلب في قاعدة بيانات Supabase (عشان التقارير)
+            sb.from('orders').insert([{ 
+                customer_name: name, 
+                customer_phone: phone, 
+                customer_address: address, 
+                items: cart, 
+                total_amount: total 
+            }]).then(({ error }) => {
+                if (error) console.error("Error saving order to Supabase:", error);
+            });
+        }
+
+        // دالة التقارير
+        async function loadReports() {
+            const { data, error } = await sb.from('orders').select('*');
+            if (error) { showToast("خطأ في جلب التقارير", "error"); return; }
+            if (!data || data.length === 0) { showToast("لا توجد طلبات مسجلة بعد.", "error"); return; }
+
+            // حساب الإجماليات
+            let totalSales = 0;
+            let productStats = {}; // { 'اسم الصنف': { qty: 0, revenue: 0 } }
+            let customerStats = {}; // { 'اسم العميل': { orders: 0, total: 0 } }
+
+            data.forEach(order => {
+                totalSales += parseFloat(order.total_amount || 0);
+                
+                // إحصائيات العميل
+                if (!customerStats[order.customer_name]) customerStats[order.customer_name] = { orders: 0, total: 0 };
+                customerStats[order.customer_name].orders++;
+                customerStats[order.customer_name].total += parseFloat(order.total_amount || 0);
+
+                // إحصائيات الأصناف
+                if (Array.isArray(order.items)) {
+                    order.items.forEach(item => {
+                        if (!productStats[item.name]) productStats[item.name] = { qty: 0, revenue: 0 };
+                        productStats[item.name].qty += item.qty;
+                        productStats[item.name].revenue += (item.price * item.qty);
+                    });
+                }
+            });
+
+            // عرض الإجماليات
+            document.getElementById('totalOrders').innerText = data.length;
+            document.getElementById('totalSales').innerText = totalSales.toFixed(2) + " ج.م";
+
+            // ترتيب وعرض الأصناف
+            let topProductsDiv = document.getElementById('topProducts');
+            let sortedProducts = Object.entries(productStats).sort((a, b) => b[1].qty - a[1].qty);
+            let productsHtml = '';
+            sortedProducts.forEach(([name, stats]) => {
+                productsHtml += `<div class="report-list-item"><span>${name}</span><span>الكمية: ${stats.qty} (${stats.revenue.toFixed(2)} ج.م)</span></div>`;
+            });
+            topProductsDiv.innerHTML = productsHtml;
+
+            // ترتيب وعرض العملاء
+            let topCustomersDiv = document.getElementById('topCustomers');
+            let sortedCustomers = Object.entries(customerStats).sort((a, b) => b[1].orders - a[1].orders);
+            let customersHtml = '';
+            sortedCustomers.forEach(([name, stats]) => {
+                customersHtml += `<div class="report-list-item"><span>${name}</span><span>طلبات: ${stats.orders} (${stats.total.toFixed(2)} ج.م)</span></div>`;
+            });
+            topCustomersDiv.innerHTML = customersHtml;
+
+            document.getElementById('reportsContainer').style.display = 'block';
+            showToast("تم تحميل التقارير بنجاح ✔️");
         }
 
         function generateInvoice() {
@@ -769,7 +868,6 @@
             } else { showToast("حدث خطأ أثناء الحفظ", "error"); }
         }
 
-        // ===== الدالة السحرية لمزامنة الأسعار والإخفاء/الإظهار =====
         async function syncExcelPrices() {
             const fileInput = document.getElementById('syncExcelFile');
             const category = document.getElementById('syncExcelCategory').value;
@@ -794,11 +892,9 @@
                     return;
                 }
 
-                // 1. جلب كل الأصناف الموجودة في قاعدة البيانات (ظاهرة ومخفية)
                 const { data: dbProducts, error: fetchError } = await sb.from('products').select('*');
                 if (fetchError) { showToast("خطأ في جلب بيانات الموقع", "error"); return; }
 
-                // 2. تجهيز قائمة الأصناف من الإكسيل (تطبيع النصوص لمطابقة دقيقة)
                 const excelItems = [];
                 const excelNamesSet = new Set();
                 for (let i = 1; i < json.length; i++) {
@@ -820,19 +916,16 @@
                 let reactivatedCount = 0;
                 let deactivatedCount = 0;
 
-                // 3. تحديث الأسعار وإظهار الأصناف الموجودة في الإكسيل
                 for (const excelItem of excelItems) {
                     const dbMatch = dbProducts.find(p => normalizeArabic(p.name) === excelItem.normName);
                     
                     if (dbMatch) {
-                        // الصنف موجود في الموقع -> تحديث السعر
                         const { error: updateError } = await sb.from('products').update({ price: excelItem.price, is_active: true }).eq('id', dbMatch.id);
                         if (!updateError) {
                             updatedCount++;
-                            if (!dbMatch.is_active) reactivatedCount++; // كان مخفي ورجع
+                            if (!dbMatch.is_active) reactivatedCount++;
                         }
                     } else {
-                        // الصنف مش موجود في الموقع -> إضافته كجديد
                         const { error: insertError } = await sb.from('products').insert([{ 
                             name: excelItem.name, 
                             price: excelItem.price, 
@@ -844,7 +937,6 @@
                     }
                 }
 
-                // 4. إخفاء الأصناف الموجودة في الموقع ومش موجودة في الإكسيل
                 for (const dbProduct of dbProducts) {
                     const normDbName = normalizeArabic(dbProduct.name);
                     if (!excelNamesSet.has(normDbName) && dbProduct.is_active) {
@@ -854,16 +946,14 @@
                 }
 
                 showToast(`✅ تم التحديث! (${updatedCount} سعر تحدث - ${insertedCount} صنف جديد - ${reactivatedCount} رجع للعمل - ${deactivatedCount} صنف اتخفي)`);
-                fileInput.value = ''; // مسح الملف بعد الرفع
+                fileInput.value = ''; 
                 loadAdminProducts();
                 fetchProducts();
             };
             reader.readAsArrayBuffer(file);
         }
-        // =================================================================
 
         async function loadAdminProducts() {
-            // جلب كل الأصناف (ظاهرة ومخفية) عشان الأدمن يقدر يتحكم فيها
             const { data, error } = await sb.from('products').select('*').order('is_active', { ascending: false });
             if (data) {
                 let listDiv = document.getElementById('adminProductList');
@@ -903,7 +993,6 @@
             }
         }
 
-        // دالة الإخفاء والإظهار اليدوي
         async function toggleProductVisibility(id, isActive) {
             const { error } = await sb.from('products').update({ is_active: isActive }).eq('id', id);
             if (!error) { showToast(isActive ? "تم إظهار الصنف" : "تم إخفاء الصنف من العملاء"); loadAdminProducts(); fetchProducts(); }
