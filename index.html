@@ -192,16 +192,17 @@
                     <button class="admin-btn" onclick="addProduct()">حفظ ونشر الصنف</button>
                 </div>
 
-                <div class="admin-box">
-                    <h3 style="margin-top:0;">رفع الأصناف من ملف إكسيل (Excel)</h3>
-                    <p style="font-size:14px; color:#666; margin-bottom:15px;">يجب أن يحتوي الملف على عمودين فقط: الأول للاسم (name) والثاني للسعر (price). سيتم إضافة كل الأصناف تحت القسم المختار بالأسفل.</p>
-                    <select id="excelCategory" class="admin-input">
+                <!-- صندوق مزامنة الإكسيل السحري -->
+                <div class="admin-box" style="border: 2px solid #004d40;">
+                    <h3 style="margin-top:0; color:#004d40;">⚙️ تحديث الأسعار والمخزون (رفع إكسيل)</h3>
+                    <p style="font-size:14px; color:#666; margin-bottom:15px;">ارفع ملف إكسيل فيه كل الأصناف المتاحة حالياً. الكود هيرفع الأسعار، ويضيف الجديد، ويخفي أي صنف مش موجود في الملف (بدون مسح صورته).</p>
+                    <select id="syncExcelCategory" class="admin-input">
                         <option value="medical">طبية</option>
                         <option value="cosmetics">تجميل</option>
                         <option value="offers">عروض</option>
                     </select>
-                    <input type="file" id="excelFile" class="admin-input" accept=".xlsx, .xls, .csv">
-                    <button class="admin-btn" style="background-color:#004d40;" onclick="uploadExcel()">رفع الأصناف من الإكسيل</button>
+                    <input type="file" id="syncExcelFile" class="admin-input" accept=".xlsx, .xls, .csv">
+                    <button class="admin-btn" style="background-color:#004d40;" onclick="syncExcelPrices()">🔄 مزامنة الملف وتحديث الموقع</button>
                 </div>
 
                 <div class="admin-box">
@@ -210,7 +211,7 @@
                 </div>
                 
                 <div class="admin-box" style="text-align:center;">
-                    <button class="admin-btn" style="background-color:#d32f2f; width:100%;" onclick="deleteAllProducts()">مسح جميع الأصناف</button>
+                    <button class="admin-btn" style="background-color:#d32f2f; width:100%;" onclick="deleteAllProducts()">مسح جميع الأصناف نهائياً</button>
                 </div>
 
                 <button class="admin-btn" style="background-color:#000;" onclick="adminLogout()">تسجيل الخروج</button>
@@ -361,7 +362,8 @@
         async function fetchProducts() {
             let listDiv = document.getElementById('productList');
             try {
-                const { data, error } = await sb.from('products').select('*');
+                // جلب الأصناف النشطة فقط (الظاهرة للعميل)
+                const { data, error } = await sb.from('products').select('*').eq('is_active', true);
                 if (error) throw error;
                 let rawData = data || [];
                 medicalProducts = rawData.filter(p => p.category === 'medical');
@@ -450,7 +452,6 @@
             });
             listDiv.innerHTML = htmlContent;
             
-            // ===== كود إدارة تحميل الصور (Lazy Load & Fade In) =====
             listDiv.querySelectorAll('img.item-image').forEach(img => {
                 if (img.complete) {
                     img.classList.add('loaded');
@@ -461,11 +462,10 @@
                         img.parentNode.classList.add('loaded');
                     });
                     img.addEventListener('error', () => {
-                        img.parentNode.classList.add('loaded'); // أخفاء الـ spinner لو الصورة مش موجودة
+                        img.parentNode.classList.add('loaded'); 
                     });
                 }
             });
-            // =========================================================
         }
 
         function toggleFavorite(name, price, btnElement) {
@@ -527,7 +527,7 @@
                 else { cart.push({ id: Date.now(), name: productName, price: price, qty: quantity }); }
                 updateCartDisplay(); updateCartBadge();
                 showToast("تم إضافة " + productName + " إلى السلة ✔️");
-                qtyInput.value = "";
+                qtyInput.value = ""; 
             } else { showToast("برجاء كتابة كمية صحيحة.", "error"); }
         }
 
@@ -602,7 +602,7 @@
             let address = document.getElementById('clientAddress').value;
             let phone = document.getElementById('clientPhone').value;
             if (cart.length === 0) { showToast("برجاء إضافة أصناف للسلة أولاً.", "error"); return; }
-            if (!name || !address || !phone) { showToast("برجاء إدخال اسم العميل والعنوان ورقم الموبايل.", "error"); return; }
+            if (!name || !address || !phone) { showToast("برgاء إدخال اسم العميل والعنوان ورقم الموبايل.", "error"); return; }
             let paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
             let customerData = { name: name, address: address, phone: phone };
             localStorage.setItem('treePharma_customer', JSON.stringify(customerData));
@@ -626,7 +626,6 @@
             .catch(err => { console.error("Error:", err); showToast("حدث خطأ في الاتصال، برجاء المحاولة مرة أخرى.", "error"); });
         }
 
-        // دالة توليد الفاتورة الاحترافية (بدون توقيعات)
         function generateInvoice() {
             let name = document.getElementById('clientName').value;
             let address = document.getElementById('clientAddress').value;
@@ -762,7 +761,7 @@
                 if (error) { showToast("فشل رفع الصورة", "error"); return; }
                 imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${fileName}`;
             }
-            const { error } = await sb.from('products').insert([{ name, price, category, image_url: imageUrl }]);
+            const { error } = await sb.from('products').insert([{ name, price, category, image_url: imageUrl, is_active: true }]);
             if (!error) {
                 showToast("تم إضافة الصنف بنجاح ✔️");
                 document.getElementById('pName').value = ''; document.getElementById('pPrice').value = ''; document.getElementById('pImage').value = '';
@@ -770,10 +769,10 @@
             } else { showToast("حدث خطأ أثناء الحفظ", "error"); }
         }
 
-        // دالة رفع ملف الإكسيل
-        async function uploadExcel() {
-            const fileInput = document.getElementById('excelFile');
-            const category = document.getElementById('excelCategory').value;
+        // ===== الدالة السحرية لمزامنة الأسعار والإخفاء/الإظهار =====
+        async function syncExcelPrices() {
+            const fileInput = document.getElementById('syncExcelFile');
+            const category = document.getElementById('syncExcelCategory').value;
             
             if (fileInput.files.length === 0) {
                 showToast("برجاء اختيار ملف إكسيل أولاً", "error");
@@ -788,63 +787,108 @@
                 const workbook = XLSX.read(data, { type: 'array' });
                 const sheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[sheetName];
-                const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 }); // قراءة كـ مصفوفة مصفوفات
+                const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
                 if (json.length < 2) {
                     showToast("الملف فارغ أو لا يحتوي على بيانات", "error");
                     return;
                 }
 
-                // تخطي الصف الأول (الرؤوس)
-                const itemsToInsert = [];
+                // 1. جلب كل الأصناف الموجودة في قاعدة البيانات (ظاهرة ومخفية)
+                const { data: dbProducts, error: fetchError } = await sb.from('products').select('*');
+                if (fetchError) { showToast("خطأ في جلب بيانات الموقع", "error"); return; }
+
+                // 2. تجهيز قائمة الأصناف من الإكسيل (تطبيع النصوص لمطابقة دقيقة)
+                const excelItems = [];
+                const excelNamesSet = new Set();
                 for (let i = 1; i < json.length; i++) {
                     const row = json[i];
                     if (row[0] && row[1]) {
-                        itemsToInsert.push({
-                            name: String(row[0]).trim(),
-                            price: parseFloat(row[1]),
-                            category: category,
-                            image_url: ''
-                        });
+                        const normalizedName = normalizeArabic(String(row[0]).trim());
+                        excelItems.push({ name: String(row[0]).trim(), price: parseFloat(row[1]), normName: normalizedName });
+                        excelNamesSet.add(normalizedName);
                     }
                 }
 
-                if (itemsToInsert.length === 0) {
+                if (excelItems.length === 0) {
                     showToast("لم يتم العثور على بيانات صحيحة في الملف", "error");
                     return;
                 }
 
-                const { error } = await sb.from('products').insert(itemsToInsert);
-                if (!error) {
-                    showToast(`تم رفع ${itemsToInsert.length} صنف بنجاح ✔️`);
-                    fileInput.value = ''; // مسح الملف بعد الرفع
-                    loadAdminProducts();
-                    fetchProducts();
-                } else {
-                    showToast("حدث خطأ أثناء الإدخال", "error");
+                let updatedCount = 0;
+                let insertedCount = 0;
+                let reactivatedCount = 0;
+                let deactivatedCount = 0;
+
+                // 3. تحديث الأسعار وإظهار الأصناف الموجودة في الإكسيل
+                for (const excelItem of excelItems) {
+                    const dbMatch = dbProducts.find(p => normalizeArabic(p.name) === excelItem.normName);
+                    
+                    if (dbMatch) {
+                        // الصنف موجود في الموقع -> تحديث السعر
+                        const { error: updateError } = await sb.from('products').update({ price: excelItem.price, is_active: true }).eq('id', dbMatch.id);
+                        if (!updateError) {
+                            updatedCount++;
+                            if (!dbMatch.is_active) reactivatedCount++; // كان مخفي ورجع
+                        }
+                    } else {
+                        // الصنف مش موجود في الموقع -> إضافته كجديد
+                        const { error: insertError } = await sb.from('products').insert([{ 
+                            name: excelItem.name, 
+                            price: excelItem.price, 
+                            category: category, 
+                            image_url: '', 
+                            is_active: true 
+                        }]);
+                        if (!insertError) insertedCount++;
+                    }
                 }
+
+                // 4. إخفاء الأصناف الموجودة في الموقع ومش موجودة في الإكسيل
+                for (const dbProduct of dbProducts) {
+                    const normDbName = normalizeArabic(dbProduct.name);
+                    if (!excelNamesSet.has(normDbName) && dbProduct.is_active) {
+                        const { error: hideError } = await sb.from('products').update({ is_active: false }).eq('id', dbProduct.id);
+                        if (!hideError) deactivatedCount++;
+                    }
+                }
+
+                showToast(`✅ تم التحديث! (${updatedCount} سعر تحدث - ${insertedCount} صنف جديد - ${reactivatedCount} رجع للعمل - ${deactivatedCount} صنف اتخفي)`);
+                fileInput.value = ''; // مسح الملف بعد الرفع
+                loadAdminProducts();
+                fetchProducts();
             };
             reader.readAsArrayBuffer(file);
         }
+        // =================================================================
 
         async function loadAdminProducts() {
-            const { data, error } = await sb.from('products').select('*');
+            // جلب كل الأصناف (ظاهرة ومخفية) عشان الأدمن يقدر يتحكم فيها
+            const { data, error } = await sb.from('products').select('*').order('is_active', { ascending: false });
             if (data) {
                 let listDiv = document.getElementById('adminProductList');
                 if(data.length === 0) { listDiv.innerHTML = '<p>لا توجد أصناف مضافة.</p>'; return; }
-                data.sort((a,b) => (a.name || "").toLowerCase().localeCompare((b.name || "").toLowerCase()));
+                
                 let medicalHTML = '', cosmeticsHTML = '', offersHTML = '';
                 data.forEach(p => {
+                    let statusStyle = p.is_active ? '' : 'opacity: 0.5; border: 1px dashed #ff4d4d;';
+                    let statusBadge = p.is_active ? '' : '<span style="background:#ff4d4d; color:white; padding:2px 5px; border-radius:4px; font-size:10px;">مخفي</span>';
+                    
                     let itemHTML = `
-                        <div class="admin-product-item">
+                        <div class="admin-product-item" style="${statusStyle}">
                             <div style="display:flex; gap:10px; width:100%; align-items:center; margin-bottom:10px;">
                                 <input type="text" id="edit_name_${p.id}" value="${p.name}" class="admin-input" style="flex:1; margin-bottom:0; font-weight:bold;" placeholder="الاسم">
-                                <input type="number" id="edit_price_${p.id}" value="${p.price}" class="admin-input" style="width:90px; margin-bottom:0; text-align:center;" placeholder="السعر">
+                                <input type="number" id="edit_price_${p.id}" value="${p.price}" class="admin-input" style="width:80px; margin-bottom:0; text-align:center;" placeholder="السعر">
+                                ${statusBadge}
                             </div>
                             <div style="display:flex; gap:10px; width:100%; align-items:center;">
                                 <input type="file" id="img_${p.id}" class="admin-input" accept="image/*" style="margin-bottom:0; padding:5px; flex:1;">
-                                <button class="admin-btn" style="width:auto; padding: 8px 15px; margin-bottom:0; background-color:#004d40;" onclick="updateProduct(${p.id})">حفظ التعديل</button>
-                                <button class="remove-btn" style="padding: 8px 15px; font-size:14px;" onclick="deleteProduct(${p.id})">حذف</button>
+                                <button class="admin-btn" style="width:auto; padding: 8px 12px; margin-bottom:0; background-color:#004d40;" onclick="updateProduct(${p.id})">حفظ</button>
+                                ${p.is_active ? 
+                                    `<button class="admin-btn" style="width:auto; padding: 8px 12px; margin-bottom:0; background-color:#f57c00;" onclick="toggleProductVisibility(${p.id}, false)">إخفاء</button>` : 
+                                    `<button class="admin-btn" style="width:auto; padding: 8px 12px; margin-bottom:0; background-color:#00695c;" onclick="toggleProductVisibility(${p.id}, true)">إظهار</button>`
+                                }
+                                <button class="remove-btn" style="padding: 8px 12px; font-size:13px;" onclick="deleteProduct(${p.id})">حذف نهائي</button>
                             </div>
                         </div>`;
                     if (p.category === 'medical') medicalHTML += itemHTML;
@@ -857,6 +901,12 @@
                 if (offersHTML) { htmlContent += `<div class="admin-category-header">العروض الأسبوعية (${offersHTML.split('admin-product-item').length - 1})</div>`; htmlContent += offersHTML; }
                 listDiv.innerHTML = htmlContent;
             }
+        }
+
+        // دالة الإخفاء والإظهار اليدوي
+        async function toggleProductVisibility(id, isActive) {
+            const { error } = await sb.from('products').update({ is_active: isActive }).eq('id', id);
+            if (!error) { showToast(isActive ? "تم إظهار الصنف" : "تم إخفاء الصنف من العملاء"); loadAdminProducts(); fetchProducts(); }
         }
 
         async function updateProduct(id) {
@@ -878,8 +928,9 @@
         }
 
         async function deleteProduct(id) {
+            if (!confirm("هل أنت متأكد؟ هذا سيحذف الصنف والصورة نهائياً من قاعدة البيانات!")) return;
             const { error } = await sb.from('products').delete().eq('id', id);
-            if (!error) { showToast("تم حذف الصنف"); loadAdminProducts(); fetchProducts(); }
+            if (!error) { showToast("تم الحذف النهائي"); loadAdminProducts(); fetchProducts(); }
         }
 
         async function deleteAllProducts() {
