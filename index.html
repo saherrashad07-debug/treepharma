@@ -132,13 +132,39 @@
         .admin-product-item { display: flex; flex-direction: column; gap: 10px; background: #f9f9f9; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
         .admin-category-header { background: #e0f2f1; color: #00695c; padding: 10px 15px; border-radius: 8px; margin-top: 25px; font-weight: bold; font-size: 16px; border-right: 4px solid #00695c; }
 
-        /* تنسيقات التقارير */
         .report-card { background: #f8f9fa; border: 1px solid #eee; padding: 15px; border-radius: 10px; margin-bottom: 10px; text-align: center; }
         .report-card h4 { color: #00695c; margin: 0 0 10px 0; font-size: 16px; }
         .report-card p { font-size: 24px; font-weight: bold; margin: 0; color: #333; }
         .report-list { background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
         .report-list-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; }
         .report-list-item:last-child { border-bottom: none; }
+
+        .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .kpi-card { background: #fff; padding: 20px 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; border-bottom: 4px solid #00695c; }
+        .kpi-card h4 { margin: 0 0 10px 0; font-size: 14px; color: #666; font-weight: bold; }
+        .kpi-card p { margin: 0; font-size: 28px; font-weight: 800; }
+        .kpi-card.green { border-bottom-color: #00695c; } .kpi-card.green p { color: #00695c; }
+        .kpi-card.blue { border-bottom-color: #1976d2; } .kpi-card.blue p { color: #1976d2; }
+        .kpi-card.orange { border-bottom-color: #f57c00; } .kpi-card.orange p { color: #f57c00; }
+
+        /* === تنسيقات زرار وضع التحديد (Toggle Switch) === */
+        .maintenance-box { display: flex; justify-content: space-between; align-items: center; background: #fff3e0; border: 1px solid #ffb74d; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; }
+        .maintenance-box p { margin: 0; font-weight: bold; color: #e65100; font-size: 16px; }
+        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #f57c00; }
+        input:checked + .slider:before { transform: translateX(26px); }
+        /* ============================================== */
+
+        /* === رسالة الصيانة للعميل === */
+        .maintenance-message { text-align: center; padding: 60px 20px; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-top: 30px; }
+        .maintenance-message h2 { color: #00695c; font-size: 28px; margin-bottom: 15px; }
+        .maintenance-message p { color: #666; font-size: 18px; line-height: 1.6; }
+        .maintenance-message .loader { border: 4px solid #f3f3f3; border-top: 4px solid #00695c; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* ============================= */
         
         @media (max-width: 600px) { 
             header { flex-direction: column; text-align: center; }
@@ -186,21 +212,34 @@
             </div>
             <div id="adminDashboard" style="display:none;">
                 
-                <!-- صندوق التقارير -->
+                <!-- زرار وضع التحديث (Maintenance Toggle) -->
+                <div class="maintenance-box">
+                    <p>🛠️ وضع التحديث (إغلاق الموقع مؤقتاً للعملاء)</p>
+                    <label class="switch">
+                        <input type="checkbox" id="maintenanceToggle" onchange="toggleMaintenanceMode(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="kpi-container">
+                    <div class="kpi-card green">
+                        <h4>الأصناف النشطة</h4>
+                        <p id="kpiActiveProducts">0</p>
+                    </div>
+                    <div class="kpi-card blue">
+                        <h4>طلبات اليوم</h4>
+                        <p id="kpiTodayOrders">0</p>
+                    </div>
+                    <div class="kpi-card orange">
+                        <h4>مبيعات اليوم</h4>
+                        <p id="kpiTodaySales">0 ج.م</p>
+                    </div>
+                </div>
+
                 <div class="admin-box" style="border: 2px solid #004d40;">
                     <h3 style="margin-top:0; color:#004d40;">📊 التقارير والمبيعات</h3>
-                    <button class="admin-btn" style="background-color:#004d40; margin-bottom:15px;" onclick="loadReports()">عرض التقارير</button>
+                    <button class="admin-btn" style="background-color:#004d40; margin-bottom:15px;" onclick="loadReports()">عرض التقارير التفصيلية</button>
                     <div id="reportsContainer" style="display:none;">
-                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-bottom:20px;">
-                            <div class="report-card">
-                                <h4>إجمالي الطلبات</h4>
-                                <p id="totalOrders">0</p>
-                            </div>
-                            <div class="report-card">
-                                <h4>إجمالي المبيعات</h4>
-                                <p id="totalSales">0 ج.م</p>
-                            </div>
-                        </div>
                         <div class="report-list">
                             <h4 style="color:#00695c; margin-bottom:10px;">🏆 أكثر الأصناف مبيعاً</h4>
                             <div id="topProducts"></div>
@@ -251,18 +290,27 @@
         </div>
 
         <div id="view-home" class="view">
-            <div class="search-container">
-                <input type="text" id="searchInput" class="search-input" placeholder="ابحث عن صنف... (مثال: جوانتي، شامبو، كريم)" oninput="filterProducts()">
-                <br>
-                <button class="catalog-btn" onclick="printCatalog()">تحميل قائمة الأسعار</button>
+            <div id="homeContent" style="display:none;">
+                <div class="search-container">
+                    <input type="text" id="searchInput" class="search-input" placeholder="ابحث عن صنف... (مثال: جوانتي، شامبو، كريم)" oninput="filterProducts()">
+                    <br>
+                    <button class="catalog-btn" onclick="printCatalog()">تحميل قائمة الأسعار</button>
+                </div>
+                <div class="view-buttons">
+                    <button class="view-btn active" id="btnAll" onclick="showAllProducts()">كل الأصناف</button>
+                    <button class="view-btn" id="btnMedical" onclick="showMedicalProducts()">طبية</button>
+                    <button class="view-btn" id="btnCosmetics" onclick="showCosmeticsProducts()">تجميل</button>
+                    <button class="view-btn" id="btnOffers" onclick="showWeeklyOffers()">العرض الأسبوعي</button>
+                </div>
+                <div class="product-list" id="productList"><p style="text-align:center; color:#00695c; font-size:18px;">جاري تحميل الأصناف...</p></div>
             </div>
-            <div class="view-buttons">
-                <button class="view-btn active" id="btnAll" onclick="showAllProducts()">كل الأصناف</button>
-                <button class="view-btn" id="btnMedical" onclick="showMedicalProducts()">طبية</button>
-                <button class="view-btn" id="btnCosmetics" onclick="showCosmeticsProducts()">تجميل</button>
-                <button class="view-btn" id="btnOffers" onclick="showWeeklyOffers()">العرض الأسبوعي</button>
+
+            <!-- رسالة الصيانة للعميل -->
+            <div id="maintenanceMessage" class="maintenance-message" style="display:none;">
+                <div class="loader"></div>
+                <h2>نحن نقوم حالياً بتحديث قائمة الأصناف</h2>
+                <p>نعمل على تحسين المنتجات وتحديث الأسعار لتقديم الأفضل لكم.<br>برجاء المحاولة مرة أخرى بعد قليل. شكراً لصبركم!</p>
             </div>
-            <div class="product-list" id="productList"><p style="text-align:center; color:#00695c; font-size:18px;">جاري تحميل الأصناف...</p></div>
         </div>
 
         <div id="view-favorites" class="view" style="display: none;">
@@ -538,16 +586,53 @@
             favDiv.innerHTML = htmlContent;
         }
 
-        window.onload = function() {
+        window.onload = async function() {
             if (window.location.hash === '#admin') {
                 document.getElementById('view-admin').style.display = 'block';
                 document.getElementById('view-home').style.display = 'none';
                 checkAdminSession();
-            } else { fetchProducts(); }
+            } else { 
+                const isUpdating = await checkMaintenanceMode();
+                if (!isUpdating) {
+                    document.getElementById('homeContent').style.display = 'block';
+                    fetchProducts(); 
+                }
+            }
             renderFavorites(); renderOrders();
             let savedData = localStorage.getItem('treePharma_customer');
             if (savedData) { let customer = JSON.parse(savedData); document.getElementById('clientName').value = customer.name || ''; document.getElementById('clientAddress').value = customer.address || ''; document.getElementById('clientPhone').value = customer.phone || ''; }
         };
+
+        // ===== دوال وضع التحديث (Maintenance Mode) =====
+        async function checkMaintenanceMode() {
+            try {
+                const { data, error } = await sb.from('settings').select('is_updating').eq('id', 1).single();
+                if (error) return false;
+                if (data && data.is_updating) {
+                    document.getElementById('homeContent').style.display = 'none';
+                    document.getElementById('maintenanceMessage').style.display = 'block';
+                    return true;
+                }
+            } catch (e) {}
+            return false;
+        }
+
+        async function toggleMaintenanceMode(isOn) {
+            const { error } = await sb.from('settings').update({ is_updating: isOn }).eq('id', 1);
+            if (!error) {
+                showToast(isOn ? "🚧 تم تفعيل وضع التحديث! الموقع مغلق للعملاء حالياً." : "✅ تم إيقاف وضع التحديث! الموقع يعمل بشكل طبيعي.");
+            } else {
+                showToast("حدث خطأ", "error");
+            }
+        }
+
+        async function fetchAdminSettings() {
+            try {
+                const { data, error } = await sb.from('settings').select('is_updating').eq('id', 1).single();
+                if (data) document.getElementById('maintenanceToggle').checked = data.is_updating;
+            } catch (e) {}
+        }
+        // =============================================
 
         function addToCart(productName, price, qtyId) {
             let qtyInput = document.getElementById(qtyId);
@@ -647,7 +732,6 @@
             const orderData = { name: name, phone: phone, address: address, items: itemsText, total: total };
             const GAS_URL = "https://script.google.com/macros/s/AKfycbxsZ88Sk_3rWPhUSf4BaSVPoqey4K296wxqLLe-yPqHdDWEU3Qz7w8aBQKsgmt5VCik/exec";
             
-            // 1. إرسال للجوجل شيت والتليجرام (موجود عندك بالفعل)
             fetch(GAS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(orderData) })
             .then(() => {
                 showToast("تم استلام طلبك بنجاح! سيتم التواصل معك قريباً ✔️");
@@ -658,7 +742,6 @@
             })
             .catch(err => { console.error("Error:", err); showToast("حدث خطأ في الاتصال، برجاء المحاولة مرة أخرى.", "error"); });
 
-            // 2. حفظ الطلب في قاعدة بيانات Supabase (عشان التقارير)
             sb.from('orders').insert([{ 
                 customer_name: name, 
                 customer_phone: phone, 
@@ -670,26 +753,42 @@
             });
         }
 
-        // دالة التقارير
+        async function fetchDashboardStats() {
+            try {
+                const { count: activeCount, error: err1 } = await sb.from('products').select('id', { count: 'exact', head: true }).eq('is_active', true);
+                if (err1) console.error("Stats error (products):", err1);
+                document.getElementById('kpiActiveProducts').innerText = activeCount || 0;
+
+                const todayStart = new Date();
+                todayStart.setHours(0, 0, 0, 0); 
+                
+                const { data: todayOrders, error: err2 } = await sb.from('orders').select('total_amount').gte('created_at', todayStart.toISOString());
+                if (err2) console.error("Stats error (orders):", err2);
+
+                const orderCount = todayOrders ? todayOrders.length : 0;
+                const totalSales = todayOrders ? todayOrders.reduce((sum, order) => sum + parseFloat(order.total_amount || 0), 0) : 0;
+
+                document.getElementById('kpiTodayOrders').innerText = orderCount;
+                document.getElementById('kpiTodaySales').innerText = totalSales.toFixed(2) + " ج.م";
+
+            } catch (e) {
+                console.error("Dashboard Stats Error:", e);
+            }
+        }
+
         async function loadReports() {
             const { data, error } = await sb.from('orders').select('*');
             if (error) { showToast("خطأ في جلب التقارير", "error"); return; }
             if (!data || data.length === 0) { showToast("لا توجد طلبات مسجلة بعد.", "error"); return; }
 
-            // حساب الإجماليات
-            let totalSales = 0;
-            let productStats = {}; // { 'اسم الصنف': { qty: 0, revenue: 0 } }
-            let customerStats = {}; // { 'اسم العميل': { orders: 0, total: 0 } }
+            let productStats = {};
+            let customerStats = {};
 
             data.forEach(order => {
-                totalSales += parseFloat(order.total_amount || 0);
-                
-                // إحصائيات العميل
                 if (!customerStats[order.customer_name]) customerStats[order.customer_name] = { orders: 0, total: 0 };
                 customerStats[order.customer_name].orders++;
                 customerStats[order.customer_name].total += parseFloat(order.total_amount || 0);
 
-                // إحصائيات الأصناف
                 if (Array.isArray(order.items)) {
                     order.items.forEach(item => {
                         if (!productStats[item.name]) productStats[item.name] = { qty: 0, revenue: 0 };
@@ -699,11 +798,6 @@
                 }
             });
 
-            // عرض الإجماليات
-            document.getElementById('totalOrders').innerText = data.length;
-            document.getElementById('totalSales').innerText = totalSales.toFixed(2) + " ج.م";
-
-            // ترتيب وعرض الأصناف
             let topProductsDiv = document.getElementById('topProducts');
             let sortedProducts = Object.entries(productStats).sort((a, b) => b[1].qty - a[1].qty);
             let productsHtml = '';
@@ -712,7 +806,6 @@
             });
             topProductsDiv.innerHTML = productsHtml;
 
-            // ترتيب وعرض العملاء
             let topCustomersDiv = document.getElementById('topCustomers');
             let sortedCustomers = Object.entries(customerStats).sort((a, b) => b[1].orders - a[1].orders);
             let customersHtml = '';
@@ -829,6 +922,8 @@
                 document.getElementById('adminLoginBox').style.display = 'none';
                 document.getElementById('adminDashboard').style.display = 'block';
                 loadAdminProducts();
+                fetchDashboardStats(); 
+                fetchAdminSettings(); // جلب حالة زرار التحديث
             }
         }
 
@@ -864,7 +959,7 @@
             if (!error) {
                 showToast("تم إضافة الصنف بنجاح ✔️");
                 document.getElementById('pName').value = ''; document.getElementById('pPrice').value = ''; document.getElementById('pImage').value = '';
-                loadAdminProducts(); fetchProducts();
+                loadAdminProducts(); fetchProducts(); fetchDashboardStats(); 
             } else { showToast("حدث خطأ أثناء الحفظ", "error"); }
         }
 
@@ -949,6 +1044,7 @@
                 fileInput.value = ''; 
                 loadAdminProducts();
                 fetchProducts();
+                fetchDashboardStats(); 
             };
             reader.readAsArrayBuffer(file);
         }
@@ -995,7 +1091,7 @@
 
         async function toggleProductVisibility(id, isActive) {
             const { error } = await sb.from('products').update({ is_active: isActive }).eq('id', id);
-            if (!error) { showToast(isActive ? "تم إظهار الصنف" : "تم إخفاء الصنف من العملاء"); loadAdminProducts(); fetchProducts(); }
+            if (!error) { showToast(isActive ? "تم إظهار الصنف" : "تم إخفاء الصنف من العملاء"); loadAdminProducts(); fetchProducts(); fetchDashboardStats(); } 
         }
 
         async function updateProduct(id) {
@@ -1019,13 +1115,13 @@
         async function deleteProduct(id) {
             if (!confirm("هل أنت متأكد؟ هذا سيحذف الصنف والصورة نهائياً من قاعدة البيانات!")) return;
             const { error } = await sb.from('products').delete().eq('id', id);
-            if (!error) { showToast("تم الحذف النهائي"); loadAdminProducts(); fetchProducts(); }
+            if (!error) { showToast("تم الحذف النهائي"); loadAdminProducts(); fetchProducts(); fetchDashboardStats(); } 
         }
 
         async function deleteAllProducts() {
             if (!confirm("هل أنت متأكد تماماً؟ سيتم مسح كل الأصناف نهائياً!")) return;
             const { error } = await sb.from('products').delete().neq('id', 0);
-            if (!error) { showToast("تم مسح جميع الأصناف"); loadAdminProducts(); fetchProducts(); }
+            if (!error) { showToast("تم مسح جميع الأصناف"); loadAdminProducts(); fetchProducts(); fetchDashboardStats(); } 
             else { showToast("حدث خطأ", "error"); }
         }
 
