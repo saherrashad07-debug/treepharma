@@ -16,6 +16,19 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- مكتبة قراءة ملفات الإكسيل (SheetJS) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- مكتبة OneSignal للإشعارات -->
+    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
+    <script>
+      window.OneSignal = window.OneSignal || [];
+      OneSignal.push(function() {
+        OneSignal.init({
+          appId: "0aeb48f4-bc50-4de0-b3b0-3426536d0d27", // كود جيميناي بتاعك
+          notifyButton: { enable: false }, // شيلنا الجرس التلقائي عشان نعتمد على زرارنا الإحترافي
+          allowLocalhostAsSecureOrigin: true,
+        });
+      });
+    </script>
 
     <style>
         * { box-sizing: border-box; }
@@ -38,6 +51,10 @@
         .catalog-btn { background-color: #00695c; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 15px; width: 100%; max-width: 500px; transition: all 0.3s; }
         .catalog-btn:hover { background-color: #004d40; transform: translateY(-2px); }
         
+        /* زرار تفعيل الإشعارات */
+        .notify-btn { background-color: #f57c00; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; width: 100%; max-width: 500px; transition: all 0.3s; box-shadow: 0 2px 5px rgba(245, 124, 0, 0.3); }
+        .notify-btn:hover { background-color: #ef6c00; transform: translateY(-2px); }
+
         .product-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
         .list-item { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: box-shadow 0.3s; display: flex; flex-direction: column; }
         .list-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
@@ -158,14 +175,12 @@
         input:checked + .slider:before { transform: translateX(26px); }
         /* ============================================== */
 
-        /* === رسالة الصيانة للعميل === */
         .maintenance-message { text-align: center; padding: 60px 20px; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-top: 30px; }
         .maintenance-message h2 { color: #00695c; font-size: 28px; margin-bottom: 15px; }
         .maintenance-message p { color: #666; font-size: 18px; line-height: 1.6; }
         .maintenance-message .loader { border: 4px solid #f3f3f3; border-top: 4px solid #00695c; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* ============================= */
-        
+
         @media (max-width: 600px) { 
             header { flex-direction: column; text-align: center; }
             .header-right { width: 100%; align-items: center; margin-top: 10px; }
@@ -212,7 +227,6 @@
             </div>
             <div id="adminDashboard" style="display:none;">
                 
-                <!-- زرار وضع التحديث (Maintenance Toggle) -->
                 <div class="maintenance-box">
                     <p>🛠️ وضع التحديث (إغلاق الموقع مؤقتاً للعملاء)</p>
                     <label class="switch">
@@ -295,6 +309,7 @@
                     <input type="text" id="searchInput" class="search-input" placeholder="ابحث عن صنف... (مثال: جوانتي، شامبو، كريم)" oninput="filterProducts()">
                     <br>
                     <button class="catalog-btn" onclick="printCatalog()">تحميل قائمة الأسعار</button>
+                    <button class="notify-btn" onclick="subscribeToNotifications()">🔔 تفعيل إشعارات العروض على موبايلك</button>
                 </div>
                 <div class="view-buttons">
                     <button class="view-btn active" id="btnAll" onclick="showAllProducts()">كل الأصناف</button>
@@ -305,7 +320,6 @@
                 <div class="product-list" id="productList"><p style="text-align:center; color:#00695c; font-size:18px;">جاري تحميل الأصناف...</p></div>
             </div>
 
-            <!-- رسالة الصيانة للعميل -->
             <div id="maintenanceMessage" class="maintenance-message" style="display:none;">
                 <div class="loader"></div>
                 <h2>نحن نقوم حالياً بتحديث قائمة الأصناف</h2>
@@ -366,6 +380,7 @@
                 <div class="contact-item"><span>5013813 (أرضي)</span><a href="tel:5013813">اتصال</a></div>
                 <div class="contact-item"><span style="color:#ff4d4d;">01220202473 (شكاوي)</span><a href="tel:01220202473" style="background-color:#ff4d4d;">اتصال</a></div>
                 <a href="https://wa.me/201274906271" class="whatsapp-btn-large" target="_blank">مراسلتنا على واتساب</a>
+                <button class="notify-btn" onclick="subscribeToNotifications()" style="max-width: 100%; margin-top: 20px;">🔔 تفعيل إشعارات العروض</button>
                 <div class="missing-item-banner">
                     <h3>لم تجد ما تبحث عنه؟</h3>
                     <p>يمكنك طلب أي صنف غير موجود بالقائمة وسنوفره لك في أسرع وقت.</p>
@@ -603,7 +618,6 @@
             if (savedData) { let customer = JSON.parse(savedData); document.getElementById('clientName').value = customer.name || ''; document.getElementById('clientAddress').value = customer.address || ''; document.getElementById('clientPhone').value = customer.phone || ''; }
         };
 
-        // ===== دوال وضع التحديث (Maintenance Mode) =====
         async function checkMaintenanceMode() {
             try {
                 const { data, error } = await sb.from('settings').select('is_updating').eq('id', 1).single();
@@ -632,7 +646,6 @@
                 if (data) document.getElementById('maintenanceToggle').checked = data.is_updating;
             } catch (e) {}
         }
-        // =============================================
 
         function addToCart(productName, price, qtyId) {
             let qtyInput = document.getElementById(qtyId);
@@ -923,7 +936,7 @@
                 document.getElementById('adminDashboard').style.display = 'block';
                 loadAdminProducts();
                 fetchDashboardStats(); 
-                fetchAdminSettings(); // جلب حالة زرار التحديث
+                fetchAdminSettings(); 
             }
         }
 
@@ -1123,6 +1136,18 @@
             const { error } = await sb.from('products').delete().neq('id', 0);
             if (!error) { showToast("تم مسح جميع الأصناف"); loadAdminProducts(); fetchProducts(); fetchDashboardStats(); } 
             else { showToast("حدث خطأ", "error"); }
+        }
+
+        // دالة تفعيل الإشعارات عند الضغط على الزرار
+        function subscribeToNotifications() {
+            if (window.OneSignal) {
+                OneSignal.push(function() {
+                    OneSignal.showSlidedownPrompt(); // بيظهر للعميل رسالة التفعيل
+                });
+                showToast("من فضلك اضغط على Allow (سماح) لتصلك العروض 💡");
+            } else {
+                showToast("عذراً، خدمة الإشعارات غير متاحة حالياً.", "error");
+            }
         }
 
         if ('serviceWorker' in navigator) {
