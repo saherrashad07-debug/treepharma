@@ -23,8 +23,8 @@
       window.OneSignal = window.OneSignal || [];
       OneSignal.push(function() {
         OneSignal.init({
-          appId: "0aeb48f4-bc50-4de0-b3b0-3426536d0d27", // كود جيميناي بتاعك
-          notifyButton: { enable: false }, // شيلنا الجرس التلقائي عشان نعتمد على زرارنا الإحترافي
+          appId: "0aeb48f4-bc50-4de0-b3b0-3426536d0d27",
+          notifyButton: { enable: false },
           allowLocalhostAsSecureOrigin: true,
         });
       });
@@ -51,7 +51,6 @@
         .catalog-btn { background-color: #00695c; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 15px; width: 100%; max-width: 500px; transition: all 0.3s; }
         .catalog-btn:hover { background-color: #004d40; transform: translateY(-2px); }
         
-        /* زرار تفعيل الإشعارات */
         .notify-btn { background-color: #f57c00; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; width: 100%; max-width: 500px; transition: all 0.3s; box-shadow: 0 2px 5px rgba(245, 124, 0, 0.3); }
         .notify-btn:hover { background-color: #ef6c00; transform: translateY(-2px); }
 
@@ -164,7 +163,6 @@
         .kpi-card.blue { border-bottom-color: #1976d2; } .kpi-card.blue p { color: #1976d2; }
         .kpi-card.orange { border-bottom-color: #f57c00; } .kpi-card.orange p { color: #f57c00; }
 
-        /* === تنسيقات زرار وضع التحديد (Toggle Switch) === */
         .maintenance-box { display: flex; justify-content: space-between; align-items: center; background: #fff3e0; border: 1px solid #ffb74d; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; }
         .maintenance-box p { margin: 0; font-weight: bold; color: #e65100; font-size: 16px; }
         .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
@@ -173,7 +171,6 @@
         .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: #f57c00; }
         input:checked + .slider:before { transform: translateX(26px); }
-        /* ============================================== */
 
         .maintenance-message { text-align: center; padding: 60px 20px; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-top: 30px; }
         .maintenance-message h2 { color: #00695c; font-size: 28px; margin-bottom: 15px; }
@@ -1138,11 +1135,10 @@
             else { showToast("حدث خطأ", "error"); }
         }
 
-        // دالة تفعيل الإشعارات عند الضغط على الزرار
         function subscribeToNotifications() {
             if (window.OneSignal) {
                 OneSignal.push(function() {
-                    OneSignal.showSlidedownPrompt(); // بيظهر للعميل رسالة التفعيل
+                    OneSignal.showSlidedownPrompt();
                 });
                 showToast("من فضلك اضغط على Allow (سماح) لتصلك العروض 💡");
             } else {
@@ -1150,24 +1146,10 @@
             }
         }
 
+        // تم إصلاح مشكلة الـ Reload Loop هنا
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js').then(reg => {
-                    reg.addEventListener('updatefound', () => {
-                        const newWorker = reg.installing;
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                window.location.reload();
-                            }
-                        });
-                    });
-                });
-                let refreshing;
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    if (refreshing) return;
-                    window.location.reload();
-                    refreshing = true;
-                });
+                navigator.serviceWorker.register('service-worker.js').catch(err => console.error('Service Worker Error:', err));
             });
         }
 
