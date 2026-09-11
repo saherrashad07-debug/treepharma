@@ -1166,7 +1166,7 @@
                     OneSignal.registerForPushNotifications();
                     OneSignal.getUserId(function(userId) {
                         if (userId) {
-                            showToast("تم تسجيل جهازك بنجاح! جرب ابعت رسالة دلوقتي.", "success");
+                            showToast("تم تسجيل جهازك بنجاح! .", "success");
                         } else {
                             showToast("جاري تسجيل جهازك في الخلفية، برجاء سيب الموقع فاتح دقيقة وارجع ابعت.", "success");
                             OneSignal.setSubscription(true);
