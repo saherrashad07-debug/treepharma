@@ -16,19 +16,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- مكتبة قراءة ملفات الإكسيل (SheetJS) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    
-    <!-- مكتبة OneSignal للإشعارات -->
-    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
-    <script>
-      window.OneSignal = window.OneSignal || [];
-      OneSignal.push(function() {
-        OneSignal.init({
-          appId: "0aeb48f4-bc50-4de0-b3b0-3426536d0d27", 
-          notifyButton: { enable: false },
-          allowLocalhostAsSecureOrigin: true,
-        });
-      });
-    </script>
 
     <style>
         * { box-sizing: border-box; }
@@ -50,9 +37,6 @@
         .view-btn:hover { transform: translateY(-2px); }
         .catalog-btn { background-color: #00695c; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 15px; width: 100%; max-width: 500px; transition: all 0.3s; }
         .catalog-btn:hover { background-color: #004d40; transform: translateY(-2px); }
-        
-        .notify-btn { background-color: #f57c00; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; width: 100%; max-width: 500px; transition: all 0.3s; box-shadow: 0 2px 5px rgba(245, 124, 0, 0.3); }
-        .notify-btn:hover { background-color: #ef6c00; transform: translateY(-2px); }
 
         .product-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
         .list-item { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: box-shadow 0.3s; display: flex; flex-direction: column; }
@@ -306,7 +290,6 @@
                     <input type="text" id="searchInput" class="search-input" placeholder="ابحث عن صنف... (مثال: جوانتي، شامبو، كريم)" oninput="filterProducts()">
                     <br>
                     <button class="catalog-btn" onclick="printCatalog()">تحميل قائمة الأسعار</button>
-                    <button class="notify-btn" onclick="subscribeToNotifications()">🔔 تفعيل إشعارات العروض على موبايلك</button>
                 </div>
                 <div class="view-buttons">
                     <button class="view-btn active" id="btnAll" onclick="showAllProducts()">كل الأصناف</button>
@@ -377,7 +360,6 @@
                 <div class="contact-item"><span>5013813 (أرضي)</span><a href="tel:5013813">اتصال</a></div>
                 <div class="contact-item"><span style="color:#ff4d4d;">01220202473 (شكاوي)</span><a href="tel:01220202473" style="background-color:#ff4d4d;">اتصال</a></div>
                 <a href="https://wa.me/201274906271" class="whatsapp-btn-large" target="_blank">مراسلتنا على واتساب</a>
-                <button class="notify-btn" onclick="subscribeToNotifications()" style="max-width: 100%; margin-top: 20px;">🔔 تفعيل إشعارات العروض</button>
                 <div class="missing-item-banner">
                     <h3>لم تجد ما تبحث عنه؟</h3>
                     <p>يمكنك طلب أي صنف غير موجود بالقائمة وسنوفره لك في أسرع وقت.</p>
@@ -1134,50 +1116,6 @@
             if (!error) { showToast("تم مسح جميع الأصناف"); loadAdminProducts(); fetchProducts(); fetchDashboardStats(); } 
             else { showToast("حدث خطأ", "error"); }
         }
-
-        // ===== دالة الإشعارات الجذرية (بتستخدم Native API وتأكد من تسجيل OneSignal) =====
-        function subscribeToNotifications() {
-            if (!("Notification" in window)) {
-                showToast("متصفحك لا يدعم الإشعارات.", "error");
-                return;
-            }
-
-            if (Notification.permission === "denied") {
-                showToast("لقد قمت بحظر الإشعارات مسبقاً! برجاء الضغط على أيقونة القفل 🔒 أعلى المتصفح وتغيير الإشعارات إلى Allow.", "error");
-                return;
-            }
-
-            if (Notification.permission === "default") {
-                Notification.requestPermission().then(permission => {
-                    if (permission === "granted") {
-                        registerOneSignal();
-                    } else {
-                        showToast("تم رفض الإشعارات.", "error");
-                    }
-                });
-            } else if (Notification.permission === "granted") {
-                registerOneSignal();
-            }
-        }
-
-        function registerOneSignal() {
-            if (window.OneSignal) {
-                OneSignal.push(function() {
-                    OneSignal.registerForPushNotifications();
-                    OneSignal.getUserId(function(userId) {
-                        if (userId) {
-                            showToast("تم تسجيل جهازك بنجاح! .", "success");
-                        } else {
-                            showToast("جاري تسجيل جهازك في الخلفية، برجاء سيب الموقع فاتح دقيقة وارجع ابعت.", "success");
-                            OneSignal.setSubscription(true);
-                        }
-                    });
-                });
-            } else {
-                showToast("خدمة الإشعارات غير متاحة حالياً.", "error");
-            }
-        }
-        // =========================================================
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
