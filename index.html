@@ -789,7 +789,7 @@
         async function loadReports() {
             const { data, error } = await sb.from('orders').select('*');
             if (error) { showToast("خطأ في جلب التقارير", "error"); return; }
-            if (!data || data.length === 0) { showToast("لا توجد طلبات مسجلة بعد.", "error"); return; }
+            if (!data || data.length === 0) { showToast("لا توجد طلبات مسجلة قبل.", "error"); return; }
 
             let productStats = {};
             let customerStats = {};
@@ -919,7 +919,7 @@
         }
 
         function printCatalog() {
-            if (allProducts.length === 0) { showToast("لم يتم تحمل الأصناف بعد.", "error"); return; }
+            if (allProducts.length === 0) { showToast("لم يتم تحمل الأصناف قبل.", "error"); return; }
             let catalogContents = `<html dir="rtl" lang="ar"><head><title>قائمة أسعار - Tree Pharma</title><style>body{font-family:'Segoe UI',Tahoma,sans-serif;padding:20px}h1{color:#00695c;text-align:center;margin-bottom:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:right}th{background-color:#00695c;color:white}tr:nth-child(even){background-color:#f9f9f9}</style></head><body><h1>قائمة أسعار Tree Pharma</h1><table><tr><th>اسم الصنف</th><th>سعر الصيدلي</th></tr>`;
             allProducts.forEach(p => { catalogContents += `<tr><td>${p.name}</td><td>${p.price} ج.م</td></tr>`; });
             catalogContents += `</table></body></html>`;
@@ -1135,16 +1135,48 @@
             else { showToast("حدث خطأ", "error"); }
         }
 
+        // ===== دالة الإشعارات الجذريه (بتستخدم Native API) =====
         function subscribeToNotifications() {
-            if (window.OneSignal) {
-                OneSignal.push(function() {
-                    OneSignal.registerForPushNotifications(); 
-                });
-                showToast("من فضلك اضغط على Allow (سماح) لتصلك العروض 💡");
-            } else {
-                showToast("عذراً، خدمة الإشعارات غير متاحة حالياً.", "error");
+            // 1. نتأكد إن المتصفح بيدعم الإشعارات أصلاً
+            if (!("Notification" in window)) {
+                showToast("متصفحك لا يدعم الإشعارات.", "error");
+                return;
             }
+
+            // 2. نcheck حالة الإذن الحالية
+            if (Notification.permission === "granted") {
+                showToast("أنت مشترك بالفعل في الإشعارات ✔️");
+                // نتأكد إن OneSignal مسجل
+                if (window.OneSignal) {
+                    OneSignal.push(function() { OneSignal.registerForPushNotifications(); });
+                }
+                return;
+            }
+
+            // 3. لو العميل قافلها قبل كده (Denied)
+            if (Notification.permission === "denied") {
+                showToast("لقد قمت بحظر الإشعارات مسبقاً! برجاء الضغط على أيقونة القفل 🔒 أعلى المتصفح وتغيير الإشعارات إلى Allow (سماح).", "error");
+                return;
+            }
+
+            // 4. لو الحالة افتراضية (Default)، نطلب الإذن بشكل مباشر وقوي
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    showToast("تم السماح! برجاء الانتظار لتسجيل جهازك...", "success");
+                    // سجل العميل في OneSignal
+                    if (window.OneSignal) {
+                        OneSignal.push(function() {
+                            OneSignal.registerForPushNotifications();
+                        });
+                    }
+                } else if (permission === "denied") {
+                    showToast("تم رفض الإشعارات. لن تصلك العروض.", "error");
+                } else {
+                    showToast("لم يتم اختيار شيء. برجاء المحاولة مرة أخرى.", "error");
+                }
+            });
         }
+        // =========================================================
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
