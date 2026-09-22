@@ -16,19 +16,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- مكتبة قراءة ملفات الإكسيل (SheetJS) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    
-    <!-- مكتبة OneSignal للإشعارات (الكود موجود بس الزرار متشال) -->
-    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
-    <script>
-      window.OneSignal = window.OneSignal || [];
-      OneSignal.push(function() {
-        OneSignal.init({
-          appId: "0aeb48f4-bc50-4de0-b3b0-3426536d0d27", 
-          notifyButton: { enable: false },
-          allowLocalhostAsSecureOrigin: true,
-        });
-      });
-    </script>
 
     <style>
         * { box-sizing: border-box; }
@@ -160,14 +147,15 @@
         .kpi-card.blue { border-bottom-color: #1976d2; } .kpi-card.blue p { color: #1976d2; }
         .kpi-card.orange { border-bottom-color: #f57c00; } .kpi-card.orange p { color: #f57c00; }
 
-        .maintenance-box { display: flex; justify-content: space-between; align-items: center; background: #fff3e0; border: 1px solid #ffb74d; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; }
-        .maintenance-box p { margin: 0; font-weight: bold; color: #e65100; font-size: 16px; }
+        .toggle-box { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid; }
+        .toggle-box p { margin: 0; font-weight: bold; font-size: 16px; }
         .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
         .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #f57c00; }
-        input:checked + .slider:before { transform: translateX(26px); }
+        input:checked + .slider { background-color: #00695c; }
+        input:checked + .slider.orange { background-color: #f57c00; }
+        input:checked + .slider.blue { background-color: #1976d2; }
 
         .maintenance-message { text-align: center; padding: 60px 20px; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-top: 30px; }
         .maintenance-message h2 { color: #00695c; font-size: 28px; margin-bottom: 15px; }
@@ -221,11 +209,19 @@
             </div>
             <div id="adminDashboard" style="display:none;">
                 
-                <div class="maintenance-box">
-                    <p>🛠️ وضع التحديث (إغلاق الموقع مؤقتاً للعملاء)</p>
+                <div class="toggle-box" style="background: #fff3e0; border-color: #ffb74d;">
+                    <p>🛠️ وضع التحديث (إغلاق الموقع مؤقتاً)</p>
                     <label class="switch">
                         <input type="checkbox" id="maintenanceToggle" onchange="toggleMaintenanceMode(this.checked)">
-                        <span class="slider"></span>
+                        <span class="slider orange"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-box" style="background: #e3f2fd; border-color: #64b5f6;">
+                    <p>🖼️ إخفاء صور الأصناف (حتى تنتهي من تعديلها)</p>
+                    <label class="switch">
+                        <input type="checkbox" id="hideImagesToggle" onchange="toggleHideImages(this.checked)">
+                        <span class="slider blue"></span>
                     </label>
                 </div>
 
@@ -282,6 +278,14 @@
                     </select>
                     <input type="file" id="syncExcelFile" class="admin-input" accept=".xlsx, .xls, .csv">
                     <button class="admin-btn" style="background-color:#004d40;" onclick="syncExcelPrices()">🔄 مزامنة الملف وتحديث الموقع</button>
+                </div>
+
+                <div class="admin-box" style="border: 2px solid #1976d2;">
+                    <h3 style="margin-top:0; color:#1976d2;">🖼️ رفع صور بالجملة (تلقائي)</h3>
+                    <p style="font-size:14px; color:#666; margin-bottom:15px;">اختر عدة صور من جهازك دفعة واحدة. سيقوم الموقع بربط كل صورة بالصنف المناسب تلقائياً إذا كان <strong>اسم ملف الصورة مطابقاً لاسم الصنف</strong>.</p>
+                    <input type="file" id="bulkImageInput" class="admin-input" accept="image/*" multiple>
+                    <button class="admin-btn" style="background-color:#1976d2;" onclick="bulkUploadImages()">رفع الصور وربطها بالأصناف</button>
+                    <div id="bulkUploadStatus" style="margin-top:15px; font-weight:bold; color:#333; text-align:center;"></div>
                 </div>
 
                 <div class="admin-box">
@@ -414,6 +418,7 @@
         let cart = [];
         let favorites = JSON.parse(localStorage.getItem('treePharma_favorites')) || [];
         let myOrders = JSON.parse(localStorage.getItem('treePharma_orders')) || [];
+        let isHidingImages = false; // متغير جديد لحالة إخفاء الصور
 
         function sortProductsByName(arr) {
             return arr.sort((a, b) => {
@@ -519,7 +524,7 @@
             filtered.forEach(p => {
                 let isFav = favorites.some(f => f.name === p.name);
                 let heart = isFav ? '❤️' : '🤍';
-                let imageHTML = (isMedicalView && p.image_url) ? `<div class="item-image-container"><img src="${p.image_url}" alt="${p.name}" class="item-image" loading="lazy" onclick="openLightbox('${p.image_url}')"></div>` : '';
+                let imageHTML = (!isHidingImages && isMedicalView && p.image_url) ? `<div class="item-image-container"><img src="${p.image_url}" alt="${p.name}" class="item-image" loading="lazy" onclick="openLightbox('${p.image_url}')"></div>` : '';
                 htmlContent += `
                     <div class="list-item">
                         ${imageHTML}
@@ -604,6 +609,8 @@
                     document.getElementById('homeContent').style.display = 'block';
                     fetchProducts(); 
                 }
+                await checkHideImages(); 
+                filterProducts();
             }
             renderFavorites(); renderOrders();
             let savedData = localStorage.getItem('treePharma_customer');
@@ -632,10 +639,35 @@
             }
         }
 
+        async function checkHideImages() {
+            try {
+                const { data, error } = await sb.from('settings').select('hide_images').eq('id', 1).single();
+                if (data) {
+                    isHidingImages = data.hide_images || false;
+                }
+            } catch (e) {}
+        }
+
+        async function toggleHideImages(isOn) {
+            const { error } = await sb.from('settings').update({ hide_images: isOn }).eq('id', 1);
+            if (!error) {
+                isHidingImages = isOn;
+                showToast(isOn ? "🖼️ تم إخفاء صور الأصناف من الموقع." : "✅ تم إظهار صور الأصناف.");
+                filterProducts();
+            } else {
+                showToast("حدث خطأ", "error");
+            }
+        }
+
         async function fetchAdminSettings() {
             try {
-                const { data, error } = await sb.from('settings').select('is_updating').eq('id', 1).single();
-                if (data) document.getElementById('maintenanceToggle').checked = data.is_updating;
+                const { data, error } = await sb.from('settings').select('*').eq('id', 1).single();
+                if (data) {
+                    document.getElementById('maintenanceToggle').checked = data.is_updating;
+                    document.getElementById('hideImagesToggle').checked = data.hide_images;
+                    isHidingImages = data.hide_images;
+                    filterProducts();
+                }
             } catch (e) {}
         }
 
@@ -723,7 +755,7 @@
             let address = document.getElementById('clientAddress').value;
             let phone = document.getElementById('clientPhone').value;
             if (cart.length === 0) { showToast("برجاء إضافة أصناف للسلة أولاً.", "error"); return; }
-            if (!name || !address || !phone) { showToast("برgاء إدخال اسم العميل والعنوان ورقم الموبايل.", "error"); return; }
+            if (!name || !address || !phone) { showToast("برجاء إدخال اسم العميل والعنوان ورقم الموبايل.", "error"); return; }
             let paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
             let customerData = { name: name, address: address, phone: phone };
             localStorage.setItem('treePharma_customer', JSON.stringify(customerData));
@@ -1038,7 +1070,7 @@
                 }
 
                 for (const dbProduct of dbProducts) {
-                    if (dbProduct.category !== category) continue; // تعديل السحر: تخطي الأقسام الأخرى
+                    if (dbProduct.category !== category) continue; 
                     const normDbName = normalizeArabic(dbProduct.name);
                     if (!excelNamesSet.has(normDbName) && dbProduct.is_active) {
                         const { error: hideError } = await sb.from('products').update({ is_active: false }).eq('id', dbProduct.id);
@@ -1053,6 +1085,54 @@
                 fetchDashboardStats(); 
             };
             reader.readAsArrayBuffer(file);
+        }
+
+        async function bulkUploadImages() {
+            const input = document.getElementById('bulkImageInput');
+            const statusDiv = document.getElementById('bulkUploadStatus');
+            if (input.files.length === 0) {
+                showToast("برجاء اختيار صور أولاً", "error");
+                return;
+            }
+
+            const { data: products, error } = await sb.from('products').select('id, name');
+            if (error || !products) {
+                showToast("خطأ في جلب الأصناف للمطابقة", "error");
+                return;
+            }
+
+            let uploadedCount = 0;
+            let unmatchedCount = 0;
+            const totalFiles = input.files.length;
+            statusDiv.innerHTML = `جاري المعالجة: 0 / ${totalFiles}...`;
+
+            for (let i = 0; i < totalFiles; i++) {
+                const file = input.files[i];
+                const fileName = file.name.replace(/\.[^/.]+$/, ""); 
+                const normalizedFileName = normalizeArabic(fileName);
+
+                const product = products.find(p => normalizeArabic(p.name) === normalizedFileName);
+                
+                if (product) {
+                    const filePath = `${Date.now()}_${file.name}`;
+                    const { data: uploadData, error: uploadError } = await sb.storage.from('products').upload(filePath, file);
+                    
+                    if (!uploadError) {
+                        const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${filePath}`;
+                        const { error: updateError } = await sb.from('products').update({ image_url: imageUrl }).eq('id', product.id);
+                        if (!updateError) uploadedCount++;
+                    }
+                } else {
+                    unmatchedCount++;
+                }
+                
+                statusDiv.innerHTML = `جاري المعالجة: ${i + 1} / ${totalFiles} <br> <small style="color: green;">تم رفع: ${uploadedCount}</small> <br> <small style="color: red;">لم يتم العثور على صنف مطابق: ${unmatchedCount}</small>`;
+            }
+
+            showToast(`تم! تم رفع ${uploadedCount} صورة بنجاح.`, "success");
+            loadAdminProducts();
+            fetchProducts();
+            input.value = ''; 
         }
 
         async function loadAdminProducts() {
