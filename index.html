@@ -294,8 +294,7 @@
                     <input type="text" id="pName" class="admin-input" placeholder="اسم الصنف">
                     <input type="number" id="pPrice" class="admin-input" placeholder="السعر">
                     <select id="pCategory" class="admin-input">
-                        <option value="medical">طبية</option>
-                        <option value="cosmetics">تجميل</option>
+                        <option value="medical">طبية / عام</option>
                         <option value="offers">عروض</option>
                     </select>
                     <input type="file" id="pImage" class="admin-input" accept="image/*">
@@ -306,8 +305,7 @@
                     <h3 style="color:#004d40;"><span class="icon" style="background:#004d40">⚙️</span> تحديث الأسعار والمخزون (رفع إكسيل)</h3>
                     <p style="font-size:14px; color:#666; margin-bottom:15px;">ارفع ملف إكسيل فيه كل الأصناف المتاحة حالياً. الكود هيرفع الأسعار، ويضيف الجديد، ويخفي أي صنف مش موجود في الملف (بدون مسح صورته).</p>
                     <select id="syncExcelCategory" class="admin-input">
-                        <option value="medical">طبية</option>
-                        <option value="cosmetics">تجميل</option>
+                        <option value="medical">طبية / عام</option>
                         <option value="offers">عروض</option>
                     </select>
                     <input type="file" id="syncExcelFile" class="admin-input" accept=".xlsx, .xls, .csv">
@@ -344,8 +342,6 @@
                 </div>
                 <div class="view-buttons">
                     <button class="view-btn active" id="btnAll" onclick="showAllProducts()">كل الأصناف</button>
-                    <button class="view-btn" id="btnMedical" onclick="showMedicalProducts()">طبية</button>
-                    <button class="view-btn" id="btnCosmetics" onclick="showCosmeticsProducts()">تجميل</button>
                     <button class="view-btn" id="btnOffers" onclick="showWeeklyOffers()">العرض الأسبوعي</button>
                 </div>
                 <div class="product-list" id="productList"><p style="text-align:center; color:#00695c; font-size:18px;">جاري تحميل الأصناف...</p></div>
@@ -445,14 +441,12 @@
         const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let allProducts = []; 
-        let medicalProducts = [];
-        let cosmeticsProducts = [];
         let offerProducts = [];
         let currentProducts = []; 
         let cart = [];
         let favorites = JSON.parse(localStorage.getItem('treePharma_favorites')) || [];
         let myOrders = JSON.parse(localStorage.getItem('treePharma_orders')) || [];
-        let isHidingImages = false; // متغير جديد لحالة إخفاء الصور
+        let isHidingImages = false; 
 
         function sortProductsByName(arr) {
             return arr.sort((a, b) => {
@@ -491,42 +485,31 @@
                 const { data, error } = await sb.from('products').select('*').eq('is_active', true);
                 if (error) throw error;
                 let rawData = data || [];
-                medicalProducts = rawData.filter(p => p.category === 'medical');
-                cosmeticsProducts = rawData.filter(p => p.category === 'cosmetics');
+                
+                // عرض كل الأصناف عدا العروض في قسم "الكل" (بما فيهم التجميل القديم لو موجود)
+                allProducts = rawData.filter(p => p.category !== 'offers');
                 offerProducts = rawData.filter(p => p.category === 'offers');
-                medicalProducts = sortProductsByName(medicalProducts);
-                cosmeticsProducts = sortProductsByName(cosmeticsProducts);
-                offerProducts = sortProductsByName(offerProducts);
-                allProducts = [...offerProducts, ...medicalProducts, ...cosmeticsProducts];
-                const seenNames = new Set();
-                allProducts = allProducts.filter(p => {
-                    const nameLower = (p.name || "").toLowerCase().trim();
-                    if (seenNames.has(nameLower)) return false;
-                    seenNames.add(nameLower); return true;
-                });
+                
                 allProducts = sortProductsByName(allProducts);
+                offerProducts = sortProductsByName(offerProducts);
+                
                 localStorage.setItem('treePharma_data', JSON.stringify(allProducts));
                 if (document.getElementById("btnAll").classList.contains("active")) { currentProducts = allProducts; filterProducts(); }
             } catch (error) {
                 let cached = localStorage.getItem('treePharma_data');
                 if (cached) {
                     allProducts = JSON.parse(cached);
-                    medicalProducts = allProducts.filter(p => p.category === 'medical');
-                    cosmeticsProducts = allProducts.filter(p => p.category === 'cosmetics');
-                    offerProducts = allProducts.filter(p => p.category === 'offers');
                     if (document.getElementById("btnAll").classList.contains("active")) { currentProducts = allProducts; filterProducts(); }
                 } else { listDiv.innerHTML = '<p style="text-align:center; color:red; font-size:18px;">تعذر تحميل الأصناف. برجاء التحقق من الإنترنت.</p>'; }
             }
         }
 
         function setActiveButton(btnId) {
-            ["btnAll","btnMedical","btnCosmetics","btnOffers"].forEach(id => document.getElementById(id).classList.remove("active"));
+            ["btnAll","btnOffers"].forEach(id => document.getElementById(id).classList.remove("active"));
             document.getElementById(btnId).classList.add("active");
         }
 
         function showAllProducts() { currentProducts = allProducts; setActiveButton("btnAll"); filterProducts(); }
-        function showMedicalProducts() { currentProducts = medicalProducts; setActiveButton("btnMedical"); filterProducts(); }
-        function showCosmeticsProducts() { currentProducts = cosmeticsProducts; setActiveButton("btnCosmetics"); filterProducts(); }
         function showWeeklyOffers() { currentProducts = offerProducts; setActiveButton("btnOffers"); filterProducts(); }
 
         function filterProducts() {
@@ -553,12 +536,13 @@
                 return; 
             }
 
-            let isMedicalView = document.getElementById("btnMedical").classList.contains("active");
+            // الصور هتظهر في "كل الأصناف" وتختفي في "العروض الأسبوعية" (زي ما اتفقنا في البرومبت الأول)
+            let isOffersView = document.getElementById("btnOffers").classList.contains("active");
             let htmlContent = '';
             filtered.forEach(p => {
                 let isFav = favorites.some(f => f.name === p.name);
                 let heart = isFav ? '❤️' : '🤍';
-                let imageHTML = (!isHidingImages && isMedicalView && p.image_url) ? `<div class="item-image-container"><img src="${p.image_url}" alt="${p.name}" class="item-image" loading="lazy" onclick="openLightbox('${p.image_url}')"></div>` : '';
+                let imageHTML = (!isHidingImages && !isOffersView && p.image_url) ? `<div class="item-image-container"><img src="${p.image_url}" alt="${p.name}" class="item-image" loading="lazy" onclick="openLightbox('${p.image_url}')"></div>` : '';
                 htmlContent += `
                     <div class="list-item">
                         ${imageHTML}
@@ -1177,8 +1161,8 @@
                 let listDiv = document.getElementById('adminProductList');
                 if(data.length === 0) { listDiv.innerHTML = '<p>لا توجد أصناف مضافة.</p>'; return; }
                 
-                let medicalHTML = '', cosmeticsHTML = '', offersHTML = '';
-                let medCount = 0, cosCount = 0, offCount = 0;
+                let generalHTML = '', offersHTML = '';
+                let genCount = 0, offCount = 0;
                 
                 data.forEach(p => {
                     let statusStyle = p.is_active ? '' : 'opacity: 0.5; border: 1px dashed #ff4d4d;';
@@ -1201,13 +1185,11 @@
                                 <button class="admin-icon-btn delete" onclick="deleteProduct(${p.id})" title="حذف">🗑️</button>
                             </div>
                         </div>`;
-                    if (p.category === 'medical') { medicalHTML += itemHTML; medCount++; }
-                    else if (p.category === 'cosmetics') { cosmeticsHTML += itemHTML; cosCount++; }
-                    else if (p.category === 'offers') { offersHTML += itemHTML; offCount++; }
+                    if (p.category === 'offers') { offersHTML += itemHTML; offCount++; }
+                    else { generalHTML += itemHTML; genCount++; }
                 });
                 let htmlContent = '';
-                if (medicalHTML) { htmlContent += `<div class="admin-category-header">أصناف طبية <span>${medCount} صنف</span></div>`; htmlContent += medicalHTML; }
-                if (cosmeticsHTML) { htmlContent += `<div class="admin-category-header">أصناف تجميل <span>${cosCount} صنف</span></div>`; htmlContent += cosmeticsHTML; }
+                if (generalHTML) { htmlContent += `<div class="admin-category-header">الأصناف <span>${genCount} صنف</span></div>`; htmlContent += generalHTML; }
                 if (offersHTML) { htmlContent += `<div class="admin-category-header">العروض الأسبوعية <span>${offCount} صنف</span></div>`; htmlContent += offersHTML; }
                 listDiv.innerHTML = htmlContent;
             }
