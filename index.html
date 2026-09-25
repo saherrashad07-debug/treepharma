@@ -303,7 +303,7 @@
 
                 <div class="admin-box" style="border: 2px solid #004d40; background: #fff;">
                     <h3 style="color:#004d40;"><span class="icon" style="background:#004d40">⚙️</span> تحديث الأسعار والمخزون (رفع إكسيل)</h3>
-                    <p style="font-size:14px; color:#666; margin-bottom:15px;">ارفع ملف إكسيل فيه كل الأصناف المتاحة حالياً. الكود هيرفع الأسعار، ويضيف الجديد، ويخفي أي صنف مش موجود في الملف (بدون مسح صورته).</p>
+                    <p style="font-size:14px; color:#666; margin-bottom:15px;">ارفع ملف إكسيل فيه كل الأصناف المتاحة حالياً. الكود هيرفع الأسعار، ويضيف الجديد، ويخفي أي صنف مش موجود في الملف (بدون مسح صورته). الأصناف المش موجوده في الإكسيل هتتخفي كلها ما عدا العروض الأسبوعية.</p>
                     <select id="syncExcelCategory" class="admin-input">
                         <option value="medical">طبية / عام</option>
                         <option value="offers">عروض</option>
@@ -486,7 +486,6 @@
                 if (error) throw error;
                 let rawData = data || [];
                 
-                // عرض كل الأصناف عدا العروض في قسم "الكل" (بما فيهم التجميل القديم لو موجود)
                 allProducts = rawData.filter(p => p.category !== 'offers');
                 offerProducts = rawData.filter(p => p.category === 'offers');
                 
@@ -536,7 +535,6 @@
                 return; 
             }
 
-            // الصور هتظهر في "كل الأصناف" وتختفي في "العروض الأسبوعية" (زي ما اتفقنا في البرومبت الأول)
             let isOffersView = document.getElementById("btnOffers").classList.contains("active");
             let htmlContent = '';
             filtered.forEach(p => {
@@ -773,7 +771,7 @@
             let address = document.getElementById('clientAddress').value;
             let phone = document.getElementById('clientPhone').value;
             if (cart.length === 0) { showToast("برجاء إضافة أصناف للسلة أولاً.", "error"); return; }
-            if (!name || !address || !phone) { showToast("برجاء إدخال اسم العميل والعنوان ورقم الموبايل.", "error"); return; }
+            if (!name || !address || !phone) { showToast("برgاء إدخال اسم العميل والعنوان ورقم الموبايل.", "error"); return; }
             let paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
             let customerData = { name: name, address: address, phone: phone };
             localStorage.setItem('treePharma_customer', JSON.stringify(customerData));
@@ -1072,7 +1070,7 @@
                     const dbMatch = dbProducts.find(p => normalizeArabic(p.name) === excelItem.normName);
                     
                     if (dbMatch) {
-                        const { error: updateError } = await sb.from('products').update({ price: excelItem.price, is_active: true }).eq('id', dbMatch.id);
+                        const { error: updateError } = await sb.from('products').update({ price: excelItem.price, is_active: true, category: category }).eq('id', dbMatch.id);
                         if (!updateError) {
                             updatedCount++;
                             if (!dbMatch.is_active) reactivatedCount++;
@@ -1089,12 +1087,15 @@
                     }
                 }
 
+                // ====== التعديل الجوهري هنا ======
+                // نخفي أي صنف مش موجود في الإكسيل، بغض النظر عن قسمه، ما عدا العروض الأسبوعية
                 for (const dbProduct of dbProducts) {
-                    if (dbProduct.category !== category) continue; 
+                    if (dbProduct.category === 'offers') continue; // الحفاظ على العروض
                     const normDbName = normalizeArabic(dbProduct.name);
                     if (!excelNamesSet.has(normDbName) && dbProduct.is_active) {
                         const { error: hideError } = await sb.from('products').update({ is_active: false }).eq('id', dbProduct.id);
                         if (!hideError) deactivatedCount++;
+                        else console.error("Failed to hide:", dbProduct.name, hideError);
                     }
                 }
 
@@ -1204,7 +1205,7 @@
             const newName = document.getElementById(`edit_name_${id}`).value;
             const newPrice = document.getElementById(`edit_price_${id}`).value;
             const fileInput = document.getElementById(`img_${id}`);
-            if (!newName || !newPrice) { showToast("برجاء إدخال الاسم والسعر", "error"); return; }
+            if (!newName || !newPrice) { showToast("برgاء إدخال الاسم والسعر", "error"); return; }
             let updateData = { name: newName, price: parseFloat(newPrice) };
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
