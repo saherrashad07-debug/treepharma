@@ -321,7 +321,8 @@
                 </div>
 
                 <div class="admin-box" style="background: #fff;">
-                    <h3><span class="icon">📦</span> الأصناف الحالية (يمكنك التعديل على الاسم أو السعر أو الصورة مباشرة)</h3>
+                    <h3><span class="icon">📦</span> الأصناف الحالية (مترتبة أبجدياً)</h3>
+                    <input type="text" id="adminSearchInput" class="admin-input" placeholder="ابحث عن صنف في لوحة التحكم..." oninput="filterAdminProducts()" style="margin-bottom: 20px;">
                     <div id="adminProductList"></div>
                 </div>
                 
@@ -447,6 +448,7 @@
         let favorites = JSON.parse(localStorage.getItem('treePharma_favorites')) || [];
         let myOrders = JSON.parse(localStorage.getItem('treePharma_orders')) || [];
         let isHidingImages = false; 
+        let adminProductsCache = []; // متغير لتخزين كل الأصناف للبحث في الأدمن
 
         function sortProductsByName(arr) {
             return arr.sort((a, b) => {
@@ -1087,10 +1089,8 @@
                     }
                 }
 
-                // ====== التعديل الجوهري هنا ======
-                // نخفي أي صنف مش موجود في الإكسيل، بغض النظر عن قسمه، ما عدا العروض الأسبوعية
                 for (const dbProduct of dbProducts) {
-                    if (dbProduct.category === 'offers') continue; // الحفاظ على العروض
+                    if (dbProduct.category === 'offers') continue; 
                     const normDbName = normalizeArabic(dbProduct.name);
                     if (!excelNamesSet.has(normDbName) && dbProduct.is_active) {
                         const { error: hideError } = await sb.from('products').update({ is_active: false }).eq('id', dbProduct.id);
@@ -1156,42 +1156,65 @@
             input.value = ''; 
         }
 
+        // ====== التعديل الجوهري هنا (بحث وترتيب أبجدي للأدمن) ======
         async function loadAdminProducts() {
             const { data, error } = await sb.from('products').select('*').order('is_active', { ascending: false });
             if (data) {
-                let listDiv = document.getElementById('adminProductList');
-                if(data.length === 0) { listDiv.innerHTML = '<p>لا توجد أصناف مضافة.</p>'; return; }
+                adminProductsCache = data; // حفظ البيانات للبحث فيها
+                filterAdminProducts(); // استدعاء دالة الفلترة لترتيبها وعرضها
+            }
+        }
+
+        function filterAdminProducts() {
+            const listDiv = document.getElementById('adminProductList');
+            const searchText = document.getElementById('adminSearchInput').value.toLowerCase().trim();
+            
+            // فلترة الأصناف بناءً على البحث
+            let productsToRender = adminProductsCache.filter(p => p.name && p.name.toLowerCase().includes(searchText));
+            
+            // ترتيب الأصناف أبجدياً
+            productsToRender = sortProductsByName(productsToRender);
+            
+            if(productsToRender.length === 0) { 
+                listDiv.innerHTML = '<p style="text-align:center; color:#888;">لا توجد أصناف مطابقة.</p>'; 
+                return; 
+            }
+            
+            let generalHTML = '', offersHTML = '';
+            let genCount = 0, offCount = 0;
+            
+            productsToRender.forEach(p => {
+                let statusStyle = p.is_active ? '' : 'opacity: 0.5; border: 1px dashed #ff4d4d;';
+                let statusBadge = p.is_active ? '' : '<span style="background:#ff4d4d; color:white; padding:2px 8px; border-radius:12px; font-size:10px; margin-right: 10px;">مخفي</span>';
                 
-                let generalHTML = '', offersHTML = '';
-                let genCount = 0, offCount = 0;
-                
-                data.forEach(p => {
-                    let statusStyle = p.is_active ? '' : 'opacity: 0.5; border: 1px dashed #ff4d4d;';
-                    let statusBadge = p.is_active ? '' : '<span style="background:#ff4d4d; color:white; padding:2px 8px; border-radius:12px; font-size:10px; margin-right: 10px;">مخفي</span>';
-                    
-                    let itemHTML = `
-                        <div class="admin-product-item" style="${statusStyle}">
-                            <div style="display:flex; gap:10px; width:100%; align-items:center;">
-                                <input type="text" id="edit_name_${p.id}" value="${p.name}" class="admin-input" style="flex:1; margin-bottom:0; font-weight:bold; background:#fff;" placeholder="الاسم">
-                                <input type="number" id="edit_price_${p.id}" value="${p.price}" class="admin-input" style="width:100px; margin-bottom:0; text-align:center; background:#fff;" placeholder="السعر">
-                                ${statusBadge}
-                            </div>
-                            <div style="display:flex; gap:10px; width:100%; align-items:center; justify-content:flex-end;">
-                                <input type="file" id="img_${p.id}" class="admin-input" accept="image/*" style="margin-bottom:0; padding:5px; flex:1; border:none; background:transparent;">
-                                <button class="admin-icon-btn save" onclick="updateProduct(${p.id})" title="حفظ">💾</button>
-                                ${p.is_active ? 
-                                    `<button class="admin-icon-btn toggle" onclick="toggleProductVisibility(${p.id}, false)" title="إخفاء">👁️</button>` : 
-                                    `<button class="admin-icon-btn toggle" onclick="toggleProductVisibility(${p.id}, true)" title="إظهار">🚫</button>`
-                                }
-                                <button class="admin-icon-btn delete" onclick="deleteProduct(${p.id})" title="حذف">🗑️</button>
-                            </div>
-                        </div>`;
-                    if (p.category === 'offers') { offersHTML += itemHTML; offCount++; }
-                    else { generalHTML += itemHTML; genCount++; }
-                });
-                let htmlContent = '';
-                if (generalHTML) { htmlContent += `<div class="admin-category-header">الأصناف <span>${genCount} صنف</span></div>`; htmlContent += generalHTML; }
-                if (offersHTML) { htmlContent += `<div class="admin-category-header">العروض الأسبوعية <span>${offCount} صنف</span></div>`; htmlContent += offersHTML; }
+                let itemHTML = `
+                    <div class="admin-product-item" style="${statusStyle}">
+                        <div style="display:flex; gap:10px; width:100%; align-items:center;">
+                            <input type="text" id="edit_name_${p.id}" value="${p.name}" class="admin-input" style="flex:1; margin-bottom:0; font-weight:bold; background:#fff;" placeholder="الاسم">
+                            <input type="number" id="edit_price_${p.id}" value="${p.price}" class="admin-input" style="width:100px; margin-bottom:0; text-align:center; background:#fff;" placeholder="السعر">
+                            ${statusBadge}
+                        </div>
+                        <div style="display:flex; gap:10px; width:100%; align-items:center; justify-content:flex-end;">
+                            <input type="file" id="img_${p.id}" class="admin-input" accept="image/*" style="margin-bottom:0; padding:5px; flex:1; border:none; background:transparent;">
+                            <button class="admin-icon-btn save" onclick="updateProduct(${p.id})" title="حفظ">💾</button>
+                            ${p.is_active ? 
+                                `<button class="admin-icon-btn toggle" onclick="toggleProductVisibility(${p.id}, false)" title="إخفاء">👁️</button>` : 
+                                `<button class="admin-icon-btn toggle" onclick="toggleProductVisibility(${p.id}, true)" title="إظهار">🚫</button>`
+                            }
+                            <button class="admin-icon-btn delete" onclick="deleteProduct(${p.id})" title="حذف">🗑️</button>
+                        </div>
+                    </div>`;
+                if (p.category === 'offers') { offersHTML += itemHTML; offCount++; }
+                else { generalHTML += itemHTML; genCount++; }
+            });
+            
+            let htmlContent = '';
+            if (generalHTML) { htmlContent += `<div class="admin-category-header">الأصناف <span>${genCount} صنف</span></div>`; htmlContent += generalHTML; }
+            if (offersHTML) { htmlContent += `<div class="admin-category-header">العروض الأسبوعية <span>${offCount} صنف</span></div>`; htmlContent += offersHTML; }
+            
+            if (!generalHTML && !offersHTML) {
+                listDiv.innerHTML = '<p style="text-align:center; color:#888;">لا توجد أصناف مضافة.</p>';
+            } else {
                 listDiv.innerHTML = htmlContent;
             }
         }
