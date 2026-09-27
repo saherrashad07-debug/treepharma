@@ -321,7 +321,8 @@
                 </div>
 
                 <div class="admin-box" style="background: #fff;">
-                    <h3><span class="icon">📦</span> الأصناف الحالية (مترتبة أبجدياً)</h3>
+                    <!-- تم تعديل العنوان هنا حسب طلبك -->
+                    <h3><span class="icon">📦</span> الأصناف الحالية</h3>
                     <input type="text" id="adminSearchInput" class="admin-input" placeholder="ابحث عن صنف في لوحة التحكم..." oninput="filterAdminProducts()" style="margin-bottom: 20px;">
                     <div id="adminProductList"></div>
                 </div>
@@ -448,7 +449,7 @@
         let favorites = JSON.parse(localStorage.getItem('treePharma_favorites')) || [];
         let myOrders = JSON.parse(localStorage.getItem('treePharma_orders')) || [];
         let isHidingImages = false; 
-        let adminProductsCache = []; // متغير لتخزين كل الأصناف للبحث في الأدمن
+        let adminProductsCache = []; 
 
         function sortProductsByName(arr) {
             return arr.sort((a, b) => {
@@ -1156,12 +1157,11 @@
             input.value = ''; 
         }
 
-        // ====== التعديل الجوهري هنا (بحث وترتيب أبجدي للأدمن) ======
         async function loadAdminProducts() {
             const { data, error } = await sb.from('products').select('*').order('is_active', { ascending: false });
             if (data) {
-                adminProductsCache = data; // حفظ البيانات للبحث فيها
-                filterAdminProducts(); // استدعاء دالة الفلترة لترتيبها وعرضها
+                adminProductsCache = data; 
+                filterAdminProducts(); 
             }
         }
 
@@ -1169,10 +1169,7 @@
             const listDiv = document.getElementById('adminProductList');
             const searchText = document.getElementById('adminSearchInput').value.toLowerCase().trim();
             
-            // فلترة الأصناف بناءً على البحث
             let productsToRender = adminProductsCache.filter(p => p.name && p.name.toLowerCase().includes(searchText));
-            
-            // ترتيب الأصناف أبجدياً
             productsToRender = sortProductsByName(productsToRender);
             
             if(productsToRender.length === 0) { 
