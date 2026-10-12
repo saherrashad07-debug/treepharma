@@ -1007,10 +1007,16 @@
             let imageUrl = '';
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
-                const fileName = `${Date.now()}_${file.name}`;
-                const { data, error } = await sb.storage.from('products').upload(fileName, file);
+                let fileExt = file.name.split('.').pop().toLowerCase();
+                if (!['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(fileExt)) {
+                    fileExt = 'jpg';
+                }
+                const safeFilePath = `${Date.now()}.${fileExt}`;
+                const { data, error } = await sb.storage.from('products').upload(safeFilePath, file, {
+                    contentType: file.type || 'image/jpeg'
+                });
                 if (error) { showToast("فشل رفع الصورة", "error"); return; }
-                imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${fileName}`;
+                imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${safeFilePath}`;
             }
             const { error } = await sb.from('products').insert([{ name, price, category, image_url: imageUrl, is_active: true }]);
             if (!error) {
@@ -1108,7 +1114,6 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // ====== التعديل الجوهري هنا (حل مشكلة الاسم العربي في الرفع بالجملة) ======
         async function bulkUploadImages() {
             const input = document.getElementById('bulkImageInput');
             const statusDiv = document.getElementById('bulkUploadStatus');
@@ -1125,36 +1130,46 @@
 
             let uploadedCount = 0;
             let unmatchedCount = 0;
+            let failedCount = 0;
             const totalFiles = input.files.length;
             statusDiv.innerHTML = `جاري المعالجة: 0 / ${totalFiles}...`;
 
             for (let i = 0; i < totalFiles; i++) {
                 const file = input.files[i];
-                // نأخذ الاسم العربي عشان نطابق به الصنف
                 const originalFileName = file.name.replace(/\.[^/.]+$/, ""); 
                 const normalizedFileName = normalizeArabic(originalFileName);
 
                 const product = products.find(p => normalizeArabic(p.name) === normalizedFileName);
                 
                 if (product) {
-                    // نعمل اسم جديد آمن للرفع على Supabase (إنجليزي وأرقام)
-                    const fileExt = file.name.split('.').pop();
+                    // نحدد الامتداد بشكل آمن، وإذا لم يجده نجعله jpg
+                    let fileExt = file.name.split('.').pop().toLowerCase();
+                    if (!['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(fileExt)) {
+                        fileExt = 'jpg';
+                    }
                     const safeFilePath = `${Date.now()}_${i}.${fileExt}`;
                     
-                    const { data: uploadData, error: uploadError } = await sb.storage.from('products').upload(safeFilePath, file);
+                    // نحدد نوع الملف صراحة لتجنب رفض السيرفر
+                    const { data: uploadData, error: uploadError } = await sb.storage.from('products').upload(safeFilePath, file, {
+                        cacheControl: '3600',
+                        upsert: false,
+                        contentType: file.type || 'image/jpeg'
+                    });
                     
                     if (!uploadError) {
                         const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${safeFilePath}`;
                         const { error: updateError } = await sb.from('products').update({ image_url: imageUrl }).eq('id', product.id);
                         if (!updateError) uploadedCount++;
+                        else failedCount++;
                     } else {
                         console.error("Upload error for:", originalFileName, uploadError);
+                        failedCount++;
                     }
                 } else {
                     unmatchedCount++;
                 }
                 
-                statusDiv.innerHTML = `جاري المعالجة: ${i + 1} / ${totalFiles} <br> <small style="color: green;">تم رفع: ${uploadedCount}</small> <br> <small style="color: red;">لم يتم العثور على صنف مطابق: ${unmatchedCount}</small>`;
+                statusDiv.innerHTML = `جاري المعالجة: ${i + 1} / ${totalFiles} <br> <small style="color: green;">تم رفع: ${uploadedCount}</small> <br> <small style="color: red;">لم يتم العثور على صنف مطابق: ${unmatchedCount}</small><br> <small style="color: #d32f2f;">فشل الرفع: ${failedCount}</small>`;
             }
 
             showToast(`تم! تم رفع ${uploadedCount} صورة بنجاح.`, "success");
@@ -1235,10 +1250,16 @@
             let updateData = { name: newName, price: parseFloat(newPrice) };
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
-                const fileName = `${Date.now()}_${file.name}`;
-                const { data, error: uploadError } = await sb.storage.from('products').upload(fileName, file);
+                let fileExt = file.name.split('.').pop().toLowerCase();
+                if (!['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(fileExt)) {
+                    fileExt = 'jpg';
+                }
+                const safeFilePath = `${Date.now()}.${fileExt}`;
+                const { data, error: uploadError } = await sb.storage.from('products').upload(safeFilePath, file, {
+                    contentType: file.type || 'image/jpeg'
+                });
                 if (uploadError) { showToast("فشل رفع الصورة الجديدة", "error"); return; }
-                updateData.image_url = `${SUPABASE_URL}/storage/v1/object/public/products/${fileName}`;
+                updateData.image_url = `${SUPABASE_URL}/storage/v1/object/public/products/${safeFilePath}`;
             }
             const { error } = await sb.from('products').update(updateData).eq('id', id);
             if (!error) { showToast("تم تحديث بيانات الصنف بنجاح ✔️"); loadAdminProducts(); fetchProducts(); } 
