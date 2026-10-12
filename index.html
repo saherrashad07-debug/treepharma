@@ -321,7 +321,6 @@
                 </div>
 
                 <div class="admin-box" style="background: #fff;">
-                    <!-- تم تعديل العنوان هنا حسب طلبك -->
                     <h3><span class="icon">📦</span> الأصناف الحالية</h3>
                     <input type="text" id="adminSearchInput" class="admin-input" placeholder="ابحث عن صنف في لوحة التحكم..." oninput="filterAdminProducts()" style="margin-bottom: 20px;">
                     <div id="adminProductList"></div>
@@ -1109,6 +1108,7 @@
             reader.readAsArrayBuffer(file);
         }
 
+        // ====== التعديل الجوهري هنا (حل مشكلة الاسم العربي في الرفع بالجملة) ======
         async function bulkUploadImages() {
             const input = document.getElementById('bulkImageInput');
             const statusDiv = document.getElementById('bulkUploadStatus');
@@ -1130,19 +1130,25 @@
 
             for (let i = 0; i < totalFiles; i++) {
                 const file = input.files[i];
-                const fileName = file.name.replace(/\.[^/.]+$/, ""); 
-                const normalizedFileName = normalizeArabic(fileName);
+                // نأخذ الاسم العربي عشان نطابق به الصنف
+                const originalFileName = file.name.replace(/\.[^/.]+$/, ""); 
+                const normalizedFileName = normalizeArabic(originalFileName);
 
                 const product = products.find(p => normalizeArabic(p.name) === normalizedFileName);
                 
                 if (product) {
-                    const filePath = `${Date.now()}_${file.name}`;
-                    const { data: uploadData, error: uploadError } = await sb.storage.from('products').upload(filePath, file);
+                    // نعمل اسم جديد آمن للرفع على Supabase (إنجليزي وأرقام)
+                    const fileExt = file.name.split('.').pop();
+                    const safeFilePath = `${Date.now()}_${i}.${fileExt}`;
+                    
+                    const { data: uploadData, error: uploadError } = await sb.storage.from('products').upload(safeFilePath, file);
                     
                     if (!uploadError) {
-                        const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${filePath}`;
+                        const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${safeFilePath}`;
                         const { error: updateError } = await sb.from('products').update({ image_url: imageUrl }).eq('id', product.id);
                         if (!updateError) uploadedCount++;
+                    } else {
+                        console.error("Upload error for:", originalFileName, uploadError);
                     }
                 } else {
                     unmatchedCount++;
