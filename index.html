@@ -12,11 +12,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Tree Pharma">
 
-    <!-- مكتبة Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- مكتبة قراءة ملفات الإكسيل (SheetJS) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- خط جوجل مودرن -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -130,7 +127,6 @@
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        /* ====== تصميم لوحة تحكم الأدمن المودرن ====== */
         .admin-box { background: #f8f9fa; padding: 25px; border-radius: 16px; border: 1px solid #e9ecef; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
         .admin-box h3 { margin-top: 0; color: #004d40; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
         .admin-box h3 .icon { background: #00695c; color: #fff; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
@@ -191,6 +187,16 @@
         .maintenance-message .loader { border: 4px solid #f3f3f3; border-top: 4px solid #00695c; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        #noImageModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); z-index: 10002; justify-content: center; align-items: center; padding: 20px; }
+        #noImageModal.active { display: flex; }
+        .modal-content { background: #fff; border-radius: 16px; padding: 25px; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: slideUp 0.3s ease-out; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00695c; padding-bottom: 15px; margin-bottom: 20px; }
+        .modal-header h3 { margin: 0; color: #00695c; font-size: 18px; font-weight: 800; }
+        .modal-close-btn { background: #ff4d4d; color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px; font-weight: bold; }
+        .modal-item { padding: 12px; border-bottom: 1px dashed #eee; font-size: 15px; color: #333; }
+        .modal-item:last-child { border-bottom: none; }
+        .modal-empty { text-align: center; color: #00695c; font-weight: bold; padding: 30px; }
+
         @media (max-width: 600px) { 
             header { flex-direction: column; text-align: center; }
             .header-right { width: 100%; align-items: center; margin-top: 10px; }
@@ -225,6 +231,16 @@
 
     <div id="lightbox" onclick="closeLightbox()">
         <img id="lightboxImg" src="" alt="صورة مكبرة">
+    </div>
+
+    <div id="noImageModal" onclick="closeNoImageModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>📋 تقرير الأصناف بدون صور</h3>
+                <button class="modal-close-btn" onclick="closeNoImageModal()">✕</button>
+            </div>
+            <div id="noImageList"></div>
+        </div>
     </div>
 
     <div class="container">
@@ -322,7 +338,8 @@
 
                 <div class="admin-box" style="background: #fff;">
                     <h3><span class="icon">📦</span> الأصناف الحالية</h3>
-                    <input type="text" id="adminSearchInput" class="admin-input" placeholder="ابحث عن صنف في لوحة التحكم..." oninput="filterAdminProducts()" style="margin-bottom: 20px;">
+                    <input type="text" id="adminSearchInput" class="admin-input" placeholder="ابحث عن صنف في لوحة التحكم..." oninput="filterAdminProducts()" style="margin-bottom: 10px;">
+                    <button class="admin-btn" style="background-color:#1976d2; margin-bottom: 20px;" onclick="showNoImageReport()">📋 عرض تقرير الأصناف بدون صور</button>
                     <div id="adminProductList"></div>
                 </div>
                 
@@ -1142,14 +1159,12 @@
                 const product = products.find(p => normalizeArabic(p.name) === normalizedFileName);
                 
                 if (product) {
-                    // نحدد الامتداد بشكل آمن، وإذا لم يجده نجعله jpg
                     let fileExt = file.name.split('.').pop().toLowerCase();
                     if (!['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(fileExt)) {
                         fileExt = 'jpg';
                     }
                     const safeFilePath = `${Date.now()}_${i}.${fileExt}`;
                     
-                    // نحدد نوع الملف صراحة لتجنب رفض السيرفر
                     const { data: uploadData, error: uploadError } = await sb.storage.from('products').upload(safeFilePath, file, {
                         cacheControl: '3600',
                         upsert: false,
@@ -1235,6 +1250,29 @@
             } else {
                 listDiv.innerHTML = htmlContent;
             }
+        }
+
+        function showNoImageReport() {
+            const noImageProducts = adminProductsCache.filter(p => !p.image_url || p.image_url.trim() === '');
+            const listDiv = document.getElementById('noImageList');
+            
+            if (noImageProducts.length === 0) {
+                listDiv.innerHTML = '<div class="modal-empty">🎉 ممتاز! كل الأصناف ليها صور.</div>';
+            } else {
+                let sortedNoImage = sortProductsByName([...noImageProducts]);
+                let html = `<p style="margin-bottom:15px; color:#666; font-size:14px;">يوجد <strong style="color:#d32f2f;">${noImageProducts.length}</strong> صنف بدون صورة:</p>`;
+                sortedNoImage.forEach((p, i) => {
+                    html += `<div class="modal-item">${i + 1}. ${p.name} <small style="color:#888; float:left;">(${p.category === 'offers' ? 'عروض' : 'عام'})</small></div>`;
+                });
+                listDiv.innerHTML = html;
+            }
+            
+            document.getElementById('noImageModal').classList.add('active');
+        }
+
+        function closeNoImageModal(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('noImageModal').classList.remove('active');
         }
 
         async function toggleProductVisibility(id, isActive) {
