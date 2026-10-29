@@ -492,7 +492,8 @@
                 .replace(/[أإآ]/g, 'ا')
                 .replace(/ى/g, 'ي')
                 .replace(/ة/g, 'ه')
-                .replace(/[^\w\s\u0600-\u06FF]/g, '');
+                .replace(/[^\w\s\u0600-\u06FF]/g, '')
+                .trim();
         }
 
         function openLightbox(url) { document.getElementById('lightboxImg').src = url; document.getElementById('lightbox').classList.add('active'); }
@@ -504,6 +505,17 @@
                 const { data, error } = await sb.from('products').select('*').eq('is_active', true);
                 if (error) throw error;
                 let rawData = data || [];
+                
+                // ====== إزالة التكرار (مهم جداً) ======
+                // هنوحد الأسماء عشان نطابقها حتى لو فيه فرق في المسافات أو التشكيل
+                const seenNames = new Set();
+                rawData = rawData.filter(p => {
+                    const normName = normalizeArabic(p.name);
+                    if (!normName) return false; // لو الاسم فاضي
+                    if (seenNames.has(normName)) return false; // لو متكرر نمسحه
+                    seenNames.add(normName); 
+                    return true;
+                });
                 
                 allProducts = rawData.filter(p => p.category !== 'offers');
                 offerProducts = rawData.filter(p => p.category === 'offers');
@@ -1076,8 +1088,11 @@
                     const row = json[i];
                     if (row[0] && row[1]) {
                         const normalizedName = normalizeArabic(String(row[0]).trim());
-                        excelItems.push({ name: String(row[0]).trim(), price: parseFloat(row[1]), normName: normalizedName });
-                        excelNamesSet.add(normalizedName);
+                        // فلترة التكرار جوه ملف الإكسيل نفسه
+                        if (!excelNamesSet.has(normalizedName)) {
+                            excelItems.push({ name: String(row[0]).trim(), price: parseFloat(row[1]), normName: normalizedName });
+                            excelNamesSet.add(normalizedName);
+                        }
                     }
                 }
 
