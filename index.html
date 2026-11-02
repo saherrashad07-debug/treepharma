@@ -26,15 +26,15 @@
             margin: 0; padding: 0; 
             color: #004d40; 
             padding-bottom: 100px; 
-            /* Solid background - NO fixed attachment for max performance */
             background-color: #e0f2f1;
             min-height: 100vh;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: contain;
+            overflow-x: hidden; /* منع السحب الجانبي */
         }
 
         header { 
-            background: rgba(0, 105, 92, 0.92); /* Solid-ish for performance */
+            background: rgba(0, 105, 92, 0.92); 
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             padding: 15px 30px; 
@@ -43,7 +43,7 @@
             transform: translateZ(0);
         }
         .header-left { display: flex; align-items: center; gap: 15px; }
-        .logo-circle { background: rgba(255,255,255,0.95); border-radius: 50%; width: 90px; height: 90px; display: flex; justify-content: center; align-items: center; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 10px; }
+        .logo-circle { background: rgba(255,255,255,0.95); border-radius: 50%; width: 90px; height: 90px; display: flex; justify-content: center; align-items: center; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 10px; flex-shrink: 0; }
         .logo-circle img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .header-title { margin: 0; font-size: 28px; font-weight: 800; color: #fff; letter-spacing: 1px; }
         .header-right { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 10px; }
@@ -59,17 +59,25 @@
         .view-btn:active { transform: scale(0.95); }
         .catalog-btn { background: #00695c; color: #fff; border: none; padding: 12px 20px; border-radius: 50px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 15px; width: 100%; max-width: 500px; }
         
-        .product-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
-        /* ====== THE SILVER BULLET: content-visibility ====== */
+        /* ضبط الـ Grid عشان يضمن عمودين على الموبايل من غير ما يعدوا الشاشة */
+        .product-list { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); /* افتراضياً عمودين */
+            gap: 15px;
+        }
+        @media (min-width: 600px) {
+            .product-list { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+        }
+        
         .list-item { 
             background: #fff; 
             border: 1px solid #e0f2f1; 
             border-radius: 20px; padding: 12px; 
             box-shadow: 0 2px 8px rgba(0,105,92,0.04); 
             display: flex; flex-direction: column; 
-            content-visibility: auto;
-            contain-intrinsic-size: 300px;
-            contain: layout paint style;
+            min-width: 0; /* يمنع العناصر من توسيع البطاقة أكبر من اللازم */
+            will-change: transform;
+            transform: translateZ(0);
         }
         
         .item-image-container { width: 100%; aspect-ratio: 1 / 1; background: #f4f7f6; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; }
@@ -79,8 +87,8 @@
         .item-image.loaded { opacity: 1; }
         @keyframes img-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 12px; }
-        .item-info { flex: 1; text-align: right; word-break: break-word; }
+        .item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 12px; min-width: 0; }
+        .item-info { flex: 1; text-align: right; word-break: break-word; min-width: 0; }
         .item-name { font-weight: bold; color: #004d40; font-size: 14px; line-height: 1.3; display: block; }
         .item-price { color: #00695c; font-weight: bold; font-size: 16px; display: block; margin-top: 2px; }
         .fav-btn { flex-shrink: 0; background: #f4f7f6; border: 1px solid #e0e0e0; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; padding: 0; }
@@ -138,7 +146,6 @@
         .missing-item-banner p { color: #004d40; margin: 0 0 15px; font-size: 15px; }
         .missing-item-btn { background: #00695c; color: #fff; text-decoration: none; padding: 12px 25px; border-radius: 50px; font-size: 16px; font-weight: bold; display: inline-block; }
         
-        /* Glass ONLY on bottom nav (small fixed element) */
         .bottom-nav { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 500px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 8px 32px rgba(0,0,0,0.1); display: flex; justify-content: space-around; padding: 8px 0; z-index: 999; border-radius: 30px; border: 1px solid rgba(255,255,255,0.6); }
         .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #00695c; font-weight: bold; font-size: 12px; cursor: pointer; padding: 5px 10px; border-radius: 20px; position: relative; flex: 1; }
         .nav-item.active { color: #004d40; background: rgba(0,105,92,0.1); }
@@ -211,8 +218,8 @@
             .logo-circle { width: 70px; height: 70px; }
             .nav-item { font-size: 11px; }
             .view-btn { padding: 8px 15px; font-size: 14px; }
-            .product-list { grid-template-columns: repeat(2, 1fr); gap: 10px; }
             .list-item { padding: 8px; }
+            .container { padding: 0 10px; }
         }
     </style>
 </head>
@@ -407,7 +414,7 @@
     <nav class="bottom-nav">
         <div class="nav-item active" onclick="switchView('home', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>الرئيسية</div>
         <div class="nav-item" onclick="switchView('favorites', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>المفضلة</div>
-        <div class="nav-item" onclick="switchView('cart', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg><span class="cart-badge" id="cartBadge">0</span>السلة</div>
+        <div class="nav-item" onclick="switchView('cart', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.0 2-2-.9-2-2-2z"/></svg><span class="cart-badge" id="cartBadge">0</span>السلة</div>
         <div class="nav-item" onclick="switchView('orders', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>طلباتي</div>
         <div class="nav-item" onclick="switchView('contact', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>تواصل</div>
     </nav>
