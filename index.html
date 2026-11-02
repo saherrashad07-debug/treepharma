@@ -20,185 +20,226 @@
 
     <style>
         * { box-sizing: border-box; }
-        body { font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; color: #333; padding-bottom: 90px; }
-        header { background-color: #00695c; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; box-shadow: 0 4px 15px rgba(0,0,0,0.15); animation: fadeInDown 1s ease-out; position: relative; }
+        body { 
+            font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; padding: 0; 
+            color: #004d40; 
+            padding-bottom: 90px; 
+            background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 50%, #80cbc4 100%);
+            min-height: 100vh;
+        }
+        
+        /* ====== Liquid Glass Effect ====== */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px rgba(0, 105, 92, 0.15);
+            border-radius: 20px;
+        }
+
+        header { 
+            background: rgba(0, 105, 92, 0.85); 
+            backdrop-filter: blur(15px) saturate(180%);
+            -webkit-backdrop-filter: blur(15px) saturate(180%);
+            padding: 15px 30px; 
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+            animation: fadeInDown 1s ease-out; 
+            position: sticky; top: 0; z-index: 1000;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
         .header-left { display: flex; align-items: center; gap: 15px; }
-        .logo-circle { background-color: #ffffff; border-radius: 50%; width: 90px; height: 90px; display: flex; justify-content: center; align-items: center; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.2); padding: 10px; }
+        .logo-circle { background-color: rgba(255, 255, 255, 0.9); border-radius: 50%; width: 90px; height: 90px; display: flex; justify-content: center; align-items: center; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.15); padding: 10px; }
         .logo-circle img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .header-title { margin: 0; font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: 1px; }
         .header-right { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 10px; }
-        .install-btn { background-color: #ffffff; color: #00695c; border: none; padding: 8px 20px; border-radius: 50px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: none; transition: all 0.3s; }
+        .install-btn { background-color: rgba(255, 255, 255, 0.9); color: #00695c; border: none; padding: 8px 20px; border-radius: 50px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: none; transition: all 0.3s; }
         .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; animation: fadeIn 1.5s ease-out; }
         .search-container { margin-bottom: 20px; text-align: center; }
-        .search-input { width: 100%; max-width: 500px; padding: 12px; font-size: 16px; border: 2px solid #00695c; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: box-shadow 0.3s; }
-        .search-input:focus { box-shadow: 0 0 10px rgba(0, 105, 92, 0.4); outline: none; }
+        .search-input { width: 100%; max-width: 500px; padding: 14px; font-size: 16px; border: 1px solid rgba(255,255,255,0.5); border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: all 0.3s; background: rgba(255,255,255,0.6); backdrop-filter: blur(10px); color: #004d40; }
+        .search-input::placeholder { color: #00695c; opacity: 0.7; }
+        .search-input:focus { box-shadow: 0 0 0 4px rgba(0, 105, 92, 0.2); outline: none; background: rgba(255,255,255,0.8); }
         .view-buttons { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .view-btn { background-color: #fff; color: #00695c; border: 2px solid #00695c; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-size: 15px; font-weight: bold; transition: all 0.3s; }
-        .view-btn.active { background-color: #00695c; color: #fff; }
-        .view-btn:hover { transform: translateY(-2px); }
-        .catalog-btn { background-color: #00695c; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 15px; width: 100%; max-width: 500px; transition: all 0.3s; }
-        .catalog-btn:hover { background-color: #004d40; transform: translateY(-2px); }
+        .view-btn { background: rgba(255,255,255,0.5); color: #00695c; border: 1px solid rgba(255,255,255,0.6); padding: 10px 20px; border-radius: 50px; cursor: pointer; font-size: 15px; font-weight: bold; transition: all 0.3s; backdrop-filter: blur(5px); }
+        .view-btn.active { background: rgba(0, 105, 92, 0.85); color: #fff; box-shadow: 0 4px 15px rgba(0,105,92,0.3); }
+        .view-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .catalog-btn { background: rgba(0, 105, 92, 0.85); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 12px 20px; border-radius: 50px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 15px; width: 100%; max-width: 500px; transition: all 0.3s; backdrop-filter: blur(10px); }
+        .catalog-btn:hover { background: #004d40; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         
         .product-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
-        .list-item { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: box-shadow 0.3s; display: flex; flex-direction: column; }
-        .list-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .list-item { 
+            background: rgba(255, 255, 255, 0.65); 
+            backdrop-filter: blur(10px) saturate(180%);
+            -webkit-backdrop-filter: blur(10px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.6); 
+            border-radius: 20px; padding: 12px; 
+            box-shadow: 0 4px 20px rgba(0,105,92,0.08); 
+            transition: all 0.3s ease; display: flex; flex-direction: column; 
+        }
+        .list-item:hover { box-shadow: 0 8px 30px rgba(0,105,92,0.2); transform: translateY(-5px); background: rgba(255,255,255,0.8); }
         
-        .item-image-container { width: 100%; aspect-ratio: 1 / 1; background-color: #e0f2f1; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; }
+        .item-image-container { width: 100%; aspect-ratio: 1 / 1; background-color: rgba(224, 242, 241, 0.5); border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.4); }
         .item-image-container::before { content: ""; position: absolute; width: 24px; height: 24px; border: 3px solid #00695c; border-bottom-color: transparent; border-radius: 50%; animation: img-spin 0.8s linear infinite; z-index: 0; }
         .item-image-container.loaded::before { display: none; }
-        .item-image { max-width: 90%; max-height: 90%; object-fit: contain; cursor: pointer; transition: transform 0.2s, opacity 0.3s ease-in-out; opacity: 0; position: relative; z-index: 1; }
+        .item-image { max-width: 90%; max-height: 90%; object-fit: contain; cursor: pointer; transition: transform 0.3s, opacity 0.3s ease-in-out; opacity: 0; position: relative; z-index: 1; }
         .item-image.loaded { opacity: 1; }
-        .item-image:hover { transform: scale(1.05); }
+        .item-image:hover { transform: scale(1.08); }
         @keyframes img-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 12px; }
         .item-info { flex: 1; text-align: right; word-break: break-word; }
-        .item-name { font-weight: bold; color: #333; font-size: 14px; line-height: 1.3; display: block; }
+        .item-name { font-weight: bold; color: #004d40; font-size: 14px; line-height: 1.3; display: block; }
         .item-price { color: #00695c; font-weight: bold; font-size: 16px; display: block; margin-top: 2px; }
-        .fav-btn { flex-shrink: 0; background-color: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: transform 0.2s; padding: 0; }
+        .fav-btn { flex-shrink: 0; background-color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.8); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: all 0.2s; padding: 0; backdrop-filter: blur(5px); }
         .fav-btn:hover { transform: scale(1.2); background-color: #fff; }
 
         .item-footer { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
-        .qty-input { width: 100%; padding: 8px; text-align: center; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
-        .add-btn { background-color: #00695c; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: all 0.3s ease; font-size: 14px; }
-        .add-btn:hover { background-color: #004d40; }
+        .qty-input { width: 100%; padding: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.5); border-radius: 10px; font-size: 14px; background: rgba(255,255,255,0.6); color: #004d40; }
+        .qty-input::placeholder { color: #00695c; }
+        .add-btn { background: rgba(0, 105, 92, 0.85); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 8px; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; transition: all 0.3s ease; font-size: 14px; backdrop-filter: blur(5px); }
+        .add-btn:hover { background: #004d40; transform: translateY(-2px); }
 
-        #lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); z-index: 10001; justify-content: center; align-items: center; cursor: zoom-out; }
+        #lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 10001; justify-content: center; align-items: center; cursor: zoom-out; }
         #lightbox.active { display: flex; }
-        #lightbox img { max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 8px; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
+        #lightbox img { max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
 
-        .cart-section { background: #fff; padding: 25px; border-radius: 16px; border: 1px solid #e0e0e0; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
-        .cart-section h2 { color: #000; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-top: 0; font-size: 22px; }
-        .customer-info { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; background: #f8f9fa; padding: 20px; border-radius: 12px; border: 1px solid #eee; }
-        .customer-info input { padding: 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; transition: all 0.3s; background: #fff; }
-        .customer-info input:focus { border-color: #00695c; outline: none; box-shadow: 0 0 0 3px rgba(0, 105, 92, 0.1); }
-        .payment-section { background: #fff; border: 1px solid #eee; border-radius: 12px; margin-bottom: 20px; overflow: hidden; }
-        .payment-section h3 { margin: 0; color: #333; font-size: 16px; padding: 15px 20px; background: #f8f9fa; border-bottom: 1px solid #eee; }
+        .cart-section { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(15px) saturate(180%); -webkit-backdrop-filter: blur(15px) saturate(180%); padding: 25px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+        .cart-section h2 { color: #004d40; border-bottom: 1px solid rgba(0,105,92,0.1); padding-bottom: 15px; margin-top: 0; font-size: 22px; }
+        .customer-info { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; background: rgba(224, 242, 241, 0.5); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.4); }
+        .customer-info input { padding: 14px; border: 1px solid rgba(255,255,255,0.5); border-radius: 12px; font-size: 16px; transition: all 0.3s; background: rgba(255,255,255,0.8); color: #004d40; }
+        .customer-info input::placeholder { color: #00695c; opacity: 0.7; }
+        .customer-info input:focus { border-color: #00695c; outline: none; box-shadow: 0 0 0 4px rgba(0, 105, 92, 0.15); }
+        .payment-section { background: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.5); border-radius: 16px; margin-bottom: 20px; overflow: hidden; }
+        .payment-section h3 { margin: 0; color: #004d40; font-size: 16px; padding: 15px 20px; background: rgba(224, 242, 241, 0.5); border-bottom: 1px solid rgba(255,255,255,0.4); }
         .payment-options-wrapper { padding: 15px 20px; display: flex; flex-direction: column; gap: 12px; }
-        .payment-option { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 15px; color: #444; }
+        .payment-option { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 15px; color: #004d40; }
         .payment-option input { width: 20px; height: 20px; accent-color: #00695c; cursor: pointer; }
-        .payment-details { display: none; margin-top: 5px; padding: 15px; background-color: #f9f9f9; border: 1px dashed #00695c; border-radius: 8px; font-size: 14px; line-height: 1.6; color: #555; }
+        .payment-details { display: none; margin-top: 5px; padding: 15px; background-color: rgba(224, 242, 241, 0.7); border: 1px dashed rgba(0,105,92,0.3); border-radius: 12px; font-size: 14px; line-height: 1.6; color: #004d40; }
         .payment-details.active { display: block; animation: fadeIn 0.3s ease-out; }
         .copy-text { font-weight: bold; color: #00695c; user-select: all; }
-        .order-list { margin-bottom: 20px; font-size: 15px; background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #eee; }
-        .order-list div { padding: 12px 0; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .order-list { margin-bottom: 20px; font-size: 15px; background: rgba(224, 242, 241, 0.5); padding: 15px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.4); color: #004d40; }
+        .order-list div { padding: 12px 0; border-bottom: 1px solid rgba(0,105,92,0.1); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
         .order-list div:last-child { border-bottom: none; }
         .cart-item-controls { display: flex; align-items: center; gap: 8px; }
-        .qty-btn { background-color: #e0f2f1; color: #00695c; border: none; width: 28px; height: 28px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; transition: 0.2s; }
+        .qty-btn { background-color: rgba(224, 242, 241, 0.8); color: #00695c; border: 1px solid rgba(255,255,255,0.5); width: 28px; height: 28px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; transition: 0.2s; }
         .qty-btn:hover { background-color: #00695c; color: white; }
-        .cart-item-qty { font-size: 15px; font-weight: bold; min-width: 20px; text-align: center; }
-        .remove-btn { background-color: #ff4d4d; color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 12px; transition: all 0.3s; }
+        .cart-item-qty { font-size: 15px; font-weight: bold; min-width: 20px; text-align: center; color: #004d40; }
+        .remove-btn { background-color: rgba(255, 77, 77, 0.8); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; padding: 6px 12px; cursor: pointer; font-size: 12px; transition: all 0.3s; }
         .remove-btn:hover { background-color: #d32f2f; }
         .action-buttons { display: flex; gap: 12px; }
-        .submit-btn { background-color: #00695c; color: #fff; border: none; padding: 16px; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; transition: all 0.3s; flex: 2; box-shadow: 0 4px 10px rgba(0,105,92,0.2); }
-        .submit-btn:hover { background-color: #004d40; transform: translateY(-2px); }
-        .print-btn { background-color: #333; color: #fff; border: none; padding: 16px; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; transition: all 0.3s; flex: 1; }
-        .print-btn:hover { background-color: #000; transform: translateY(-2px); }
+        .submit-btn { background: rgba(0, 105, 92, 0.9); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 16px; border-radius: 14px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; transition: all 0.3s; flex: 2; box-shadow: 0 4px 15px rgba(0,105,92,0.2); }
+        .submit-btn:hover { background: #004d40; transform: translateY(-2px); }
+        .print-btn { background: rgba(51, 51, 51, 0.8); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 16px; border-radius: 14px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; transition: all 0.3s; flex: 1; }
+        .print-btn:hover { background: #000; transform: translateY(-2px); }
 
-        .history-item { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
+        .history-item { background: rgba(255,255,255,0.65); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.5); border-radius: 16px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed rgba(0,105,92,0.2); padding-bottom: 10px; }
         .history-date { font-weight: bold; color: #00695c; }
-        .history-total { font-weight: bold; }
-        .reorder-btn { background-color: #00695c; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; margin-top: 10px; width: 100%; }
-        .contact-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; }
-        .contact-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; font-size: 18px; }
+        .history-total { font-weight: bold; color: #004d40; }
+        .reorder-btn { background: rgba(0, 105, 92, 0.85); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: bold; margin-top: 10px; width: 100%; }
+        .contact-card { background: rgba(255,255,255,0.65); backdrop-filter: blur(10px); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.5); box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center; }
+        .contact-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid rgba(0,105,92,0.1); font-size: 18px; color: #004d40; }
         .contact-item:last-child { border-bottom: none; }
-        .contact-item a { background-color: #00695c; color: #fff; text-decoration: none; padding: 8px 20px; border-radius: 50px; font-size: 16px; font-weight: bold; transition: 0.3s; }
-        .contact-item a:hover { background-color: #004d40; }
-        .whatsapp-btn-large { display: block; background-color: #25D366; color: #fff; text-decoration: none; padding: 15px; border-radius: 8px; font-size: 18px; font-weight: bold; margin-top: 20px; text-align: center; }
-        .whatsapp-btn-large:hover { background-color: #128C7E; }
-        .missing-item-banner { background: #f9f9f9; border: 2px dashed #00695c; border-radius: 12px; padding: 20px; text-align: center; margin-top: 30px; }
+        .contact-item a { background: rgba(0, 105, 92, 0.85); color: #fff; text-decoration: none; padding: 8px 20px; border-radius: 50px; font-size: 16px; font-weight: bold; transition: 0.3s; }
+        .contact-item a:hover { background: #004d40; }
+        .whatsapp-btn-large { display: block; background: rgba(37, 211, 102, 0.85); color: #fff; text-decoration: none; padding: 15px; border-radius: 14px; font-size: 18px; font-weight: bold; margin-top: 20px; text-align: center; }
+        .whatsapp-btn-large:hover { background: #128C7E; }
+        .missing-item-banner { background: rgba(224, 242, 241, 0.7); border: 2px dashed rgba(0,105,92,0.3); border-radius: 16px; padding: 20px; text-align: center; margin-top: 30px; }
         .missing-item-banner h3 { color: #00695c; margin: 0 0 10px; font-size: 18px; }
-        .missing-item-banner p { color: #666; margin: 0 0 15px; font-size: 15px; }
-        .missing-item-btn { background-color: #00695c; color: #fff; text-decoration: none; padding: 12px 25px; border-radius: 50px; font-size: 16px; font-weight: bold; display: inline-block; transition: 0.3s; }
-        .missing-item-btn:hover { background-color: #004d40; transform: translateY(-2px); }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #fff; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-around; padding: 8px 0; z-index: 999; border-top: 3px solid #00695c; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #00695c; font-weight: bold; font-size: 12px; cursor: pointer; padding: 5px; border-radius: 8px; transition: background-color 0.3s; position: relative; flex: 1; }
-        .nav-item:hover { background-color: #f4f7f6; }
-        .nav-item.active { color: #000; }
+        .missing-item-banner p { color: #004d40; margin: 0 0 15px; font-size: 15px; }
+        .missing-item-btn { background: rgba(0, 105, 92, 0.85); color: #fff; text-decoration: none; padding: 12px 25px; border-radius: 50px; font-size: 16px; font-weight: bold; display: inline-block; transition: 0.3s; }
+        .missing-item-btn:hover { background: #004d40; transform: translateY(-2px); }
+        
+        .bottom-nav { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 500px; background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); box-shadow: 0 8px 32px rgba(0,0,0,0.1); display: flex; justify-content: space-around; padding: 8px 0; z-index: 999; border-radius: 30px; border: 1px solid rgba(255,255,255,0.6); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #00695c; font-weight: bold; font-size: 12px; cursor: pointer; padding: 5px 10px; border-radius: 20px; transition: all 0.3s; position: relative; flex: 1; }
+        .nav-item:hover { background: rgba(0,105,92,0.1); }
+        .nav-item.active { color: #004d40; background: rgba(0,105,92,0.15); }
         .nav-icon { width: 24px; height: 24px; margin-bottom: 2px; fill: #00695c; }
-        .nav-item.active .nav-icon { fill: #000; }
-        .cart-badge { position: absolute; top: 0; right: 15px; background-color: #ff4d4d; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none; }
-        #toastContainer { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none; }
-        .toast { background-color: #00695c; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 16px; text-align: center; animation: slideUp 0.3s ease-out; opacity: 1; transition: opacity 0.5s ease-in-out; }
-        .toast.error { background-color: #d32f2f; }
+        .nav-item.active .nav-icon { fill: #004d40; }
+        .cart-badge { position: absolute; top: 0; right: 15px; background-color: #ff4d4d; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        #toastContainer { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none; }
+        .toast { background: rgba(0, 105, 92, 0.9); backdrop-filter: blur(10px); color: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); font-size: 16px; text-align: center; animation: slideUp 0.3s ease-out; opacity: 1; transition: opacity 0.5s ease-in-out; border: 1px solid rgba(255,255,255,0.2); }
+        .toast.error { background: rgba(211, 47, 47, 0.9); }
         .toast.hide { opacity: 0; }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        .admin-box { background: #f8f9fa; padding: 25px; border-radius: 16px; border: 1px solid #e9ecef; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .admin-box { background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(12px) saturate(180%); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.6); margin-bottom: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         .admin-box h3 { margin-top: 0; color: #004d40; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-        .admin-box h3 .icon { background: #00695c; color: #fff; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .admin-box h3 .icon { background: rgba(0, 105, 92, 0.85); color: #fff; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
         
-        .admin-input { width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 16px; background: #fff; transition: 0.2s; }
-        .admin-input:focus { border-color: #00695c; box-shadow: 0 0 0 3px rgba(0, 105, 92, 0.1); outline: none; }
+        .admin-input { width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.5); border-radius: 12px; font-size: 16px; background: rgba(255,255,255,0.8); color: #004d40; transition: 0.2s; }
+        .admin-input::placeholder { color: #00695c; opacity: 0.7; }
+        .admin-input:focus { border-color: #00695c; box-shadow: 0 0 0 4px rgba(0, 105, 92, 0.15); outline: none; }
         
-        .admin-btn { background-color: #00695c; color: #fff; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; transition: 0.3s; }
-        .admin-btn:hover { background-color: #004d40; transform: translateY(-2px); }
+        .admin-btn { background: rgba(0, 105, 92, 0.85); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 12px; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; transition: 0.3s; }
+        .admin-btn:hover { background: #004d40; transform: translateY(-2px); }
         
-        .admin-product-item { display: flex; flex-direction: column; gap: 15px; background: #fff; padding: 20px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #e9ecef; transition: 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-        .admin-product-item:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        .admin-product-item { display: flex; flex-direction: column; gap: 15px; background: rgba(255,255,255,0.7); padding: 20px; margin-bottom: 15px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.5); transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .admin-product-item:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1); transform: translateY(-2px); background: rgba(255,255,255,0.85); }
         
-        .admin-category-header { background: #00695c; color: #fff; padding: 12px 20px; border-radius: 10px; margin-top: 30px; font-weight: 800; font-size: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,105,92,0.2); }
+        .admin-category-header { background: rgba(0, 105, 92, 0.85); color: #fff; padding: 12px 20px; border-radius: 12px; margin-top: 30px; font-weight: 800; font-size: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,105,92,0.2); }
         .admin-category-header span { font-size: 14px; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; }
 
-        .admin-icon-btn { border: none; width: 40px; height: 40px; border-radius: 10px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: 0.2s; flex-shrink: 0; }
-        .admin-icon-btn.save { background: #e0f2f1; color: #00695c; border: 1px solid #b2dfdb; }
+        .admin-icon-btn { border: 1px solid rgba(255,255,255,0.5); width: 40px; height: 40px; border-radius: 12px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: 0.2s; flex-shrink: 0; }
+        .admin-icon-btn.save { background: rgba(224, 242, 241, 0.8); color: #00695c; }
         .admin-icon-btn.save:hover { background: #00695c; color: #fff; }
-        .admin-icon-btn.toggle { background: #fff3e0; color: #f57c00; border: 1px solid #ffe0b2; }
+        .admin-icon-btn.toggle { background: rgba(255, 243, 224, 0.8); color: #f57c00; }
         .admin-icon-btn.toggle:hover { background: #f57c00; color: #fff; }
-        .admin-icon-btn.delete { background: #ffebee; color: #d32f2f; border: 1px solid #ffcdd2; }
+        .admin-icon-btn.delete { background: rgba(255, 235, 238, 0.8); color: #d32f2f; }
         .admin-icon-btn.delete:hover { background: #d32f2f; color: #fff; }
 
-        .report-card { background: #f8f9fa; border: 1px solid #eee; padding: 15px; border-radius: 10px; margin-bottom: 10px; text-align: center; }
+        .report-card { background: rgba(224, 242, 241, 0.7); border: 1px solid rgba(255,255,255,0.5); padding: 15px; border-radius: 12px; margin-bottom: 10px; text-align: center; }
         .report-card h4 { color: #00695c; margin: 0 0 10px 0; font-size: 16px; }
-        .report-card p { font-size: 24px; font-weight: bold; margin: 0; color: #333; }
-        .report-list { background: #fff; border: 1px solid #eee; border-radius: 12px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .report-list h4 { color: #00695c; margin: 0; padding: 15px 20px; background: #f8f9fa; border-bottom: 1px solid #eee; font-size: 16px; font-weight: 800; }
-        .report-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 1px solid #f8f9fa; transition: 0.2s; }
+        .report-card p { font-size: 24px; font-weight: bold; margin: 0; color: #004d40; }
+        .report-list { background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.5); border-radius: 16px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .report-list h4 { color: #00695c; margin: 0; padding: 15px 20px; background: rgba(224, 242, 241, 0.5); border-bottom: 1px solid rgba(255,255,255,0.4); font-size: 16px; font-weight: 800; }
+        .report-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 1px solid rgba(0,105,92,0.1); transition: 0.2s; }
         .report-list-item:last-child { border-bottom: none; }
-        .report-list-item:hover { background: #f8f9fa; padding-right: 25px; }
+        .report-list-item:hover { background: rgba(224, 242, 241, 0.5); padding-right: 25px; }
         .rank-circle { width: 26px; height: 26px; background: #00695c; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; margin-left: 10px; }
 
         .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .kpi-card { background: #fff; padding: 20px 15px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; border-bottom: 4px solid #00695c; display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .kpi-card .kpi-icon { width: 45px; height: 45px; background: #f0f7f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; }
+        .kpi-card { background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); padding: 20px 15px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center; border-bottom: 4px solid #00695c; border: 1px solid rgba(255,255,255,0.6); display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .kpi-card .kpi-icon { width: 45px; height: 45px; background: rgba(224, 242, 241, 0.8); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; }
         .kpi-card .kpi-icon svg { width: 24px; height: 24px; }
-        .kpi-card h4 { margin: 0; font-size: 14px; color: #666; font-weight: 700; }
+        .kpi-card h4 { margin: 0; font-size: 14px; color: #00695c; font-weight: 700; }
         .kpi-card p { margin: 0; font-size: 26px; font-weight: 800; }
         .kpi-card.green { border-bottom-color: #00695c; } .kpi-card.green p { color: #00695c; } .kpi-card.green .kpi-icon svg { fill: #00695c; }
         .kpi-card.blue { border-bottom-color: #1976d2; } .kpi-card.blue p { color: #1976d2; } .kpi-card.blue .kpi-icon svg { fill: #1976d2; }
         .kpi-card.orange { border-bottom-color: #f57c00; } .kpi-card.orange p { color: #f57c00; } .kpi-card.orange .kpi-icon svg { fill: #f57c00; }
 
-        .toggle-box { display: flex; justify-content: space-between; align-items: center; padding: 18px 25px; border-radius: 16px; margin-bottom: 20px; border: 1px solid; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
-        .toggle-box p { margin: 0; font-weight: 700; font-size: 16px; color: #333; }
+        .toggle-box { display: flex; justify-content: space-between; align-items: center; padding: 18px 25px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .toggle-box p { margin: 0; font-weight: 700; font-size: 16px; color: #004d40; }
         .switch { position: relative; display: inline-block; width: 60px; height: 34px; flex-shrink: 0; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(204, 204, 204, 0.8); transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         input:checked + .slider { background-color: #00695c; }
         input:checked + .slider.orange { background-color: #f57c00; }
         input:checked + .slider.blue { background-color: #1976d2; }
 
-        .maintenance-message { text-align: center; padding: 60px 20px; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-top: 30px; }
+        .maintenance-message { text-align: center; padding: 60px 20px; background: rgba(255,255,255,0.65); backdrop-filter: blur(10px); border-radius: 24px; border: 1px solid rgba(255,255,255,0.5); box-shadow: 0 8px 30px rgba(0,0,0,0.05); margin-top: 30px; }
         .maintenance-message h2 { color: #00695c; font-size: 28px; margin-bottom: 15px; }
-        .maintenance-message p { color: #666; font-size: 18px; line-height: 1.6; }
-        .maintenance-message .loader { border: 4px solid #f3f3f3; border-top: 4px solid #00695c; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
+        .maintenance-message p { color: #004d40; font-size: 18px; line-height: 1.6; }
+        .maintenance-message .loader { border: 4px solid rgba(0, 105, 92, 0.2); border-top: 4px solid #00695c; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        #noImageModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); z-index: 10002; justify-content: center; align-items: center; padding: 20px; }
+        #noImageModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 10002; justify-content: center; align-items: center; padding: 20px; }
         #noImageModal.active { display: flex; }
-        .modal-content { background: #fff; border-radius: 16px; padding: 25px; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: slideUp 0.3s ease-out; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00695c; padding-bottom: 15px; margin-bottom: 20px; }
+        .modal-content { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px) saturate(180%); border-radius: 20px; padding: 25px; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2); animation: slideUp 0.3s ease-out; border: 1px solid rgba(255,255,255,0.6); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,105,92,0.1); padding-bottom: 15px; margin-bottom: 20px; }
         .modal-header h3 { margin: 0; color: #00695c; font-size: 18px; font-weight: 800; }
-        .modal-close-btn { background: #ff4d4d; color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px; font-weight: bold; }
-        .modal-item { padding: 12px; border-bottom: 1px dashed #eee; font-size: 15px; color: #333; }
+        .modal-close-btn { background: rgba(255, 77, 77, 0.8); color: white; border: 1px solid rgba(255,255,255,0.3); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px; font-weight: bold; }
+        .modal-item { padding: 12px; border-bottom: 1px dashed rgba(0,105,92,0.1); font-size: 15px; color: #004d40; }
         .modal-item:last-child { border-bottom: none; }
         .modal-empty { text-align: center; color: #00695c; font-weight: bold; padding: 30px; }
 
         @media (max-width: 600px) { 
-            header { flex-direction: column; text-align: center; }
+            header { flex-direction: column; text-align: center; padding: 15px; }
             .header-right { width: 100%; align-items: center; margin-top: 10px; }
             .item-name { font-size: 13px; } 
             .item-price { font-size: 14px; } 
@@ -212,6 +253,7 @@
             .add-btn { padding: 6px; font-size: 13px; }
             .fav-btn { width: 28px; height: 28px; font-size: 14px; }
             .admin-box { padding: 15px; }
+            .bottom-nav { width: 95%; }
         }
     </style>
 </head>
@@ -256,7 +298,7 @@
 
             <div id="adminDashboard" style="display:none;">
                 
-                <div class="toggle-box" style="border-color: #ffb74d; background: #fff3e0;">
+                <div class="toggle-box" style="border-color: #ffb74d; background: rgba(255, 243, 224, 0.7);">
                     <p>🛠️ وضع التحديث (إغلاق الموقع مؤقتاً)</p>
                     <label class="switch">
                         <input type="checkbox" id="maintenanceToggle" onchange="toggleMaintenanceMode(this.checked)">
@@ -264,7 +306,7 @@
                     </label>
                 </div>
 
-                <div class="toggle-box" style="border-color: #64b5f6; background: #e3f2fd;">
+                <div class="toggle-box" style="border-color: #64b5f6; background: rgba(227, 242, 253, 0.7);">
                     <p>🖼️ إخفاء صور الأصناف (حتى تنتهي من تعديلها)</p>
                     <label class="switch">
                         <input type="checkbox" id="hideImagesToggle" onchange="toggleHideImages(this.checked)">
@@ -279,7 +321,7 @@
                         <p id="kpiActiveProducts">0</p>
                     </div>
                     <div class="kpi-card blue">
-                        <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg></div>
+                        <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.0 2-2-.9-2-2-2z"/></svg></div>
                         <h4>طلبات اليوم</h4>
                         <p id="kpiTodayOrders">0</p>
                     </div>
@@ -290,9 +332,9 @@
                     </div>
                 </div>
 
-                <div class="admin-box" style="border: 2px solid #004d40; background: #fff;">
+                <div class="admin-box" style="border: 1px solid rgba(0, 77, 64, 0.3);">
                     <h3><span class="icon">📊</span> التقارير والمبيعات</h3>
-                    <button class="admin-btn" style="background-color:#004d40; margin-bottom:15px;" onclick="loadReports()">عرض التقارير التفصيلية</button>
+                    <button class="admin-btn" style="background:rgba(0, 77, 64, 0.85); margin-bottom:15px;" onclick="loadReports()">عرض التقارير التفصيلية</button>
                     <div id="reportsContainer" style="display:none;">
                         <div class="report-list">
                             <h4>🏆 أكثر الأصناف مبيعاً</h4>
@@ -317,37 +359,37 @@
                     <button class="admin-btn" onclick="addProduct()">حفظ ونشر الصنف</button>
                 </div>
 
-                <div class="admin-box" style="border: 2px solid #004d40; background: #fff;">
-                    <h3 style="color:#004d40;"><span class="icon" style="background:#004d40">⚙️</span> تحديث الأسعار والمخزون (رفع إكسيل)</h3>
-                    <p style="font-size:14px; color:#666; margin-bottom:15px;">ارفع ملف إكسيل فيه كل الأصناف المتاحة حالياً. الكود هيرفع الأسعار، ويضيف الجديد، ويخفي أي صنف مش موجود في الملف (بدون مسح صورته). الأصناف المش موجوده في الإكسيل هتتخفي كلها ما عدا العروض الأسبوعية.</p>
+                <div class="admin-box" style="border: 1px solid rgba(0, 77, 64, 0.3);">
+                    <h3 style="color:#004d40;"><span class="icon" style="background:rgba(0, 77, 64, 0.85)">⚙️</span> تحديث الأسعار والمخزون (رفع إكسيل)</h3>
+                    <p style="font-size:14px; color:#004d40; margin-bottom:15px;">ارفع ملف إكسيل فيه كل الأصناف المتاحة حالياً. الكود هيرفع الأسعار، ويضيف الجديد، ويخفي أي صنف مش موجود في الملف (بدون مسح صورته). الأصناف المش موجوده في الإكسيل هتتخفي كلها ما عدا العروض الأسبوعية.</p>
                     <select id="syncExcelCategory" class="admin-input">
                         <option value="medical">طبية / عام</option>
                         <option value="offers">عروض</option>
                     </select>
                     <input type="file" id="syncExcelFile" class="admin-input" accept=".xlsx, .xls, .csv">
-                    <button class="admin-btn" style="background-color:#004d40;" onclick="syncExcelPrices()">🔄 مزامنة الملف وتحديث الموقع</button>
+                    <button class="admin-btn" style="background:rgba(0, 77, 64, 0.85);" onclick="syncExcelPrices()">🔄 مزامنة الملف وتحديث الموقع</button>
                 </div>
 
-                <div class="admin-box" style="border: 2px solid #1976d2; background: #fff;">
-                    <h3 style="color:#1976d2;"><span class="icon" style="background:#1976d2">🖼️</span> رفع صور بالجملة (تلقائي)</h3>
-                    <p style="font-size:14px; color:#666; margin-bottom:15px;">اختر عدة صور من جهازك دفعة واحدة. سيقوم الموقع بربط كل صورة بالصنف المناسب تلقائياً إذا كان <strong>اسم ملف الصورة مطابقاً لاسم الصنف</strong>.</p>
+                <div class="admin-box" style="border: 1px solid rgba(25, 118, 210, 0.3);">
+                    <h3 style="color:#1976d2;"><span class="icon" style="background:rgba(25, 118, 210, 0.85)">🖼️</span> رفع صور بالجملة (تلقائي)</h3>
+                    <p style="font-size:14px; color:#004d40; margin-bottom:15px;">اختر عدة صور من جهازك دفعة واحدة. سيقوم الموقع بربط كل صورة بالصنف المناسب تلقائياً إذا كان <strong>اسم ملف الصورة مطابقاً لاسم الصنف</strong>.</p>
                     <input type="file" id="bulkImageInput" class="admin-input" accept="image/*" multiple>
-                    <button class="admin-btn" style="background-color:#1976d2;" onclick="bulkUploadImages()">رفع الصور وربطها بالأصناف</button>
-                    <div id="bulkUploadStatus" style="margin-top:15px; font-weight:bold; color:#333; text-align:center;"></div>
+                    <button class="admin-btn" style="background:rgba(25, 118, 210, 0.85);" onclick="bulkUploadImages()">رفع الصور وربطها بالأصناف</button>
+                    <div id="bulkUploadStatus" style="margin-top:15px; font-weight:bold; color:#004d40; text-align:center;"></div>
                 </div>
 
-                <div class="admin-box" style="background: #fff;">
+                <div class="admin-box">
                     <h3><span class="icon">📦</span> الأصناف الحالية</h3>
                     <input type="text" id="adminSearchInput" class="admin-input" placeholder="ابحث عن صنف في لوحة التحكم..." oninput="filterAdminProducts()" style="margin-bottom: 10px;">
-                    <button class="admin-btn" style="background-color:#1976d2; margin-bottom: 20px;" onclick="showNoImageReport()">📋 عرض تقرير الأصناف بدون صور</button>
+                    <button class="admin-btn" style="background:rgba(25, 118, 210, 0.85); margin-bottom: 20px;" onclick="showNoImageReport()">📋 عرض تقرير الأصناف بدون صور</button>
                     <div id="adminProductList"></div>
                 </div>
                 
-                <div class="admin-box" style="text-align:center; background: #fff;">
-                    <button class="admin-btn" style="background-color:#d32f2f; width:100%;" onclick="deleteAllProducts()">مسح جميع الأصناف نهائياً</button>
+                <div class="admin-box" style="text-align:center;">
+                    <button class="admin-btn" style="background:rgba(211, 47, 47, 0.85); width:100%;" onclick="deleteAllProducts()">مسح جميع الأصناف نهائياً</button>
                 </div>
 
-                <button class="admin-btn" style="background-color:#000;" onclick="adminLogout()">تسجيل الخروج</button>
+                <button class="admin-btn" style="background:rgba(0, 0, 0, 0.8);" onclick="adminLogout()">تسجيل الخروج</button>
             </div>
         </div>
 
@@ -411,7 +453,7 @@
 
         <div id="view-orders" class="view" style="display: none;">
             <h2 style="color:#00695c; text-align:center;">طلباتي السابقة</h2>
-            <div id="ordersList"><p style="text-align:center; color:#888; font-size:18px;">لا توجد طلبات سابقة.</p></div>
+            <div id="ordersList"><p style="text-align:center; color:#00695c; font-size:18px;">لا توجد طلبات سابقة.</p></div>
         </div>
 
         <div id="view-contact" class="view" style="display: none;">
@@ -423,7 +465,7 @@
                 <div class="contact-item"><span>5010048 (أرضي)</span><a href="tel:5010048">اتصال</a></div>
                 <div class="contact-item"><span>5003717 (أرضي)</span><a href="tel:5003717">اتصال</a></div>
                 <div class="contact-item"><span>5013813 (أرضي)</span><a href="tel:5013813">اتصال</a></div>
-                <div class="contact-item"><span style="color:#ff4d4d;">01220202473 (شكاوي)</span><a href="tel:01220202473" style="background-color:#ff4d4d;">اتصال</a></div>
+                <div class="contact-item"><span style="color:#ff4d4d;">01220202473 (شكاوي)</span><a href="tel:01220202473" style="background:rgba(255,77,77,0.85);">اتصال</a></div>
                 <a href="https://wa.me/201274906271" class="whatsapp-btn-large" target="_blank">مراسلتنا على واتساب</a>
                 <div class="missing-item-banner">
                     <h3>لم تجد ما تبحث عنه؟</h3>
@@ -506,13 +548,11 @@
                 if (error) throw error;
                 let rawData = data || [];
                 
-                // ====== إزالة التكرار (مهم جداً) ======
-                // هنوحد الأسماء عشان نطابقها حتى لو فيه فرق في المسافات أو التشكيل
                 const seenNames = new Set();
                 rawData = rawData.filter(p => {
                     const normName = normalizeArabic(p.name);
-                    if (!normName) return false; // لو الاسم فاضي
-                    if (seenNames.has(normName)) return false; // لو متكرر نمسحه
+                    if (!normName) return false; 
+                    if (seenNames.has(normName)) return false; 
                     seenNames.add(normName); 
                     return true;
                 });
@@ -530,7 +570,7 @@
                 if (cached) {
                     allProducts = JSON.parse(cached);
                     if (document.getElementById("btnAll").classList.contains("active")) { currentProducts = allProducts; filterProducts(); }
-                } else { listDiv.innerHTML = '<p style="text-align:center; color:red; font-size:18px;">تعذر تحميل الأصناف. برجاء التحقق من الإنترنت.</p>'; }
+                } else { listDiv.innerHTML = '<p style="text-align:center; color:#d32f2f; font-size:18px;">تعذر تحميل الأصناف. برجاء التحقق من الإنترنت.</p>'; }
             }
         }
 
@@ -545,7 +585,7 @@
         function filterProducts() {
             let searchText = document.getElementById('searchInput').value.toLowerCase();
             let listDiv = document.getElementById('productList');
-            if (currentProducts.length === 0) { listDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد أصناف في هذا القسم.</p>'; return; }
+            if (currentProducts.length === 0) { listDiv.innerHTML = '<p style="text-align:center; color:#00695c; font-size:18px;">لا توجد أصناف في هذا القسم.</p>'; return; }
             let filtered = currentProducts.filter(p => p.name && p.name.toLowerCase().includes(searchText));
             filtered = sortProductsByName(filtered); 
             
@@ -555,10 +595,10 @@
                 let whatsappLink = `https://wa.me/201274906271?text=${whatsappMsg}`;
                 
                 listDiv.innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; background: #fff; border-radius: 12px; border: 2px dashed #00695c; margin-top: 20px;">
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; background: rgba(255,255,255,0.65); backdrop-filter: blur(10px); border-radius: 20px; border: 1px solid rgba(255,255,255,0.5); margin-top: 20px;">
                         <p style="color: #d32f2f; font-size: 20px; font-weight: bold; margin-bottom: 10px;">عذراً، لم نجد "${missingItemText}" في القائمة</p>
-                        <p style="color: #666; font-size: 16px; margin-bottom: 25px;">لكن يمكننا توفيره لك! تواصل معنا وسنوفره في أسرع وقت.</p>
-                        <a href="${whatsappLink}" target="_blank" style="background-color: #25D366; color: #fff; text-decoration: none; padding: 14px 30px; border-radius: 50px; font-size: 18px; font-weight: bold; display: inline-block; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);">
+                        <p style="color: #004d40; font-size: 16px; margin-bottom: 25px;">لكن يمكننا توفيره لك! تواصل معنا وسنوفره في أسرع وقت.</p>
+                        <a href="${whatsappLink}" target="_blank" style="background-color: #25D366; color: #fff; text-decoration: none; padding: 14px 30px; border-radius: 50px; font-size: 18px; font-weight: bold; display: inline-block; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);">
                             📱 اطلبه الآن عبر واتساب
                         </a>
                     </div>
@@ -623,7 +663,7 @@
 
         function renderFavorites() {
             let favDiv = document.getElementById('favoritesList'); 
-            if (favorites.length === 0) { favDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد أصناف في المفضلة.</p>'; return; }
+            if (favorites.length === 0) { favDiv.innerHTML = '<p style="text-align:center; color:#00695c; font-size:18px;">لا توجد أصناف في المفضلة.</p>'; return; }
             let sortedFavs = sortProductsByName([...favorites]); 
             let htmlContent = '';
             sortedFavs.forEach(p => {
@@ -780,7 +820,7 @@
 
         function renderOrders() {
             let ordersDiv = document.getElementById('ordersList'); 
-            if (myOrders.length === 0) { ordersDiv.innerHTML = '<p style="text-align:center; color:#888; font-size:18px;">لا توجد طلبات سابقة.</p>'; return; }
+            if (myOrders.length === 0) { ordersDiv.innerHTML = '<p style="text-align:center; color:#00695c; font-size:18px;">لا توجد طلبات سابقة.</p>'; return; }
             let htmlContent = '';
             myOrders.forEach((order, index) => {
                 let itemsText = order.items.map(item => `${item.name} (${item.qty})`).join('، ');
@@ -929,22 +969,22 @@
                     <meta charset="UTF-8">
                     <title>فاتورة - Tree Pharma</title>
                     <style>
-                        body { font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif; color: #333; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+                        body { font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif; color: #004d40; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; background: #e0f2f1; }
                         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00695c; padding-bottom: 20px; margin-bottom: 20px; }
                         .logo { font-size: 24px; font-weight: bold; color: #00695c; }
-                        .invoice-title { font-size: 20px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+                        .invoice-title { font-size: 20px; color: #004d40; text-transform: uppercase; letter-spacing: 1px; }
                         .details { display: flex; justify-content: space-between; margin-bottom: 30px; }
                         .details h3 { margin: 0 0 5px 0; color: #00695c; font-size: 14px; }
                         .details p { margin: 0; font-size: 14px; }
-                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                        th, td { padding: 12px; text-align: center; border: 1px solid #ddd; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: #fff; border-radius: 12px; overflow: hidden; }
+                        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #e0f2f1; }
                         th { background-color: #00695c; color: white; font-size: 14px; }
                         td { font-size: 13px; }
                         .total-section { text-align: left; margin-bottom: 40px; }
                         .total-row { display: flex; justify-content: flex-end; font-size: 18px; font-weight: bold; color: #00695c; margin-top: 10px; }
                         .total-row span { margin-left: 20px; }
-                        .payment-method { background: #f9f9f9; padding: 10px; border-radius: 5px; border: 1px dashed #00695c; margin-bottom: 20px; text-align: center; font-weight: bold; color: #00695c; }
-                        @media print { body { -webkit-print-color-adjust: exact; } }
+                        .payment-method { background: #e0f2f1; padding: 10px; border-radius: 8px; border: 1px dashed #00695c; margin-bottom: 20px; text-align: center; font-weight: bold; color: #00695c; }
+                        @media print { body { background: #fff; -webkit-print-color-adjust: exact; } }
                     </style>
                 </head>
                 <body>
@@ -996,7 +1036,7 @@
 
         function printCatalog() {
             if (allProducts.length === 0) { showToast("لم يتم تحمل الأصناف بعد.", "error"); return; }
-            let catalogContents = `<html dir="rtl" lang="ar"><head><title>قائمة أسعار - Tree Pharma</title><style>body{font-family:'Tajawal','Segoe UI',Tahoma,sans-serif;padding:20px}h1{color:#00695c;text-align:center;margin-bottom:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:right}th{background-color:#00695c;color:white}tr:nth-child(even){background-color:#f9f9f9}</style></head><body><h1>قائمة أسعار Tree Pharma</h1><table><tr><th>اسم الصنف</th><th>سعر الصيدلي</th></tr>`;
+            let catalogContents = `<html dir="rtl" lang="ar"><head><title>قائمة أسعار - Tree Pharma</title><style>body{font-family:'Tajawal','Segoe UI',Tahoma,sans-serif;padding:20px;background:#e0f2f1}h1{color:#00695c;text-align:center;margin-bottom:20px}table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden}th,td{border-bottom:1px solid #e0f2f1;padding:8px;text-align:right}th{background-color:#00695c;color:white}tr:nth-child(even){background-color:#f8f9fa}</style></head><body><h1>قائمة أسعار Tree Pharma</h1><table><tr><th>اسم الصنف</th><th>سعر الصيدلي</th></tr>`;
             allProducts.forEach(p => { catalogContents += `<tr><td>${p.name}</td><td>${p.price} ج.م</td></tr>`; });
             catalogContents += `</table></body></html>`;
             let printWindow = window.open('', '_blank'); printWindow.document.open(); printWindow.document.write(catalogContents); printWindow.document.close(); setTimeout(function() { printWindow.print(); }, 500);
@@ -1088,7 +1128,6 @@
                     const row = json[i];
                     if (row[0] && row[1]) {
                         const normalizedName = normalizeArabic(String(row[0]).trim());
-                        // فلترة التكرار جوه ملف الإكسيل نفسه
                         if (!excelNamesSet.has(normalizedName)) {
                             excelItems.push({ name: String(row[0]).trim(), price: parseFloat(row[1]), normName: normalizedName });
                             excelNamesSet.add(normalizedName);
@@ -1224,7 +1263,7 @@
             productsToRender = sortProductsByName(productsToRender);
             
             if(productsToRender.length === 0) { 
-                listDiv.innerHTML = '<p style="text-align:center; color:#888;">لا توجد أصناف مطابقة.</p>'; 
+                listDiv.innerHTML = '<p style="text-align:center; color:#00695c;">لا توجد أصناف مطابقة.</p>'; 
                 return; 
             }
             
@@ -1232,14 +1271,14 @@
             let genCount = 0, offCount = 0;
             
             productsToRender.forEach(p => {
-                let statusStyle = p.is_active ? '' : 'opacity: 0.5; border: 1px dashed #ff4d4d;';
-                let statusBadge = p.is_active ? '' : '<span style="background:#ff4d4d; color:white; padding:2px 8px; border-radius:12px; font-size:10px; margin-right: 10px;">مخفي</span>';
+                let statusStyle = p.is_active ? '' : 'opacity: 0.6; border: 1px dashed rgba(255,77,77,0.5);';
+                let statusBadge = p.is_active ? '' : '<span style="background:rgba(255,77,77,0.8); color:white; padding:2px 8px; border-radius:12px; font-size:10px; margin-right: 10px;">مخفي</span>';
                 
                 let itemHTML = `
                     <div class="admin-product-item" style="${statusStyle}">
                         <div style="display:flex; gap:10px; width:100%; align-items:center;">
-                            <input type="text" id="edit_name_${p.id}" value="${p.name}" class="admin-input" style="flex:1; margin-bottom:0; font-weight:bold; background:#fff;" placeholder="الاسم">
-                            <input type="number" id="edit_price_${p.id}" value="${p.price}" class="admin-input" style="width:100px; margin-bottom:0; text-align:center; background:#fff;" placeholder="السعر">
+                            <input type="text" id="edit_name_${p.id}" value="${p.name}" class="admin-input" style="flex:1; margin-bottom:0; font-weight:bold; background:rgba(255,255,255,0.8); color:#004d40;" placeholder="الاسم">
+                            <input type="number" id="edit_price_${p.id}" value="${p.price}" class="admin-input" style="width:100px; margin-bottom:0; text-align:center; background:rgba(255,255,255,0.8); color:#004d40;" placeholder="السعر">
                             ${statusBadge}
                         </div>
                         <div style="display:flex; gap:10px; width:100%; align-items:center; justify-content:flex-end;">
@@ -1261,7 +1300,7 @@
             if (offersHTML) { htmlContent += `<div class="admin-category-header">العروض الأسبوعية <span>${offCount} صنف</span></div>`; htmlContent += offersHTML; }
             
             if (!generalHTML && !offersHTML) {
-                listDiv.innerHTML = '<p style="text-align:center; color:#888;">لا توجد أصناف مضافة.</p>';
+                listDiv.innerHTML = '<p style="text-align:center; color:#00695c;">لا توجد أصناف مضافة.</p>';
             } else {
                 listDiv.innerHTML = htmlContent;
             }
@@ -1275,9 +1314,9 @@
                 listDiv.innerHTML = '<div class="modal-empty">🎉 ممتاز! كل الأصناف ليها صور.</div>';
             } else {
                 let sortedNoImage = sortProductsByName([...noImageProducts]);
-                let html = `<p style="margin-bottom:15px; color:#666; font-size:14px;">يوجد <strong style="color:#d32f2f;">${noImageProducts.length}</strong> صنف بدون صورة:</p>`;
+                let html = `<p style="margin-bottom:15px; color:#004d40; font-size:14px;">يوجد <strong style="color:#d32f2f;">${noImageProducts.length}</strong> صنف بدون صورة:</p>`;
                 sortedNoImage.forEach((p, i) => {
-                    html += `<div class="modal-item">${i + 1}. ${p.name} <small style="color:#888; float:left;">(${p.category === 'offers' ? 'عروض' : 'عام'})</small></div>`;
+                    html += `<div class="modal-item">${i + 1}. ${p.name} <small style="color:#00695c; opacity:0.7; float:left;">(${p.category === 'offers' ? 'عروض' : 'عام'})</small></div>`;
                 });
                 listDiv.innerHTML = html;
             }
