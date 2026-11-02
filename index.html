@@ -34,7 +34,6 @@
             overscroll-behavior: contain;
         }
         
-        /* Glass for Major Containers Only (Performance-friendly) */
         .glass {
             background: rgba(255, 255, 255, 0.55);
             backdrop-filter: blur(20px) saturate(180%);
@@ -70,26 +69,48 @@
         .view-btn:active { transform: scale(0.95); }
         .catalog-btn { background: rgba(0, 105, 92, 0.9); color: #fff; border: none; padding: 12px 20px; border-radius: 50px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 15px; width: 100%; max-width: 500px; }
         
-        .product-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
-        /* Lightweight Cards - No blur for performance */
+        /* ====== Scroll Snap for Product List ====== */
+        .product-list { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
+            gap: 15px; 
+            scroll-snap-type: y proximity;
+            scroll-padding-top: 20px;
+        }
         .list-item { 
             background: rgba(255, 255, 255, 0.5); 
             border: 1px solid rgba(255, 255, 255, 0.6); 
             border-radius: 20px; padding: 12px; 
             box-shadow: 0 4px 15px rgba(0,105,92,0.05); 
-            transition: transform 0.15s ease-out, background 0.2s; 
+            transition: transform 0.15s ease-out, background 0.2s, opacity 0.5s ease; 
             display: flex; flex-direction: column; 
             will-change: transform;
             transform: translateZ(0);
+            scroll-snap-align: start;
+            scroll-snap-stop: normal;
+            opacity: 0;
         }
+        .list-item.visible { opacity: 1; animation: fadeInUp 0.5s ease-out; }
         .list-item:hover { box-shadow: 0 8px 25px rgba(0,105,92,0.15); background: rgba(255,255,255,0.7); }
         .list-item:active { transform: scale(0.98); }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         
         .item-image-container { width: 100%; aspect-ratio: 1 / 1; background: rgba(224, 242, 241, 0.4); border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; }
         .item-image-container::before { content: ""; position: absolute; width: 24px; height: 24px; border: 3px solid #00695c; border-bottom-color: transparent; border-radius: 50%; animation: img-spin 0.8s linear infinite; z-index: 0; }
         .item-image-container.loaded::before { display: none; }
-        .item-image { max-width: 90%; max-height: 90%; object-fit: contain; cursor: pointer; transition: opacity 0.3s ease; opacity: 0; position: relative; z-index: 1; }
-        .item-image.loaded { opacity: 1; }
+        /* ====== Lazy Fade-in for Images ====== */
+        .item-image { 
+            max-width: 90%; max-height: 90%; object-fit: contain; cursor: pointer; 
+            opacity: 0; 
+            transition: opacity 0.8s ease-in-out; 
+            position: relative; z-index: 1; 
+            transform: scale(0.95);
+        }
+        .item-image.loaded { opacity: 1; transform: scale(1); }
         @keyframes img-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 12px; }
@@ -107,7 +128,7 @@
 
         #lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); z-index: 10001; justify-content: center; align-items: center; cursor: zoom-out; }
         #lightbox.active { display: flex; }
-        #lightbox img { max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+        #lightbox img { max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.5); animation: fadeInUp 0.4s ease-out; }
 
         .cart-section { background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); padding: 25px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.5); box-shadow: 0 8px 32px rgba(0,0,0,0.05); }
         .cart-section h2 { color: #004d40; border-bottom: 1px solid rgba(0,105,92,0.1); padding-bottom: 15px; margin-top: 0; font-size: 22px; }
@@ -121,7 +142,7 @@
         .payment-option { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 15px; color: #004d40; }
         .payment-option input { width: 20px; height: 20px; accent-color: #00695c; cursor: pointer; }
         .payment-details { display: none; margin-top: 5px; padding: 15px; background: rgba(224, 242, 241, 0.6); border: 1px dashed rgba(0,105,92,0.3); border-radius: 12px; font-size: 14px; line-height: 1.6; color: #004d40; }
-        .payment-details.active { display: block; }
+        .payment-details.active { display: block; animation: fadeInUp 0.3s ease-out; }
         .copy-text { font-weight: bold; color: #00695c; user-select: all; }
         .order-list { margin-bottom: 20px; font-size: 15px; background: rgba(224, 242, 241, 0.4); padding: 15px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.4); color: #004d40; }
         .order-list div { padding: 12px 0; border-bottom: 1px solid rgba(0,105,92,0.1); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -158,7 +179,7 @@
         .nav-item.active .nav-icon { fill: #004d40; }
         .cart-badge { position: absolute; top: 0; right: 15px; background-color: #ff4d4d; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         #toastContainer { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none; }
-        .toast { background: rgba(0, 105, 92, 0.95); color: white; padding: 15px; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); font-size: 16px; text-align: center; }
+        .toast { background: rgba(0, 105, 92, 0.95); color: white; padding: 15px; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); font-size: 16px; text-align: center; animation: fadeInUp 0.3s ease-out; }
         .toast.error { background: rgba(211, 47, 47, 0.95); }
         .toast.hide { opacity: 0; transition: opacity 0.5s; }
         
@@ -209,7 +230,7 @@
 
         #noImageModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(15px); z-index: 10002; justify-content: center; align-items: center; padding: 20px; }
         #noImageModal.active { display: flex; }
-        .modal-content { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(30px); border-radius: 20px; padding: 25px; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.6); }
+        .modal-content { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(30px); border-radius: 20px; padding: 25px; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.6); animation: fadeInUp 0.3s ease-out; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,105,92,0.1); padding-bottom: 15px; margin-bottom: 20px; }
         .modal-header h3 { margin: 0; color: #00695c; font-size: 18px; font-weight: 800; }
         .modal-close-btn { background: #ff4d4d; color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px; font-weight: bold; }
@@ -434,6 +455,19 @@
         let myOrders = JSON.parse(localStorage.getItem('treePharma_orders')) || [];
         let isHidingImages = false;
 
+        // ====== Intersection Observer for Lazy Fade-in ======
+        let fadeObserver;
+        if ('IntersectionObserver' in window) {
+            fadeObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        fadeObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1, rootMargin: '50px' });
+        }
+
         const sortProductsByName = (arr) => arr.sort((a, b) => (a.name||"").localeCompare(b.name||"", 'ar'));
         
         function showToast(message, type = 'success') {
@@ -479,6 +513,16 @@
             if(!f.length && s.trim()) { l.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;background:rgba(255,255,255,0.6);border-radius:20px;border:1px solid rgba(255,255,255,0.5);"><p style="color:#d32f2f;font-size:18px;font-weight:bold;">عذراً، لم نجد "${s.trim()}"</p><a href="https://wa.me/201274906271?text=${encodeURIComponent('طلب صنف: '+s.trim())}" target="_blank" style="background:#25D366;color:#fff;padding:12px 25px;border-radius:50px;display:inline-block;margin-top:15px;font-weight:bold;text-decoration:none;">اطلبه عبر واتساب</a></div>`; return; }
             let isOffer = document.getElementById("btnOffers").classList.contains("active");
             l.innerHTML = f.map(p => `<div class="list-item">${(!isHidingImages && !isOffer && p.image_url) ? `<div class="item-image-container"><img src="${p.image_url}" class="item-image" loading="lazy" onload="this.classList.add('loaded');this.parentNode.classList.add('loaded');" onclick="openLightbox('${p.image_url}')"></div>` : ''}<div class="item-header"><div class="item-info"><span class="item-name">${p.name}</span><span class="item-price">${p.price} ج.م</span></div><button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price}, this)">${favorites.some(f=>f.name===p.name)?'❤️':'🤍'}</button></div><div class="item-footer"><input type="number" class="qty-input" id="qty_${p.id}" placeholder="0" min="1"><button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'qty_${p.id}')">إضافة للسلة</button></div></div>`).join('');
+            
+            // ====== Apply Lazy Fade-in Observer ======
+            if (fadeObserver) {
+                l.querySelectorAll('.list-item').forEach(item => {
+                    fadeObserver.observe(item);
+                });
+            } else {
+                // Fallback for old browsers
+                l.querySelectorAll('.list-item').forEach(item => item.classList.add('visible'));
+            }
         }
 
         function toggleFavorite(n, p, b) {
@@ -493,6 +537,12 @@
             let d = document.getElementById('favoritesList');
             if(!favorites.length){d.innerHTML='<p style="text-align:center;color:#00695c;">المفضلة فارغة.</p>';return;}
             d.innerHTML = sortProductsByName([...favorites]).map(p => `<div class="list-item"><div class="item-header"><div class="item-info"><span class="item-name">${p.name}</span><span class="item-price">${p.price} ج.م</span></div><button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price}, this)">❤️</button></div><div class="item-footer"><input type="number" class="qty-input" min="1" id="fq${p.name.replace(/\s/g,'')}" placeholder="0"><button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'fq${p.name.replace(/\s/g,'')}')">إضافة للسلة</button></div></div>`).join('');
+            // Apply observer to favorites too
+            if (fadeObserver) {
+                d.querySelectorAll('.list-item').forEach(item => fadeObserver.observe(item));
+            } else {
+                d.querySelectorAll('.list-item').forEach(item => item.classList.add('visible'));
+            }
         }
 
         window.onload = async function() {
@@ -536,6 +586,12 @@
             document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
             if(e)e.currentTarget.classList.add('active');
             if(v==='favorites')renderFavorites(); if(v==='orders')renderOrders();
+            // Re-trigger observer on view change
+            if (fadeObserver && (v === 'home' || v === 'favorites')) {
+                setTimeout(() => {
+                    document.querySelectorAll('.list-item:not(.visible)').forEach(item => fadeObserver.observe(item));
+                }, 100);
+            }
         }
 
         function renderOrders() { let d=document.getElementById('ordersList'); if(!myOrders.length){d.innerHTML='<p style="text-align:center;color:#00695c;">لا توجد طلبات.</p>';return;} d.innerHTML=myOrders.map((o,i)=>`<div class="history-item"><div class="history-header"><span class="history-date">${o.date}</span><span class="history-total">${o.total} ج.م</span></div><p>${o.items.map(x=>`${x.name} (${x.qty})`).join('، ')}</p><button class="reorder-btn" onclick="reorder(${i})">إعادة الطلب</button></div>`).join(''); }
