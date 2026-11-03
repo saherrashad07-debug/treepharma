@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tree Pharma - مستلزمات طبية وتجميل</title>
+    <title>Tree Pharma - تري فارما للمستزمات الطبية</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#00695c">
@@ -11,6 +11,21 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Tree Pharma">
+
+    <!-- ====== أكواد الوصف ومشاركة اللينك (Open Graph) ====== -->
+    <meta name="description" content="تري فارما للمستزمات الطبية - توزيع مستلزمات طبية وتجميل للصيدليات. اطلب الآن بأسعار الجملة والتوصيل لباب الصيدلية.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Tree Pharma - تري فارما للمستزمات الطبية">
+    <meta property="og:description" content="تري فارما للمستزمات الطبية - توزيع مستلزمات طبية وتجميل للصيدليات. اطلب الآن بأسعار الجملة والتوصيل لباب الصيدلية.">
+    <meta property="og:image" content="https://treepharma.vercel.app/logo.jpg.jpg">
+    <meta property="og:url" content="https://treepharma.vercel.app/">
+    <meta property="og:site_name" content="Tree Pharma">
+    <meta property="og:locale" content="ar_AR">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Tree Pharma - تري فارما للمستزمات الطبية">
+    <meta name="twitter:description" content="تري فارما للمستزمات الطبية - توزيع مستلزمات طبية وتجميل للصيدليات.">
+    <meta name="twitter:image" content="https://treepharma.vercel.app/logo.jpg.jpg">
+    <!-- ====================================================== -->
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -30,7 +45,7 @@
             min-height: 100vh;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: contain;
-            overflow-x: hidden; /* منع السحب الجانبي */
+            overflow-x: hidden; 
         }
 
         header { 
@@ -59,10 +74,9 @@
         .view-btn:active { transform: scale(0.95); }
         .catalog-btn { background: #00695c; color: #fff; border: none; padding: 12px 20px; border-radius: 50px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 15px; width: 100%; max-width: 500px; }
         
-        /* ضبط الـ Grid عشان يضمن عمودين على الموبايل من غير ما يعدوا الشاشة */
         .product-list { 
             display: grid; 
-            grid-template-columns: repeat(2, 1fr); /* افتراضياً عمودين */
+            grid-template-columns: repeat(2, 1fr); 
             gap: 15px;
         }
         @media (min-width: 600px) {
@@ -75,7 +89,7 @@
             border-radius: 20px; padding: 12px; 
             box-shadow: 0 2px 8px rgba(0,105,92,0.04); 
             display: flex; flex-direction: column; 
-            min-width: 0; /* يمنع العناصر من توسيع البطاقة أكبر من اللازم */
+            min-width: 0; 
             will-change: transform;
             transform: translateZ(0);
         }
@@ -278,7 +292,7 @@
                         <h4>الأصناف النشطة</h4><p id="kpiActiveProducts">0</p>
                     </div>
                     <div class="kpi-card" style="border-bottom-color: #1976d2;">
-                        <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg></div>
+                        <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.0 2-2-.9-2-2-2z"/></svg></div>
                         <h4>طلبات اليوم</h4><p id="kpiTodayOrders">0</p>
                     </div>
                     <div class="kpi-card" style="border-bottom-color: #f57c00;">
@@ -307,6 +321,7 @@
 
                 <div class="admin-box" style="border: 2px solid #004d40;">
                     <h3 style="color:#004d40;"><span class="icon" style="background:#004d40">⚙️</span> تحديث الأسعار (رفع إكسيل)</h3>
+                    <p style="font-size:14px; color:#004d40; margin-bottom:15px;">ارفع ملف إكسيل بكل الأصناف المتاحة. الكود هيحدث الأسعار، يضيف الجديد، ويخفي المش موجود (ما عدا العروض).</p>
                     <select id="syncExcelCategory" class="admin-input"><option value="medical">طبية / عام</option><option value="offers">عروض</option></select>
                     <input type="file" id="syncExcelFile" class="admin-input" accept=".xlsx, .xls, .csv">
                     <button class="admin-btn" style="background:#004d40;" onclick="syncExcelPrices()">🔄 مزامنة الملف</button>
@@ -413,7 +428,7 @@
     <nav class="bottom-nav">
         <div class="nav-item active" onclick="switchView('home', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>الرئيسية</div>
         <div class="nav-item" onclick="switchView('favorites', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>المفضلة</div>
-        <div class="nav-item" onclick="switchView('cart', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.0 2-2-.9-2-2-2z"/></svg><span class="cart-badge" id="cartBadge">0</span>السلة</div>
+        <div class="nav-item" onclick="switchView('cart', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg><span class="cart-badge" id="cartBadge">0</span>السلة</div>
         <div class="nav-item" onclick="switchView('orders', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>طلباتي</div>
         <div class="nav-item" onclick="switchView('contact', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>تواصل</div>
     </nav>
