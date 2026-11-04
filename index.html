@@ -201,6 +201,13 @@
         .nav-icon { width: 24px; height: 24px; margin-bottom: 2px; fill: var(--primary); }
         .nav-item.active .nav-icon { fill: var(--primary-dark); }
         .cart-badge { position: absolute; top: 0; right: 15px; background-color: #ff4d4d; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none; }
+
+        /* ====== فوتر الأدمن (3 أقسام: الرئيسية - المبيعات - المخزن) ====== */
+        .admin-nav { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 500px; background: var(--nav-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 8px 32px rgba(0,0,0,0.1); display: none; justify-content: space-around; padding: 8px 0; z-index: 999; border-radius: 30px; border: 1px solid var(--border-color); }
+        .admin-nav.active { display: flex; }
+        .admin-nav .nav-item.active { color: var(--primary-dark); background: rgba(0,105,92,0.12); }
+        .admin-nav .nav-item.active .nav-icon { fill: var(--primary-dark); }
+
         #toastContainer { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none; }
         .toast { background: var(--primary); color: white; padding: 15px; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); font-size: 16px; text-align: center; }
         .toast.error { background: #d32f2f; }
@@ -321,86 +328,101 @@
             </div>
 
             <div id="adminDashboard" style="display:none;">
-                <div class="toggle-box" style="border-color: #ffb74d; background: #fff3e0;">
-                    <p>🛠️ وضع التحديث (إغلاق الموقع مؤقتاً)</p>
-                    <label class="switch"><input type="checkbox" id="maintenanceToggle" onchange="toggleMaintenanceMode(this.checked)"><span class="slider orange"></span></label>
-                </div>
-                <div class="toggle-box" style="border-color: #64b5f6; background: #e3f2fd;">
-                    <p>🖼️ إخفاء صور الأصناف (حتى تنتهي من تعديلها)</p>
-                    <label class="switch"><input type="checkbox" id="hideImagesToggle" onchange="toggleHideImages(this.checked)"><span class="slider blue"></span></label>
-                </div>
 
-                <div class="admin-box">
-                    <h3><span class="icon">📢</span> البانر الإعلاني</h3>
-                    <p style="font-size:14px; color:var(--text-color); margin-bottom:15px;">اكتب النص اللي عايزه يظهر في البانر أعلى الموقع (لو سيبته فاضي البانر هيختفي تلقائياً).</p>
-                    <input type="text" id="bannerTextInput" class="admin-input" placeholder="اكتب نص البانر هنا...">
-                    <button class="admin-btn" onclick="saveBannerText()">حفظ البانر</button>
-                </div>
-
-                <div class="kpi-container">
-                    <div class="kpi-card">
-                        <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg></div>
-                        <h4>الأصناف النشطة</h4><p id="kpiActiveProducts">0</p>
+                <!-- ====== القسم الأول: الرئيسية ====== -->
+                <div id="adminView-main" class="admin-view-section">
+                    <div class="toggle-box" style="border-color: #ffb74d; background: #fff3e0;">
+                        <p>🛠️ وضع التحديث (إغلاق الموقع مؤقتاً)</p>
+                        <label class="switch"><input type="checkbox" id="maintenanceToggle" onchange="toggleMaintenanceMode(this.checked)"><span class="slider orange"></span></label>
                     </div>
-                    <div class="kpi-card" style="border-bottom-color: #1976d2;">
-                        <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg></div>
-                        <h4>طلبات اليوم</h4><p id="kpiTodayOrders">0</p>
+                    <div class="toggle-box" style="border-color: #64b5f6; background: #e3f2fd;">
+                        <p>🖼️ إخفاء صور الأصناف (حتى تنتهي من تعديلها)</p>
+                        <label class="switch"><input type="checkbox" id="hideImagesToggle" onchange="toggleHideImages(this.checked)"><span class="slider blue"></span></label>
                     </div>
-                    <div class="kpi-card" style="border-bottom-color: #f57c00;">
-                        <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.21c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg></div>
-                        <h4>مبيعات اليوم</h4><p id="kpiTodaySales">0 ج.م</p>
+
+                    <div class="admin-box">
+                        <h3><span class="icon">📢</span> البانر الإعلاني</h3>
+                        <p style="font-size:14px; color:var(--text-color); margin-bottom:15px;">اكتب النص اللي عايزه يظهر في البانر أعلى الموقع (لو سيبته فاضي البانر هيختفي تلقائياً).</p>
+                        <input type="text" id="bannerTextInput" class="admin-input" placeholder="اكتب نص البانر هنا...">
+                        <button class="admin-btn" onclick="saveBannerText()">حفظ البانر</button>
+                    </div>
+
+                    <div class="kpi-container">
+                        <div class="kpi-card">
+                            <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg></div>
+                            <h4>الأصناف النشطة</h4><p id="kpiActiveProducts">0</p>
+                        </div>
+                        <div class="kpi-card" style="border-bottom-color: #1976d2;">
+                            <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg></div>
+                            <h4>طلبات اليوم</h4><p id="kpiTodayOrders">0</p>
+                        </div>
+                        <div class="kpi-card" style="border-bottom-color: #f57c00;">
+                            <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.21c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg></div>
+                            <h4>مبيعات اليوم</h4><p id="kpiTodaySales">0 ج.م</p>
+                        </div>
+                    </div>
+
+                    <div class="admin-box">
+                        <h3><span class="icon">📦</span> الأصناف الحالية</h3>
+                        <input type="text" id="adminSearchInput" class="admin-input" placeholder="ابحث عن صنف..." oninput="filterAdminProducts()" style="margin-bottom: 10px;">
+                        <button class="admin-btn" style="background:#1976d2; margin-bottom: 20px;" onclick="showNoImageReport()">📋 عرض الأصناف بدون صور</button>
+                        <div id="adminProductList"></div>
+                    </div>
+                    
+                    <div class="admin-box" style="text-align:center;">
+                        <button class="admin-btn" style="background:#d32f2f; width:100%;" onclick="deleteAllProducts()">مسح جميع الأصناف نهائياً</button>
+                    </div>
+                    <button class="admin-btn" style="background:#000;" onclick="adminLogout()">تسجيل الخروج</button>
+                </div>
+
+                <!-- ====== القسم الثاني: المبيعات ====== -->
+                <div id="adminView-sales" class="admin-view-section" style="display:none;">
+                    <div class="admin-box">
+                        <h3><span class="icon">📦</span> إدارة الطلبات</h3>
+                        <p style="font-size:14px; color:var(--text-color); margin-bottom:15px;">عرض كل الطلبات (آخر 50 طلب) مع إمكانية تغيير حالة الطلب من القائمة المنسدلة.</p>
+                        <button class="admin-btn" style="background:#004d40; margin-bottom:15px;" onclick="loadAdminOrders()">عرض كل الطلبات</button>
+                        <div id="adminOrdersList"></div>
+                    </div>
+
+                    <div class="admin-box">
+                        <h3><span class="icon">📊</span> التقارير والمبيعات</h3>
+                        <p style="font-size:14px; color:var(--text-color); margin-bottom:15px;">أكثر الأصناف مبيعاً وأفضل العملاء مرتبة في دوائر مرقمة.</p>
+                        <button class="admin-btn" style="background:#004d40; margin-bottom:15px;" onclick="loadReports()">عرض التقارير التفصيلية</button>
+                        <div id="reportsContainer" style="display:none;">
+                            <div class="report-list"><h4>🏆 أكثر الأصناف مبيعاً</h4><div id="topProducts"></div></div>
+                            <div class="report-list"><h4>👥 أفضل العملاء</h4><div id="topCustomers"></div></div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="admin-box">
-                    <h3><span class="icon">📦</span> إدارة الطلبات</h3>
-                    <button class="admin-btn" style="background:#004d40; margin-bottom:15px;" onclick="loadAdminOrders()">عرض كل الطلبات</button>
-                    <div id="adminOrdersList"></div>
-                </div>
+                <!-- ====== القسم الثالث: المخزن ====== -->
+                <div id="adminView-inventory" class="admin-view-section" style="display:none;">
+                    <div class="admin-box">
+                        <h3><span class="icon">➕</span> إضافة صنف جديد</h3>
+                        <input type="text" id="pName" class="admin-input" placeholder="اسم الصنف">
+                        <input type="number" id="pPrice" class="admin-input" placeholder="السعر">
+                        <select id="pCategory" class="admin-input"><option value="medical">طبية / عام</option><option value="offers">عروض</option></select>
+                        <input type="file" id="pImage" class="admin-input" accept="image/*">
+                        <button class="admin-btn" onclick="addProduct()">حفظ ونشر الصنف</button>
+                    </div>
 
-                <div class="admin-box">
-                    <h3><span class="icon">📊</span> التقارير والمبيعات</h3>
-                    <button class="admin-btn" style="background:#004d40; margin-bottom:15px;" onclick="loadReports()">عرض التقارير التفصيلية</button>
-                    <div id="reportsContainer" style="display:none;">
-                        <div class="report-list"><h4>🏆 أكثر الأصناف مبيعاً</h4><div id="topProducts"></div></div>
-                        <div class="report-list"><h4>👥 أفضل العملاء</h4><div id="topCustomers"></div></div>
+                    <div class="admin-box" style="border: 2px solid #004d40;">
+                        <h3 style="color:#004d40;"><span class="icon" style="background:#004d40">⚙️</span> تحديث الأسعار (رفع إكسيل)</h3>
+                        <p style="font-size:14px; color:var(--text-color); margin-bottom:15px;">رفع ملف Excel يحدث الأسعار، يضيف الجديد، ويخفي المش موجود (ما عدا العروض).</p>
+                        <select id="syncExcelCategory" class="admin-input"><option value="medical">طبية / عام</option><option value="offers">عروض</option></select>
+                        <input type="file" id="syncExcelFile" class="admin-input" accept=".xlsx, .xls, .csv">
+                        <button class="admin-btn" style="background:#004d40;" onclick="syncExcelPrices()">🔄 مزامنة الملف</button>
+                    </div>
+
+                    <div class="admin-box" style="border: 2px solid #1976d2;">
+                        <h3 style="color:#1976d2;"><span class="icon" style="background:#1976d2">🖼️</span> رفع صور بالجملة</h3>
+                        <p style="font-size:14px; color:var(--text-color); margin-bottom:15px;">تطابق اسم الصورة (حتى لو عربي) مع اسم الصنف وتغيره لاسم آمن عند الرفع.</p>
+                        <input type="file" id="bulkImageInput" class="admin-input" accept="image/*" multiple>
+                        <button class="admin-btn" style="background:#1976d2;" onclick="bulkUploadImages()">رفع الصور</button>
+                        <div id="bulkUploadStatus" style="margin-top:15px; font-weight:bold; text-align:center;"></div>
                     </div>
                 </div>
 
-                <div class="admin-box">
-                    <h3><span class="icon">➕</span> إضافة صنف جديد</h3>
-                    <input type="text" id="pName" class="admin-input" placeholder="اسم الصنف">
-                    <input type="number" id="pPrice" class="admin-input" placeholder="السعر">
-                    <select id="pCategory" class="admin-input"><option value="medical">طبية / عام</option><option value="offers">عروض</option></select>
-                    <input type="file" id="pImage" class="admin-input" accept="image/*">
-                    <button class="admin-btn" onclick="addProduct()">حفظ ونشر الصنف</button>
-                </div>
-
-                <div class="admin-box" style="border: 2px solid #004d40;">
-                    <h3 style="color:#004d40;"><span class="icon" style="background:#004d40">⚙️</span> تحديث الأسعار (رفع إكسيل)</h3>
-                    <select id="syncExcelCategory" class="admin-input"><option value="medical">طبية / عام</option><option value="offers">عروض</option></select>
-                    <input type="file" id="syncExcelFile" class="admin-input" accept=".xlsx, .xls, .csv">
-                    <button class="admin-btn" style="background:#004d40;" onclick="syncExcelPrices()">🔄 مزامنة الملف</button>
-                </div>
-
-                <div class="admin-box" style="border: 2px solid #1976d2;">
-                    <h3 style="color:#1976d2;"><span class="icon" style="background:#1976d2">🖼️</span> رفع صور بالجملة</h3>
-                    <input type="file" id="bulkImageInput" class="admin-input" accept="image/*" multiple>
-                    <button class="admin-btn" style="background:#1976d2;" onclick="bulkUploadImages()">رفع الصور</button>
-                    <div id="bulkUploadStatus" style="margin-top:15px; font-weight:bold; text-align:center;"></div>
-                </div>
-
-                <div class="admin-box">
-                    <h3><span class="icon">📦</span> الأصناف الحالية</h3>
-                    <input type="text" id="adminSearchInput" class="admin-input" placeholder="ابحث عن صنف..." oninput="filterAdminProducts()" style="margin-bottom: 10px;">
-                    <button class="admin-btn" style="background:#1976d2; margin-bottom: 20px;" onclick="showNoImageReport()">📋 عرض الأصناف بدون صور</button>
-                    <div id="adminProductList"></div>
-                </div>
-                
-                <div class="admin-box" style="text-align:center;">
-                    <button class="admin-btn" style="background:#d32f2f; width:100%;" onclick="deleteAllProducts()">مسح جميع الأصناف نهائياً</button>
-                </div>
-                <button class="admin-btn" style="background:#000;" onclick="adminLogout()">تسجيل الخروج</button>
             </div>
         </div>
 
@@ -481,12 +503,20 @@
         </div>
     </div>
 
+    <!-- شريط التنقل السفلي للعميل (يظهر فقط في صفحات العميل) -->
     <nav class="bottom-nav">
         <div class="nav-item active" onclick="switchView('home', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>الرئيسية</div>
         <div class="nav-item" onclick="switchView('favorites', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>المفضلة</div>
         <div class="nav-item" onclick="switchView('cart', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg><span class="cart-badge" id="cartBadge">0</span>السلة</div>
         <div class="nav-item" onclick="switchView('orders', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>طلباتي</div>
         <div class="nav-item" onclick="switchView('contact', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>تواصل</div>
+    </nav>
+
+    <!-- شريط التنقل السفلي للأدمن (3 أقسام: الرئيسية - المبيعات - المخزن) -->
+    <nav class="admin-nav" id="adminNav">
+        <div class="nav-item active" onclick="switchAdminView('main', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>الرئيسية</div>
+        <div class="nav-item" onclick="switchAdminView('sales', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>المبيعات</div>
+        <div class="nav-item" onclick="switchAdminView('inventory', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>المخزن</div>
     </nav>
 
     <script>
@@ -726,9 +756,33 @@
         }
         function printCatalog() { if(!allProducts.length){showToast("لا توجد أصناف","error");return;} let h=`<html dir="rtl"><head><style>body{font-family:Tajawal,sans-serif;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:8px;}th{background:#00695c;color:#fff;}</style></head><body><h1 style="text-align:center;color:#00695c;">قائمة أسعار Tree Pharma</h1><table><tr><th>الصنف</th><th>السعر</th></tr>${allProducts.map(p=>`<tr><td>${p.name}</td><td>${p.price} ج.م</td></tr>`).join('')}</table></body></html>`; let w=window.open('','_blank'); w.document.write(h); w.document.close(); setTimeout(()=>w.print(),500); }
 
-        async function checkAdminSession() { const {data:{session}}=await sb.auth.getSession(); if(session){document.getElementById('adminLoginBox').style.display='none';document.getElementById('adminDashboard').style.display='block';loadAdminProducts();fetchDashboardStats();fetchAdminSettings();} }
+        // ====== تبديل أقسام لوحة الأدمن (الرئيسية - المبيعات - المخزن) ======
+        function switchAdminView(v, e) {
+            ['main','sales','inventory'].forEach(x=>document.getElementById('adminView-'+x).style.display='none');
+            document.getElementById('adminView-'+v).style.display='block';
+            document.querySelectorAll('#adminNav .nav-item').forEach(n=>n.classList.remove('active'));
+            if(e) e.currentTarget.classList.add('active');
+            window.scrollTo({top:0, behavior:'smooth'});
+        }
+
+        async function checkAdminSession() { 
+            const {data:{session}}=await sb.auth.getSession(); 
+            if(session){
+                document.getElementById('adminLoginBox').style.display='none';
+                document.getElementById('adminDashboard').style.display='block';
+                // إظهار فوتر الأدمن
+                document.getElementById('adminNav').classList.add('active');
+                loadAdminProducts();fetchDashboardStats();fetchAdminSettings();
+            } 
+        }
         async function adminLogin() { const e=document.getElementById('adminEmail').value,p=document.getElementById('adminPass').value; const {error}=await sb.auth.signInWithPassword({email:e,password:p}); if(error)showToast("بيانات خاطئة","error"); else {showToast("تم الدخول");checkAdminSession();} }
-        async function adminLogout() { await sb.auth.signOut(); document.getElementById('adminLoginBox').style.display='block'; document.getElementById('adminDashboard').style.display='none'; }
+        async function adminLogout() { 
+            await sb.auth.signOut(); 
+            document.getElementById('adminLoginBox').style.display='block'; 
+            document.getElementById('adminDashboard').style.display='none';
+            // إخفاء فوتر الأدمن
+            document.getElementById('adminNav').classList.remove('active');
+        }
 
         async function addProduct() {
             const n=document.getElementById('pName').value,p=document.getElementById('pPrice').value,c=document.getElementById('pCategory').value,f=document.getElementById('pImage');
