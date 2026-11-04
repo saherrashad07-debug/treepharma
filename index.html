@@ -93,9 +93,17 @@
         .header-title { margin: 0; font-size: 28px; font-weight: 800; color: var(--header-text); letter-spacing: 1px; }
         .header-right { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px; }
         .install-btn { background: rgba(255,255,255,0.95); color: var(--primary); border: none; padding: 8px 20px; border-radius: 50px; font-size: 16px; font-weight: bold; cursor: pointer; display: none; }
-        .theme-toggle { background: rgba(255,255,255,0.2); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
         
-        /* ====== Banner ====== */
+        /* زرار الدارك مود - صغير وثابت في الجنب الشمال فوق */
+        .theme-toggle { 
+            position: fixed; top: 15px; left: 15px; z-index: 1001; 
+            background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); 
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 14px; 
+            display: flex; align-items: center; justify-content: center; 
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
+            transition: background 0.3s;
+        }
+        
         .announcement-banner { 
             background: var(--primary); color: #fff; padding: 10px 20px; 
             text-align: center; font-weight: bold; font-size: 15px; 
@@ -285,9 +293,9 @@
         </div>
         <div class="header-right">
             <button id="installAppBtn" class="install-btn">تحميل الابليكشن</button>
-            <button class="theme-toggle" onclick="toggleDarkMode()" id="themeToggleBtn">🌙</button>
         </div>
-    </header>
+    </div>
+    <button class="theme-toggle" onclick="toggleDarkMode()" id="themeToggleBtn">🌙</button>
 
     <div class="announcement-banner" id="announcementBanner">
         <span class="banner-text" id="bannerText"></span>
@@ -436,7 +444,7 @@
                     <input type="text" id="clientName" placeholder="اسم العميل (صيدلية / مركز)">
                     <input type="text" id="clientAddress" placeholder="العنوان بالتفصيل">
                     <input type="text" id="clientPhone" placeholder="رقم الموبايل">
-                    <textarea id="orderNotes" placeholder="ملاحظات الطلب (اختياري): مثال - التوصيل في موعد معين"></textarea>
+                    <textarea id="orderNotes" placeholder="ملاحظات الطلب (اختياري): مثال - التوصيل بعد العصر"></textarea>
                 </div>
                 <div class="payment-section">
                     <h3>طريقة الدفع</h3>
@@ -498,7 +506,6 @@
         let myOrders = JSON.parse(localStorage.getItem('treePharma_orders')) || [];
         let isHidingImages = false;
 
-        // ====== Dark Mode ======
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
             const isDark = document.body.classList.contains('dark-mode');
@@ -526,7 +533,6 @@
         const openLightbox = (url) => { document.getElementById('lightboxImg').src = url; document.getElementById('lightbox').classList.add('active'); };
         const closeLightbox = () => document.getElementById('lightbox').classList.remove('active');
 
-        // ====== Banner ======
         async function loadBanner() {
             try {
                 const { data } = await sb.from('settings').select('banner_text').eq('id', 1).single();
@@ -591,6 +597,8 @@
             if (window.location.hash === '#admin') {
                 document.getElementById('view-admin').style.display = 'block';
                 document.getElementById('view-home').style.display = 'none';
+                document.querySelector('.bottom-nav').style.display = 'none';
+                document.body.style.paddingBottom = '0';
                 checkAdminSession();
             } else { 
                 if(!(await checkMaintenanceMode())){ document.getElementById('homeContent').style.display='block'; fetchProducts(); }
@@ -665,7 +673,6 @@
             } catch(e){}
         }
 
-        // ====== Admin Orders Management ======
         async function loadAdminOrders() {
             const { data, error } = await sb.from('orders').select('*').order('created_at', { ascending: false }).limit(50);
             if (error || !data) { showToast("خطأ في جلب الطلبات", "error"); return; }
