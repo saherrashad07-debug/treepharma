@@ -586,11 +586,18 @@
             d.innerHTML = sortProductsByName([...favorites]).map(p => `<div class="list-item"><div class="item-header"><div class="item-info"><span class="item-name">${p.name}</span><span class="item-price">${p.price} ج.م</span></div><button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price}, this)">❤️</button></div><div class="item-footer"><input type="number" class="qty-input" min="1" id="fq${p.name.replace(/\s/g,'')}" placeholder="0"><button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'fq${p.name.replace(/\s/g,'')}')">إضافة للسلة</button></div></div>`).join('');
         }
 
+        // ====== تحميل الصفحة الرئيسية ======
+        // عند فتح الموقع بـ #admin: نخفي شريط التنقل السفلي ونلغي padding-bottom للـ body
+        // حتى لا تظهر مسافة فارغة أسفل لوحة تحكم الأدمن.
         window.onload = async function() {
             loadBanner();
             if (window.location.hash === '#admin') {
                 document.getElementById('view-admin').style.display = 'block';
                 document.getElementById('view-home').style.display = 'none';
+                // إخفاء شريط التنقل السفلي في صفحة الأدمن فقط
+                document.querySelector('.bottom-nav').style.display = 'none';
+                // إلغاء المسافة السفلية المحجوزة للشريط
+                document.body.style.paddingBottom = '0';
                 checkAdminSession();
             } else { 
                 if(!(await checkMaintenanceMode())){ document.getElementById('homeContent').style.display='block'; fetchProducts(); }
