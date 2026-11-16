@@ -277,6 +277,8 @@
         .ios-install-note { background: rgba(255,193,7,0.15); border: 1px solid rgba(255,193,7,0.4); color: #b8860b; padding: 12px; border-radius: 10px; font-size: 13px; margin-top: 15px; line-height: 1.5; }
         .ios-copy-btn { display: block; width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
         .ios-copy-btn:active { transform: scale(0.98); }
+        .ios-installed-btn { display: block; width: 100%; background: transparent; color: var(--primary); border: 2px dashed var(--border-color); padding: 12px; border-radius: 12px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .ios-installed-btn:active { background: var(--secondary-bg); }
 
         .admin-order-item { background: var(--secondary-bg); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border-color); }
         .admin-order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -348,6 +350,7 @@
                 <div class="step-text">اضغط <strong>«Add»</strong> أو <strong>«إضافة»</strong> في أعلى يمين الشاشة</div>
             </div>
             <div class="ios-install-note">💡 سيظهر التطبيق على شاشتك الرئيسية بأيقونة Tree Pharma، ويعمل بكامل الشاشة بدون شريط المتصفح، تماماً مثل التطبيقات العادية.</div>
+            <button class="ios-installed-btn" onclick="markAppAsInstalled()">✓ تم التثبيت — إخفاء هذا الزر</button>
         </div>
     </div>
 
@@ -373,6 +376,7 @@
             </div>
             <button class="ios-copy-btn" onclick="copySiteLink()">📋 نسخ رابط الموقع</button>
             <div class="ios-install-note">💡 بعد نسخ الرابط، افتح Safari والصقه في شريط العنوان أعلى الشاشة.</div>
+            <button class="ios-installed-btn" onclick="markAppAsInstalled()">✓ تم التثبيت — إخفاء هذا الزر</button>
         </div>
     </div>
 
@@ -907,6 +911,14 @@
         // ====== Modal رسالة فتح في Safari (للمتصفح الداخلي) ======
         function openIosInAppBrowserModal(){ document.getElementById('iosInAppBrowserModal').classList.add('active'); }
         function closeIosInAppBrowserModal(e){ if(e&&e.target!==e.currentTarget)return; document.getElementById('iosInAppBrowserModal').classList.remove('active'); }
+        // ====== تسجيل أن التطبيق تم تثبيته (يخفي زر "تحميل الابليكشن" نهائياً على هذا الجهاز) ======
+        function markAppAsInstalled(){
+            try { localStorage.setItem('treePharma_appInstalled', '1'); } catch(e){}
+            document.getElementById('installAppBtn').style.display = 'none';
+            closeIosInstallModal();
+            closeIosInAppBrowserModal();
+            showToast('✅ تم إخفاء زر التحميل. التطبيق أصبح جاهزاً على شاشتك الرئيسية');
+        }
         // نسخ رابط الموقع للحافظة
         function copySiteLink(){
             const url = window.location.origin + window.location.pathname;
@@ -935,18 +947,30 @@
         // - آيفون من متصفح داخلي (واتساب/فيسبوك/إنستجرام): نعرض رسالة تطلب فتح الرابط في Safari أولاً
         // - أندرويد (Chrome): نُظهر الزر فقط عند إطلاق beforeinstallprompt ونستدعي الـ prompt الرسمي
         // كشف آيفون: iOS ويستثني Safari على ماك (اللي يحمل iPad من ماك)
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream && !(navigator.platform && /Mac/.test(navigator.platform) && navigator.maxTouchPoints === 0);
-        const isIOSStandalone = window.navigator.standalone === true;
+        // كمان نتأكد إن الجهاز فعلاً لمس (touch) — عشان نستثني لابتوب بيحاكي آيفون في DevTools
+        const isIOSUA = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isMacPlatform = (navigator.platform && /Mac/.test(navigator.platform));
+        const hasNoTouch = (navigator.maxTouchPoints === 0 || navigator.maxTouchPoints === undefined);
+        // لو الـ userAgent فيه iPhone بس الجهاز ماك بدون لمس → ده Safari على ماك (مش آيفون حقيقي)
+        const isIOS = isIOSUA && !window.MSStream && !(isMacPlatform && hasNoTouch);
+        // كشف وضع Standalone: التطبيق اتفتح من الأيقونة (مثبت بالفعل)
+        const isIOSStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
         // كشف المتصفح الداخلي (In-App Browser) على آيفون: واتساب/فيسبوك/إنستجرام/تيليجرام
-        // متصفح Safari الحقيقي لا يحتوي على أي من هذه الكلمات في الـ userAgent
         const isIOSInAppBrowser = isIOS && /WhatsApp|FBAN|FBAV|Instagram|Telegram|MicroMessenger|Snapchat|Line\//i.test(navigator.userAgent);
-        if (isIOS && !isIOSStandalone) {
-            // آيفون ولم يثبت التطبيق بعد: نظهر الزر دائماً
+        // كشف إن المستخدم ضغط "تم التثبيت" قبل كده (محفوظ في LocalStorage)
+        let userMarkedInstalled = false;
+        try { userMarkedInstalled = localStorage.getItem('treePharma_appInstalled') === '1'; } catch(e){}
+
+        if (isIOS && !isIOSStandalone && !userMarkedInstalled) {
+            // آيفون + التطبيق غير مثبت + المستخدم ما ضغطش "تم التثبيت": نظهر الزر
             ib.style.display = 'block';
             // لو متصفح داخلي → نظهر رسالة "افتح في Safari"، ولو Safari → نظهر التعليمات العادية
             ib.onclick = isIOSInAppBrowser ? openIosInAppBrowserModal : openIosInstallModal;
+        } else if (isIOS) {
+            // آيفون + التطبيق مثبت بالفعل أو المستخدم ضغط "تم التثبيت": نخفي الزر نهائياً
+            ib.style.display = 'none';
         } else {
-            // أندرويد أو آيفون مثبت بالفعل: السلوك الأصلي
+            // أندرويد أو ديسكتوب: السلوك الأصلي (beforeinstallprompt)
             window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;ib.style.display='block';});
             ib.addEventListener('click',async()=>{if(dp){dp.prompt();await dp.userChoice;ib.style.display='none';dp=null;}});
             window.addEventListener('appinstalled',()=>{ib.style.display='none';dp=null;});
