@@ -943,20 +943,23 @@
         if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js').catch(e=>console.error(e)));}
         let dp; const ib=document.getElementById('installAppBtn');
         // ====== منطق زر "تحميل الابليكشن" ======
-        // - آيفون (iOS Safari): لا يدعم beforeinstallprompt، فنُظهر الزر دائماً ونعرض Modal بالتعليمات عند الضغط
-        // - آيفون من متصفح داخلي (واتساب/فيسبوك/إنستجرام): نعرض رسالة تطلب فتح الرابط في Safari أولاً
-        // - أندرويد (Chrome): نُظهر الزر فقط عند إطلاق beforeinstallprompt ونستدعي الـ prompt الرسمي
-        // كشف آيفون: iOS ويستثني Safari على ماك (اللي يحمل iPad من ماك)
-        // كمان نتأكد إن الجهاز فعلاً لمس (touch) — عشان نستثني لابتوب بيحاكي آيفون في DevTools
-        const isIOSUA = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const isMacPlatform = (navigator.platform && /Mac/.test(navigator.platform));
-        const hasNoTouch = (navigator.maxTouchPoints === 0 || navigator.maxTouchPoints === undefined);
-        // لو الـ userAgent فيه iPhone بس الجهاز ماك بدون لمس → ده Safari على ماك (مش آيفون حقيقي)
-        const isIOS = isIOSUA && !window.MSStream && !(isMacPlatform && hasNoTouch);
+        // الرسالة تظهر على آيفون فقط (مش أندرويد، مش ديسكتوب، مش لابتوب)
+        // كشف آيفون بـ 4 شروط صارمة عشان نمنع أي خداع من المتصفحات الداخلية:
+        // 1) userAgent فيه iPhone/iPad/iPod
+        // 2) userAgent ما فيهوش Android (مهم جداً: متصفح واتساب على أندرويد ممكن يخدع)
+        // 3) navigator.platform فيه iPhone/iPad/iPod (مش Win32/MacIntel/Linux)
+        // 4) maxTouchPoints > 0 (شاشة لمس فعلية)
+        const ua = navigator.userAgent || '';
+        const platform = navigator.platform || '';
+        const maxTouch = (typeof navigator.maxTouchPoints === 'number') ? navigator.maxTouchPoints : 0;
+        const hasIOSInUA = /iPad|iPhone|iPod/.test(ua);
+        const hasAndroidInUA = /Android/i.test(ua);
+        const hasIOSInPlatform = /iPhone|iPad|iPod/i.test(platform);
+        const isIOS = hasIOSInUA && !hasAndroidInUA && hasIOSInPlatform && maxTouch > 0;
         // كشف وضع Standalone: التطبيق اتفتح من الأيقونة (مثبت بالفعل)
         const isIOSStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
         // كشف المتصفح الداخلي (In-App Browser) على آيفون: واتساب/فيسبوك/إنستجرام/تيليجرام
-        const isIOSInAppBrowser = isIOS && /WhatsApp|FBAN|FBAV|Instagram|Telegram|MicroMessenger|Snapchat|Line\//i.test(navigator.userAgent);
+        const isIOSInAppBrowser = isIOS && /WhatsApp|FBAN|FBAV|Instagram|Telegram|MicroMessenger|Snapchat|Line\//i.test(ua);
         // كشف إن المستخدم ضغط "تم التثبيت" قبل كده (محفوظ في LocalStorage)
         let userMarkedInstalled = false;
         try { userMarkedInstalled = localStorage.getItem('treePharma_appInstalled') === '1'; } catch(e){}
@@ -975,6 +978,8 @@
             ib.addEventListener('click',async()=>{if(dp){dp.prompt();await dp.userChoice;ib.style.display='none';dp=null;}});
             window.addEventListener('appinstalled',()=>{ib.style.display='none';dp=null;});
         }
+        // رسالة تشخيصية في الـ Console (تقدر تشوفها بـ F12 → Console)
+        console.log('=== تشخيص زر التحميل ===', { ua: ua.substring(0,100), platform, maxTouch, hasIOSInUA, hasAndroidInUA, hasIOSInPlatform, isIOS, isIOSStandalone, isIOSInAppBrowser, userMarkedInstalled });
     </script>
 </body>
 </html>
