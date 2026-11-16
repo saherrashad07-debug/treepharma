@@ -267,6 +267,17 @@
         .modal-item { padding: 12px; border-bottom: 1px dashed var(--border-color); font-size: 15px; color: var(--text-color); }
         .modal-empty { text-align: center; color: var(--primary); font-weight: bold; padding: 30px; }
 
+        /* ====== Modal تعليمات تثبيت التطبيق على آيفون ====== */
+        #iosInstallModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10002; justify-content: center; align-items: center; padding: 20px; }
+        #iosInstallModal.active { display: flex; }
+        .ios-install-step { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border-radius: 12px; background: var(--secondary-bg); margin-bottom: 10px; }
+        .ios-install-step .step-num { background: var(--primary); color: white; min-width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; flex-shrink: 0; margin-top: 2px; }
+        .ios-install-step .step-text { color: var(--text-color); font-size: 14px; line-height: 1.6; flex: 1; }
+        .ios-share-icon { display: inline-flex; align-items: center; gap: 4px; background: var(--primary); color: white; padding: 2px 10px; border-radius: 6px; font-weight: bold; font-size: 13px; }
+        .ios-install-note { background: rgba(255,193,7,0.15); border: 1px solid rgba(255,193,7,0.4); color: #b8860b; padding: 12px; border-radius: 10px; font-size: 13px; margin-top: 15px; line-height: 1.5; }
+        .ios-copy-btn { display: block; width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .ios-copy-btn:active { transform: scale(0.98); }
+
         .admin-order-item { background: var(--secondary-bg); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border-color); }
         .admin-order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .status-select { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 14px; cursor: pointer; }
@@ -313,6 +324,55 @@
                 <button class="modal-close-btn" onclick="closeNoImageModal()">✕</button>
             </div>
             <div id="noImageList"></div>
+        </div>
+    </div>
+
+    <!-- Modal: تعليمات تثبيت التطبيق على آيفون -->
+    <div id="iosInstallModal" onclick="closeIosInstallModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>📱 تحميل التطبيق على آيفون</h3>
+                <button class="modal-close-btn" onclick="closeIosInstallModal()">✕</button>
+            </div>
+            <p style="color:var(--text-color); margin-bottom:15px; font-size:14px;">اتبع الخطوات التالية لإضافة التطبيق لشاشتك الرئيسية:</p>
+            <div class="ios-install-step">
+                <div class="step-num">1</div>
+                <div class="step-text">اضغط على زر المشاركة <span class="ios-share-icon">⬆️ مشاركة</span> في أسفل متصفح Safari (المربع فيه سهم لأعلى)</div>
+            </div>
+            <div class="ios-install-step">
+                <div class="step-num">2</div>
+                <div class="step-text">اسحل للأسفل واختر من القائمة: <strong>«Add to Home Screen»</strong> أو <strong>«إضافة إلى الشاشة الرئيسية»</strong></div>
+            </div>
+            <div class="ios-install-step">
+                <div class="step-num">3</div>
+                <div class="step-text">اضغط <strong>«Add»</strong> أو <strong>«إضافة»</strong> في أعلى يمين الشاشة</div>
+            </div>
+            <div class="ios-install-note">💡 سيظهر التطبيق على شاشتك الرئيسية بأيقونة Tree Pharma، ويعمل بكامل الشاشة بدون شريط المتصفح، تماماً مثل التطبيقات العادية.</div>
+        </div>
+    </div>
+
+    <!-- Modal: رسالة فتح في Safari (للمتصفح الداخلي لواتساب/فيسبوك) -->
+    <div id="iosInAppBrowserModal" onclick="closeIosInAppBrowserModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>⚠️ افتح في Safari</h3>
+                <button class="modal-close-btn" onclick="closeIosInAppBrowserModal()">✕</button>
+            </div>
+            <p style="color:var(--text-color); margin-bottom:15px; font-size:14px;">أنت حالياً تفتح الموقع من داخل تطبيق آخر (واتساب / فيسبوك). لا يمكن تثبيت التطبيق إلا من متصفح <strong>Safari</strong> الرسمي على آيفون.</p>
+            <div class="ios-install-step">
+                <div class="step-num">1</div>
+                <div class="step-text">انسخ رابط الموقع من الزر بالأسفل</div>
+            </div>
+            <div class="ios-install-step">
+                <div class="step-num">2</div>
+                <div class="step-text">افتح متصفح <strong>Safari</strong> على آيفونك</div>
+            </div>
+            <div class="ios-install-step">
+                <div class="step-num">3</div>
+                <div class="step-text">الصق الرابط في شريط العنوان، ثم اضغط زر «تحميل الابليكشن» من جديد</div>
+            </div>
+            <button class="ios-copy-btn" onclick="copySiteLink()">📋 نسخ رابط الموقع</button>
+            <div class="ios-install-note">💡 بعد نسخ الرابط، افتح Safari والصقه في شريط العنوان أعلى الشاشة.</div>
         </div>
     </div>
 
@@ -841,6 +901,28 @@
             document.getElementById('noImageModal').classList.add('active');
         }
         function closeNoImageModal(e){ if(e&&e.target!==e.currentTarget)return; document.getElementById('noImageModal').classList.remove('active'); }
+        // ====== Modal تعليمات تثبيت آيفون ======
+        function openIosInstallModal(){ document.getElementById('iosInstallModal').classList.add('active'); }
+        function closeIosInstallModal(e){ if(e&&e.target!==e.currentTarget)return; document.getElementById('iosInstallModal').classList.remove('active'); }
+        // ====== Modal رسالة فتح في Safari (للمتصفح الداخلي) ======
+        function openIosInAppBrowserModal(){ document.getElementById('iosInAppBrowserModal').classList.add('active'); }
+        function closeIosInAppBrowserModal(e){ if(e&&e.target!==e.currentTarget)return; document.getElementById('iosInAppBrowserModal').classList.remove('active'); }
+        // نسخ رابط الموقع للحافظة
+        function copySiteLink(){
+            const url = window.location.origin + window.location.pathname;
+            if(navigator.clipboard && navigator.clipboard.writeText){
+                navigator.clipboard.writeText(url).then(()=>{ showToast('✅ تم نسخ الرابط، افتح Safari والصقه'); }).catch(()=>{ fallbackCopy(url); });
+            } else { fallbackCopy(url); }
+        }
+        // طريقة بديلة للنسخ (للمتصفحات القديمة)
+        function fallbackCopy(text){
+            const ta = document.createElement('textarea');
+            ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+            document.body.appendChild(ta); ta.select();
+            try{ document.execCommand('copy'); showToast('✅ تم نسخ الرابط، افتح Safari والصقه'); }
+            catch(e){ showToast('انسخ الرابط يدوياً: ' + text); }
+            document.body.removeChild(ta);
+        }
         async function toggleProductVisibility(id,on){const{error}=await sb.from('products').update({is_active:on}).eq('id',id); if(!error){showToast(on?"تم الإظهار":"تم الإخفاء");loadAdminProducts();fetchProducts();fetchDashboardStats();}}
         async function updateProduct(id){const n=document.getElementById(`n_${id}`).value,p=document.getElementById(`p_${id}`).value,f=document.getElementById(`i_${id}`);if(!n||!p){showToast("أدخل الاسم والسعر","error");return;}let u={name:n,price:parseFloat(p)};if(f.files.length){const file=f.files[0];let ext=file.name.split('.').pop().toLowerCase();if(!['jpg','jpeg','png','webp','gif'].includes(ext))ext='jpg';const path=`${Date.now()}.${ext}`;const{error:ue}=await sb.storage.from('products').upload(path,file,{contentType:file.type||'image/jpeg'});if(ue){showToast("فشل رفع الصورة","error");return;}u.image_url=`${SUPABASE_URL}/storage/v1/object/public/products/${path}`;}const{error}=await sb.from('products').update(u).eq('id',id);if(!error){showToast("تم التحديث ✔️");loadAdminProducts();fetchProducts();}}
         async function deleteProduct(id){if(!confirm("حذف نهائي؟"))return;const{error}=await sb.from('products').delete().eq('id',id);if(!error){showToast("تم الحذف");loadAdminProducts();fetchProducts();fetchDashboardStats();}}
@@ -848,9 +930,27 @@
 
         if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js').catch(e=>console.error(e)));}
         let dp; const ib=document.getElementById('installAppBtn');
-        window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;ib.style.display='block';});
-        ib.addEventListener('click',async()=>{if(dp){dp.prompt();await dp.userChoice;ib.style.display='none';dp=null;}});
-        window.addEventListener('appinstalled',()=>{ib.style.display='none';dp=null;});
+        // ====== منطق زر "تحميل الابليكشن" ======
+        // - آيفون (iOS Safari): لا يدعم beforeinstallprompt، فنُظهر الزر دائماً ونعرض Modal بالتعليمات عند الضغط
+        // - آيفون من متصفح داخلي (واتساب/فيسبوك/إنستجرام): نعرض رسالة تطلب فتح الرابط في Safari أولاً
+        // - أندرويد (Chrome): نُظهر الزر فقط عند إطلاق beforeinstallprompt ونستدعي الـ prompt الرسمي
+        // كشف آيفون: iOS ويستثني Safari على ماك (اللي يحمل iPad من ماك)
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream && !(navigator.platform && /Mac/.test(navigator.platform) && navigator.maxTouchPoints === 0);
+        const isIOSStandalone = window.navigator.standalone === true;
+        // كشف المتصفح الداخلي (In-App Browser) على آيفون: واتساب/فيسبوك/إنستجرام/تيليجرام
+        // متصفح Safari الحقيقي لا يحتوي على أي من هذه الكلمات في الـ userAgent
+        const isIOSInAppBrowser = isIOS && /WhatsApp|FBAN|FBAV|Instagram|Telegram|MicroMessenger|Snapchat|Line\//i.test(navigator.userAgent);
+        if (isIOS && !isIOSStandalone) {
+            // آيفون ولم يثبت التطبيق بعد: نظهر الزر دائماً
+            ib.style.display = 'block';
+            // لو متصفح داخلي → نظهر رسالة "افتح في Safari"، ولو Safari → نظهر التعليمات العادية
+            ib.onclick = isIOSInAppBrowser ? openIosInAppBrowserModal : openIosInstallModal;
+        } else {
+            // أندرويد أو آيفون مثبت بالفعل: السلوك الأصلي
+            window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;ib.style.display='block';});
+            ib.addEventListener('click',async()=>{if(dp){dp.prompt();await dp.userChoice;ib.style.display='none';dp=null;}});
+            window.addEventListener('appinstalled',()=>{ib.style.display='none';dp=null;});
+        }
     </script>
 </body>
 </html>
