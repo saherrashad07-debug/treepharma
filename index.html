@@ -275,8 +275,6 @@
         .ios-install-step .step-text { color: var(--text-color); font-size: 14px; line-height: 1.6; flex: 1; }
         .ios-share-icon { display: inline-flex; align-items: center; gap: 4px; background: var(--primary); color: white; padding: 2px 10px; border-radius: 6px; font-weight: bold; font-size: 13px; }
         .ios-install-note { background: rgba(255,193,7,0.15); border: 1px solid rgba(255,193,7,0.4); color: #b8860b; padding: 12px; border-radius: 10px; font-size: 13px; margin-top: 15px; line-height: 1.5; }
-        .ios-copy-btn { display: block; width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
-        .ios-copy-btn:active { transform: scale(0.98); }
         .ios-installed-btn { display: block; width: 100%; background: transparent; color: var(--primary); border: 2px dashed var(--border-color); padding: 12px; border-radius: 12px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .ios-installed-btn:active { background: var(--secondary-bg); }
 
@@ -337,6 +335,7 @@
                 <button class="modal-close-btn" onclick="closeIosInstallModal()">✕</button>
             </div>
             <p style="color:var(--text-color); margin-bottom:15px; font-size:14px;">اتبع الخطوات التالية لإضافة التطبيق لشاشتك الرئيسية:</p>
+            <div class="ios-install-note" style="background:rgba(255,193,7,0.15); border-color:rgba(255,193,7,0.4); color:#b8860b; margin-bottom:15px;">⚠️ مهم: لازم تكون فاتح الموقع من متصفح <strong>Safari</strong> على آيفونك (مش من داخل واتساب أو فيسبوك) عشان التثبيت يشتغل صح.</div>
             <div class="ios-install-step">
                 <div class="step-num">1</div>
                 <div class="step-text">اضغط على زر المشاركة <span class="ios-share-icon">⬆️ مشاركة</span> في أسفل متصفح Safari (المربع فيه سهم لأعلى)</div>
@@ -350,32 +349,6 @@
                 <div class="step-text">اضغط <strong>«Add»</strong> أو <strong>«إضافة»</strong> في أعلى يمين الشاشة</div>
             </div>
             <div class="ios-install-note">💡 سيظهر التطبيق على شاشتك الرئيسية بأيقونة Tree Pharma، ويعمل بكامل الشاشة بدون شريط المتصفح، تماماً مثل التطبيقات العادية.</div>
-            <button class="ios-installed-btn" onclick="markAppAsInstalled()">✓ تم التثبيت — إخفاء هذا الزر</button>
-        </div>
-    </div>
-
-    <!-- Modal: رسالة فتح في Safari (للمتصفح الداخلي لواتساب/فيسبوك) -->
-    <div id="iosInAppBrowserModal" onclick="closeIosInAppBrowserModal(event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <h3>⚠️ افتح في Safari</h3>
-                <button class="modal-close-btn" onclick="closeIosInAppBrowserModal()">✕</button>
-            </div>
-            <p style="color:var(--text-color); margin-bottom:15px; font-size:14px;">أنت حالياً تفتح الموقع من داخل تطبيق آخر (واتساب / فيسبوك). لا يمكن تثبيت التطبيق إلا من متصفح <strong>Safari</strong> الرسمي على آيفون.</p>
-            <div class="ios-install-step">
-                <div class="step-num">1</div>
-                <div class="step-text">انسخ رابط الموقع من الزر بالأسفل</div>
-            </div>
-            <div class="ios-install-step">
-                <div class="step-num">2</div>
-                <div class="step-text">افتح متصفح <strong>Safari</strong> على آيفونك</div>
-            </div>
-            <div class="ios-install-step">
-                <div class="step-num">3</div>
-                <div class="step-text">الصق الرابط في شريط العنوان، ثم اضغط زر «تحميل الابليكشن» من جديد</div>
-            </div>
-            <button class="ios-copy-btn" onclick="copySiteLink()">📋 نسخ رابط الموقع</button>
-            <div class="ios-install-note">💡 بعد نسخ الرابط، افتح Safari والصقه في شريط العنوان أعلى الشاشة.</div>
             <button class="ios-installed-btn" onclick="markAppAsInstalled()">✓ تم التثبيت — إخفاء هذا الزر</button>
         </div>
     </div>
@@ -908,32 +881,12 @@
         // ====== Modal تعليمات تثبيت آيفون ======
         function openIosInstallModal(){ document.getElementById('iosInstallModal').classList.add('active'); }
         function closeIosInstallModal(e){ if(e&&e.target!==e.currentTarget)return; document.getElementById('iosInstallModal').classList.remove('active'); }
-        // ====== Modal رسالة فتح في Safari (للمتصفح الداخلي) ======
-        function openIosInAppBrowserModal(){ document.getElementById('iosInAppBrowserModal').classList.add('active'); }
-        function closeIosInAppBrowserModal(e){ if(e&&e.target!==e.currentTarget)return; document.getElementById('iosInAppBrowserModal').classList.remove('active'); }
         // ====== تسجيل أن التطبيق تم تثبيته (يخفي زر "تحميل الابليكشن" نهائياً على هذا الجهاز) ======
         function markAppAsInstalled(){
             try { localStorage.setItem('treePharma_appInstalled', '1'); } catch(e){}
             document.getElementById('installAppBtn').style.display = 'none';
             closeIosInstallModal();
-            closeIosInAppBrowserModal();
             showToast('✅ تم إخفاء زر التحميل. التطبيق أصبح جاهزاً على شاشتك الرئيسية');
-        }
-        // نسخ رابط الموقع للحافظة
-        function copySiteLink(){
-            const url = window.location.origin + window.location.pathname;
-            if(navigator.clipboard && navigator.clipboard.writeText){
-                navigator.clipboard.writeText(url).then(()=>{ showToast('✅ تم نسخ الرابط، افتح Safari والصقه'); }).catch(()=>{ fallbackCopy(url); });
-            } else { fallbackCopy(url); }
-        }
-        // طريقة بديلة للنسخ (للمتصفحات القديمة)
-        function fallbackCopy(text){
-            const ta = document.createElement('textarea');
-            ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
-            document.body.appendChild(ta); ta.select();
-            try{ document.execCommand('copy'); showToast('✅ تم نسخ الرابط، افتح Safari والصقه'); }
-            catch(e){ showToast('انسخ الرابط يدوياً: ' + text); }
-            document.body.removeChild(ta);
         }
         async function toggleProductVisibility(id,on){const{error}=await sb.from('products').update({is_active:on}).eq('id',id); if(!error){showToast(on?"تم الإظهار":"تم الإخفاء");loadAdminProducts();fetchProducts();fetchDashboardStats();}}
         async function updateProduct(id){const n=document.getElementById(`n_${id}`).value,p=document.getElementById(`p_${id}`).value,f=document.getElementById(`i_${id}`);if(!n||!p){showToast("أدخل الاسم والسعر","error");return;}let u={name:n,price:parseFloat(p)};if(f.files.length){const file=f.files[0];let ext=file.name.split('.').pop().toLowerCase();if(!['jpg','jpeg','png','webp','gif'].includes(ext))ext='jpg';const path=`${Date.now()}.${ext}`;const{error:ue}=await sb.storage.from('products').upload(path,file,{contentType:file.type||'image/jpeg'});if(ue){showToast("فشل رفع الصورة","error");return;}u.image_url=`${SUPABASE_URL}/storage/v1/object/public/products/${path}`;}const{error}=await sb.from('products').update(u).eq('id',id);if(!error){showToast("تم التحديث ✔️");loadAdminProducts();fetchProducts();}}
@@ -958,17 +911,15 @@
         const isIOS = hasIOSInUA && !hasAndroidInUA && hasIOSInPlatform && maxTouch > 0;
         // كشف وضع Standalone: التطبيق اتفتح من الأيقونة (مثبت بالفعل)
         const isIOSStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-        // كشف المتصفح الداخلي (In-App Browser) على آيفون: واتساب/فيسبوك/إنستجرام/تيليجرام
-        const isIOSInAppBrowser = isIOS && /WhatsApp|FBAN|FBAV|Instagram|Telegram|MicroMessenger|Snapchat|Line\//i.test(ua);
         // كشف إن المستخدم ضغط "تم التثبيت" قبل كده (محفوظ في LocalStorage)
         let userMarkedInstalled = false;
         try { userMarkedInstalled = localStorage.getItem('treePharma_appInstalled') === '1'; } catch(e){}
 
         if (isIOS && !isIOSStandalone && !userMarkedInstalled) {
             // آيفون + التطبيق غير مثبت + المستخدم ما ضغطش "تم التثبيت": نظهر الزر
+            // ودوسة الزر تفتح Modal التعليمات العادية (تطبيق "إضافة للشاشة الرئيسية")
             ib.style.display = 'block';
-            // لو متصفح داخلي → نظهر رسالة "افتح في Safari"، ولو Safari → نظهر التعليمات العادية
-            ib.onclick = isIOSInAppBrowser ? openIosInAppBrowserModal : openIosInstallModal;
+            ib.onclick = openIosInstallModal;
         } else if (isIOS) {
             // آيفون + التطبيق مثبت بالفعل أو المستخدم ضغط "تم التثبيت": نخفي الزر نهائياً
             ib.style.display = 'none';
@@ -979,7 +930,7 @@
             window.addEventListener('appinstalled',()=>{ib.style.display='none';dp=null;});
         }
         // رسالة تشخيصية في الـ Console (تقدر تشوفها بـ F12 → Console)
-        console.log('=== تشخيص زر التحميل ===', { ua: ua.substring(0,100), platform, maxTouch, hasIOSInUA, hasAndroidInUA, hasIOSInPlatform, isIOS, isIOSStandalone, isIOSInAppBrowser, userMarkedInstalled });
+        console.log('=== تشخيص زر التحميل ===', { ua: ua.substring(0,100), platform, maxTouch, hasIOSInUA, hasAndroidInUA, hasIOSInPlatform, isIOS, isIOSStandalone, userMarkedInstalled });
     </script>
 </body>
 </html>
