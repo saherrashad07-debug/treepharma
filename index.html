@@ -453,10 +453,11 @@
 
                     <div class="admin-box" style="border: 2px solid #1976d2;">
                         <h3 style="color:#1976d2;"><span class="icon" style="background:#1976d2">🖼️</span> رفع صور بالجملة</h3>
-                        <p style="font-size:14px; color:var(--text-color); margin-bottom:15px;">تطابق اسم الصورة (حتى لو عربي) مع اسم الصنف وتغيره لاسم آمن عند الرفع.</p>
+                        <p style="font-size:14px; color:var(--text-color); margin-bottom:15px;">ارفع الصور اسمها مطابق لاسم الصنف كما هو في الموقع.</p>
                         <input type="file" id="bulkImageInput" class="admin-input" accept="image/*" multiple>
                         <button class="admin-btn" style="background:#1976d2;" onclick="bulkUploadImages()">رفع الصور</button>
-                        <div id="bulkUploadStatus" style="margin-top:15px; font-weight:bold; text-align:center;"></div>
+                        <div id="bulkUploadStatus" style="margin-top:15px; font-weight:bold; text-align:center; min-height:80px; padding:15px; background:var(--secondary-bg); border-radius:12px; border:1px dashed var(--border-color);"></div>
+                        <div style="height:120px;"></div>
                     </div>
                 </div>
 
@@ -654,17 +655,17 @@
         }
 
         // ====== تحميل الصفحة الرئيسية ======
-        // عند فتح الموقع بـ #admin: نخفي شريط التنقل السفلي ونلغي padding-bottom للـ body
-        // حتى لا تظهر مسافة فارغة أسفل لوحة تحكم الأدمن.
+        // عند فتح الموقع بـ #admin: نخفي شريط تنقل العميل، ونخلي مساحة 130px تحت المحتوى
+        // عشان شريط تنقل الأدمن (الثابت) ما يغطيش زر "رفع الصور" أو أي حاجة في آخر الصفحة.
         window.onload = async function() {
             loadBanner();
             if (window.location.hash === '#admin') {
                 document.getElementById('view-admin').style.display = 'block';
                 document.getElementById('view-home').style.display = 'none';
-                // إخفاء شريط التنقل السفلي في صفحة الأدمن فقط
+                // إخفاء شريط تنقل العميل في صفحة الأدمن
                 document.querySelector('.bottom-nav').style.display = 'none';
-                // إلغاء المسافة السفلية المحجوزة للشريط
-                document.body.style.paddingBottom = '0';
+                // مساحة كافية تحت المحتوى عشان شريط تنقل الأدمن الثابت ما يغطيش المحتوى
+                document.body.style.paddingBottom = '130px';
                 checkAdminSession();
             } else { 
                 if(!(await checkMaintenanceMode())){ document.getElementById('homeContent').style.display='block'; fetchProducts(); }
@@ -850,12 +851,50 @@
             const inp=document.getElementById('bulkImageInput'),st=document.getElementById('bulkUploadStatus');
             if(!inp.files.length){showToast("اختر صوراً","error");return;}
             const {data:p}=await sb.from('products').select('id,name');
-            let up=0,un=0,fl=0; const tot=inp.files.length; st.innerHTML=`0/${tot}...`;
+            let up=0,un=0,fl=0; const tot=inp.files.length;
+            const failed=[], unmatched=[], uploaded=[];
+            // شريط تقدم واضح
+            st.innerHTML=`<div style="font-size:15px; color:var(--primary); margin-bottom:10px;">🔄 جاري الرفع... 0/${tot}</div><div style="background:var(--bg-color); border-radius:8px; height:8px; overflow:hidden;"><div id="progressBar" style="width:0%; height:100%; background:var(--primary); transition:width 0.3s;"></div></div>`;
+            const bar=st.querySelector('#progressBar');
             for(let i=0;i<tot;i++){
                 const f=inp.files[i],nm=normalizeArabic(f.name.replace(/\.[^/.]+$/,"")); const prod=p.find(x=>normalizeArabic(x.name)===nm);
-                if(prod){let ext=f.name.split('.').pop().toLowerCase(); if(!['jpg','jpeg','png','webp','gif'].includes(ext))ext='jpg'; const path=`${Date.now()}_${i}.${ext}`; const{error:ue}=await sb.storage.from('products').upload(path,f,{contentType:f.type||'image/jpeg'}); if(!ue){const u=`${SUPABASE_URL}/storage/v1/object/public/products/${path}`; const{error:er}=await sb.from('products').update({image_url:u}).eq('id',prod.id); if(!er)up++; else fl++;} else fl++; } else un++;
-                st.innerHTML=`${i+1}/${tot}<br><small style="color:green;">رفع: ${up}</small> <small style="color:red;">غير مطابق: ${un}</small> <small style="color:#d32f2f;">فشل: ${fl}</small>`;
+                if(prod){
+                    let ext=f.name.split('.').pop().toLowerCase();
+                    if(!['jpg','jpeg','png','webp','gif'].includes(ext))ext='jpg';
+                    const path=`${Date.now()}_${i}.${ext}`;
+                    const{error:ue}=await sb.storage.from('products').upload(path,f,{contentType:f.type||'image/jpeg'});
+                    if(!ue){
+                        const u=`${SUPABASE_URL}/storage/v1/object/public/products/${path}`;
+                        const{error:er}=await sb.from('products').update({image_url:u}).eq('id',prod.id);
+                        if(!er){up++; uploaded.push(f.name);}
+                        else {fl++; failed.push(f.name);}
+                    } else {fl++; failed.push(f.name);}
+                } else {
+                    un++; unmatched.push(f.name);
+                }
+                // تحديث شريط التقدم
+                const pct=Math.round(((i+1)/tot)*100);
+                bar.style.width=pct+'%';
+                st.querySelector('div').innerHTML=`🔄 جاري الرفع... ${i+1}/${tot} (${pct}%)`;
             }
+            // عرض النتيجة النهائية بشكل واضح ومنظم
+            let result=`<div style="font-size:16px; font-weight:bold; color:var(--primary); margin-bottom:10px;">✅ تم الرفع (${up}/${tot})</div>`;
+            if(up>0){
+                result+=`<div style="color:#2e7d32; font-size:13px; margin-bottom:8px;">✔️ صور اترفعت بنجاح (${up}):</div><div style="max-height:120px; overflow-y:auto; background:#e8f5e9; border-radius:8px; padding:8px; margin-bottom:12px; font-size:12px; color:#1b5e20;">`;
+                uploaded.forEach(n=>result+=`<div>• ${n}</div>`);
+                result+=`</div>`;
+            }
+            if(un>0){
+                result+=`<div style="color:#f57c00; font-size:13px; margin-bottom:8px;">⚠️ صور مش متطابقة مع أصناف الموقع (${un}):</div><div style="max-height:120px; overflow-y:auto; background:#fff3e0; border-radius:8px; padding:8px; margin-bottom:12px; font-size:12px; color:#e65100;">`;
+                unmatched.forEach(n=>result+=`<div>• ${n}</div>`);
+                result+=`</div>`;
+            }
+            if(fl>0){
+                result+=`<div style="color:#d32f2f; font-size:13px; margin-bottom:8px;">❌ صور فشلت في الرفع (${fl}):</div><div style="max-height:120px; overflow-y:auto; background:#ffebee; border-radius:8px; padding:8px; margin-bottom:12px; font-size:12px; color:#b71c1c;">`;
+                failed.forEach(n=>result+=`<div>• ${n}</div>`);
+                result+=`</div>`;
+            }
+            st.innerHTML=result;
             showToast(`تم رفع ${up} صورة`,"success"); loadAdminProducts();fetchProducts(); inp.value='';
         }
 
@@ -932,5 +971,3 @@
         // رسالة تشخيصية في الـ Console (تقدر تشوفها بـ F12 → Console)
         console.log('=== تشخيص زر التحميل ===', { ua: ua.substring(0,100), platform, maxTouch, hasIOSInUA, hasAndroidInUA, hasIOSInPlatform, isIOS, isIOSStandalone, userMarkedInstalled });
     </script>
-</body>
-</html>
