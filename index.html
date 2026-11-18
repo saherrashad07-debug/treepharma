@@ -3,20 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tree Pharma Admin - لوحة الإدارة</title>
-
-    <!-- manifest خاص بالأدمن (اسم مختلف + أيقونة زرقاء) -->
-    <link rel="manifest" href="admin-manifest.json">
-    <meta name="theme-color" content="#0d47a1">
-    <link rel="apple-touch-icon" href="admin-icon-192.png">
+    <title>Tree Pharma - تري فارما للمستزمات الطبية</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00695c">
+    <link rel="apple-touch-icon" href="logo.jpg.jpg">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Tree Pharma Admin">
+    <meta name="apple-mobile-web-app-title" content="Tree Pharma">
 
-    <meta name="description" content="لوحة إدارة Tree Pharma">
+    <meta name="description" content="تري فارما للمستزمات الطبية">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Tree Pharma Admin - لوحة الإدارة">
-    <meta property="og:description" content="لوحة إدارة Tree Pharma">
+    <meta property="og:title" content="Tree Pharma - تري فارما للمستزمات الطبية">
+    <meta property="og:description" content="تري فارما للمستزمات الطبية">
+    <meta property="og:image" content="https://treepharma.vercel.app/logo.jpg.jpg">
+    <meta property="og:url" content="https://treepharma.vercel.app/">
+    <meta property="og:site_name" content="Tree Pharma">
+    <meta property="og:locale" content="ar_AR">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Tree Pharma - تري فارما للمستزمات الطبية">
+    <meta name="twitter:description" content="تري فارما للمستزمات الطبية">
+    <meta name="twitter:image" content="https://treepharma.vercel.app/logo.jpg.jpg">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -25,7 +32,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 
     <style>
-
         :root {
             --bg-color: #e0f2f1;
             --card-bg: #fff;
@@ -286,28 +292,24 @@
             .list-item { padding: 8px; }
             .container { padding: 0 10px; }
         }
-    
-
-        /* تعديلات خاصة بصفحة الأدمن */
-        /* الزر في الأدمن لونه أزرق بدل ما يكون أخضر */
-        header { background: var(--header-bg-admin, #0d47a1); }
-        body { padding-bottom: 0; } /* افتراضي 0؛ يترفع لـ 130px بعد تسجيل الدخول */
-        .admin-nav { display: none; } /* يظهر بس بإضافة .active بعد تسجيل الدخول */
-        .install-btn { background: #ffeb3b; color: #0d47a1; } /* زر أصفر مميز */
     </style>
 </head>
 <body>
 
     <header>
         <div class="header-left">
-            <div class="logo-circle"><img src="logo.jpg.jpg" alt="Tree Pharma Admin"></div>
-            <h1 class="header-title">Tree Pharma <span style="font-size:14px;opacity:0.85;">إدارة</span></h1>
+            <div class="logo-circle"><img src="logo.jpg.jpg" alt="Tree Pharma"></div>
+            <h1 class="header-title">Tree Pharma</h1>
         </div>
         <div class="header-right">
             <button id="installAppBtn" class="install-btn">تحميل الابليكشن</button>
             <button class="theme-toggle" onclick="toggleDarkMode()" id="themeToggleBtn">🌙</button>
         </div>
     </header>
+
+    <div class="announcement-banner" id="announcementBanner">
+        <span class="banner-text" id="bannerText"></span>
+    </div>
 
     <div id="toastContainer"></div>
 
@@ -461,8 +463,94 @@
 
             </div>
         </div>
+
+        <div id="view-home" class="view">
+            <div id="homeContent" style="display:none;">
+                <div class="search-container">
+                    <input type="text" id="searchInput" class="search-input" placeholder="ابحث عن صنف..." oninput="filterProducts()">
+                    <br>
+                    <button class="catalog-btn" onclick="printCatalog()">تحميل قائمة الأسعار</button>
+                </div>
+                <div class="view-buttons">
+                    <button class="view-btn active" id="btnAll" onclick="showAllProducts()">كل الأصناف</button>
+                    <button class="view-btn" id="btnOffers" onclick="showWeeklyOffers()">العرض الأسبوعي</button>
+                </div>
+                <div class="product-list" id="productList"><p style="text-align:center; color:var(--primary);">جاري تحميل الأصناف...</p></div>
+            </div>
+            <div id="maintenanceMessage" class="maintenance-message" style="display:none;">
+                <div class="loader"></div>
+                <h2 style="color:var(--primary);">نحن نقوم حالياً بتحديث قائمة الأصناف</h2>
+                <p style="color:var(--text-color);">برجاء المحاولة مرة أخرى بعد قليل. شكراً لصبركم!</p>
+            </div>
+        </div>
+
+        <div id="view-favorites" class="view" style="display: none;">
+            <h2 style="color:var(--primary); text-align:center;">المفضلة</h2>
+            <div class="product-list" id="favoritesList"></div>
+        </div>
+
+        <div id="view-cart" class="view" style="display: none;">
+            <div class="cart-section">
+                <h2>تأكيد الطلب</h2>
+                <div class="customer-info">
+                    <input type="text" id="clientName" placeholder="اسم العميل (صيدلية / مركز)">
+                    <input type="text" id="clientAddress" placeholder="العنوان بالتفصيل">
+                    <input type="text" id="clientPhone" placeholder="رقم الموبايل">
+                    <textarea id="orderNotes" placeholder="ملاحظات الطلب (اختياري): مثال - التوصيل موعد معين"></textarea>
+                </div>
+                <div class="payment-section">
+                    <h3>طريقة الدفع</h3>
+                    <div class="payment-options-wrapper">
+                        <label class="payment-option"><input type="radio" name="paymentMethod" value="كاش عند الاستلام" checked onchange="togglePaymentInfo()"> كاش عند الاستلام</label>
+                        <label class="payment-option"><input type="radio" name="paymentMethod" value="إنستا باي" onchange="togglePaymentInfo()"> إنستا باي</label>
+                        <div id="instapay-details" class="payment-details">حول على: <span class="copy-text">01220202473</span> (احمد محمد فتح الله)</div>
+                        <label class="payment-option"><input type="radio" name="paymentMethod" value="ماكينة فيزا" onchange="togglePaymentInfo()"> ماكينة فيزا</label>
+                        <div id="paymob-details" class="payment-details">سيتم إحضار ماكينة الدفع عند التوصيل.</div>
+                    </div>
+                </div>
+                <div class="order-list" id="cartDisplay"><div><span>السلة فارغة</span></div></div>
+                <div class="action-buttons">
+                    <button class="submit-btn" onclick="sendOrder()">تأكيد الطلب</button>
+                    <button class="print-btn" onclick="generateInvoice()">طباعة الفاتورة</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-orders" class="view" style="display: none;">
+            <h2 style="color:var(--primary); text-align:center;">طلباتي السابقة</h2>
+            <div id="ordersList"><p style="text-align:center; color:var(--primary);">لا توجد طلبات سابقة.</p></div>
+        </div>
+
+        <div id="view-contact" class="view" style="display: none;">
+            <h2 style="color:var(--primary); text-align:center;">تواصل معنا</h2>
+            <div class="contact-card">
+                <div class="contact-item"><span>01274906271</span><a href="tel:01274906271">اتصال</a></div>
+                <div class="contact-item"><span>01204767870</span><a href="tel:01204767870">اتصال</a></div>
+                <div class="contact-item"><span>01501224733</span><a href="tel:01501224733">اتصال</a></div>
+                <div class="contact-item"><span>5010048 (أرضي)</span><a href="tel:5010048">اتصال</a></div>
+                <div class="contact-item"><span>5003717 (أرضي)</span><a href="tel:5003717">اتصال</a></div>
+                <div class="contact-item"><span>5013813 (أرضي)</span><a href="tel:5013813">اتصال</a></div>
+                <div class="contact-item"><span style="color:#d32f2f;">01220202473 (شكاوي)</span><a href="tel:01220202473" style="background:#d32f2f;">اتصال</a></div>
+                <a href="https://wa.me/201274906271" class="whatsapp-btn-large" target="_blank">مراسلتنا على واتساب</a>
+                <div class="missing-item-banner">
+                    <h3>لم تجد ما تبحث عنه؟</h3>
+                    <p>يمكنك طلب أي صنف غير موجود وسنوفره لك.</p>
+                    <a href="https://wa.me/201274906271?text=السلام%20عليكم،%20أرغب%20في%20طلب%20صنف%20غير%20موجود:" target="_blank" class="missing-item-btn">اطلب صنف غير موجود</a>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- شريط التنقل السفلي للعميل (يظهر فقط في صفحات العميل) -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchView('home', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>الرئيسية</div>
+        <div class="nav-item" onclick="switchView('favorites', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>المفضلة</div>
+        <div class="nav-item" onclick="switchView('cart', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg><span class="cart-badge" id="cartBadge">0</span>السلة</div>
+        <div class="nav-item" onclick="switchView('orders', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>طلباتي</div>
+        <div class="nav-item" onclick="switchView('contact', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>تواصل</div>
+    </nav>
+
+    <!-- شريط التنقل السفلي للأدمن (3 أقسام: الرئيسية - المبيعات - المخزن) -->
     <nav class="admin-nav" id="adminNav">
         <div class="nav-item active" onclick="switchAdminView('main', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>الرئيسية</div>
         <div class="nav-item" onclick="switchAdminView('sales', event)"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>المبيعات</div>
@@ -470,8 +558,6 @@
     </nav>
 
     <script>
-        // نفس السكريبت الأصلي — لكن مع تعديلات بسيطة للأدمن
-
         const SUPABASE_URL = 'https://xspkizefwwhqdhxxewvj.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_JTxJIB3ess8YXhxhnB-qzQ_cSyQVCjz';
         const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -568,23 +654,26 @@
             d.innerHTML = sortProductsByName([...favorites]).map(p => `<div class="list-item"><div class="item-header"><div class="item-info"><span class="item-name">${p.name}</span><span class="item-price">${p.price} ج.م</span></div><button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price}, this)">❤️</button></div><div class="item-footer"><input type="number" class="qty-input" min="1" id="fq${p.name.replace(/\s/g,'')}" placeholder="0"><button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'fq${p.name.replace(/\s/g,'')}')">إضافة للسلة</button></div></div>`).join('');
         }
 
-        // ====== تحميل صفحة الأدمن مباشرة (بدون الحاجة لـ #admin) ======
-        // admin.html دايماً بيفتح صفحة الأدمن. شريط الأدمن السفلي والمساحة السفلية
-        // يظهروا بس بعد تسجيل الدخول بنجاح (في checkAdminSession).
+        // ====== تحميل الصفحة الرئيسية ======
+        // عند فتح الموقع بـ #admin: نخفي شريط تنقل العميل، ونخلي مساحة 130px تحت المحتوى
+        // عشان شريط تنقل الأدمن (الثابت) ما يغطيش زر "رفع الصور" أو أي حاجة في آخر الصفحة.
         window.onload = async function() {
             loadBanner();
-            // نظهر صفحة الأدمن مباشرة ونخفي أي شيء يخص العميل (لو موجود)
-            document.getElementById('view-admin').style.display = 'block';
-            const home = document.getElementById('view-home');
-            if (home) home.style.display = 'none';
-            const bottomNav = document.querySelector('.bottom-nav');
-            if (bottomNav) bottomNav.style.display = 'none';
-            // قبل تسجيل الدخول: ما فيش شريط أدمن فما فيش مساعدة سفلية محتاجة مساحة
-            document.body.style.paddingBottom = '0';
-            checkAdminSession();
+            if (window.location.hash === '#admin') {
+                document.getElementById('view-admin').style.display = 'block';
+                document.getElementById('view-home').style.display = 'none';
+                // إخفاء شريط تنقل العميل في صفحة الأدمن
+                document.querySelector('.bottom-nav').style.display = 'none';
+                // مساحة كافية تحت المحتوى عشان شريط تنقل الأدمن الثابت ما يغطيش المحتوى
+                document.body.style.paddingBottom = '130px';
+                checkAdminSession();
+            } else { 
+                if(!(await checkMaintenanceMode())){ document.getElementById('homeContent').style.display='block'; fetchProducts(); }
+                await checkHideImages(); filterProducts();
+            }
             renderFavorites(); renderOrders();
             let s = localStorage.getItem('treePharma_customer');
-            if(s){let c=JSON.parse(s); const cn=document.getElementById('clientName'); const ca=document.getElementById('clientAddress'); const cp=document.getElementById('clientPhone'); if(cn)cn.value=c.name||''; if(ca)ca.value=c.address||''; if(cp)cp.value=c.phone||'';}
+            if(s){let c=JSON.parse(s); document.getElementById('clientName').value=c.name||''; document.getElementById('clientAddress').value=c.address||''; document.getElementById('clientPhone').value=c.phone||'';}
         };
 
         async function checkMaintenanceMode(){try{const{data}=await sb.from('settings').select('is_updating').eq('id',1).single();if(data&&data.is_updating){document.getElementById('homeContent').style.display='none';document.getElementById('maintenanceMessage').style.display='block';return true;}}catch(e){}return false;}
@@ -719,9 +808,8 @@
             if(session){
                 document.getElementById('adminLoginBox').style.display='none';
                 document.getElementById('adminDashboard').style.display='block';
-                // إظهار فوتر الأدمن + مساحة 130px تحت المحتوى عشان ما يغطيش المحتوى
+                // إظهار فوتر الأدمن
                 document.getElementById('adminNav').classList.add('active');
-                document.body.style.paddingBottom = '130px';
                 loadAdminProducts();fetchDashboardStats();fetchAdminSettings();
             } 
         }
@@ -730,10 +818,8 @@
             await sb.auth.signOut(); 
             document.getElementById('adminLoginBox').style.display='block'; 
             document.getElementById('adminDashboard').style.display='none';
-            // إخفاء فوتر الأدمن + مساحة 0 (مفيش شريط تحت المحتوى)
+            // إخفاء فوتر الأدمن
             document.getElementById('adminNav').classList.remove('active');
-            document.body.style.paddingBottom = '0';
-            window.scrollTo({top:0, behavior:'smooth'});
         }
 
         async function addProduct() {
@@ -846,7 +932,7 @@
         async function deleteProduct(id){if(!confirm("حذف نهائي؟"))return;const{error}=await sb.from('products').delete().eq('id',id);if(!error){showToast("تم الحذف");loadAdminProducts();fetchProducts();fetchDashboardStats();}}
         async function deleteAllProducts(){if(!confirm("مسح الكل؟"))return;const{error}=await sb.from('products').delete().neq('id',0);if(!error){showToast("تم المسح");loadAdminProducts();fetchProducts();fetchDashboardStats();}}
 
-        // ملاحظة: admin-sw.js بيتسجل في آخر الصفحة (مش service-worker.js بتاع العميل)
+        if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js').catch(e=>console.error(e)));}
         let dp; const ib=document.getElementById('installAppBtn');
         // ====== منطق زر "تحميل الابليكشن" ======
         // الرسالة تظهر على آيفون فقط (مش أندرويد، مش ديسكتوب، مش لابتوب)
@@ -871,62 +957,29 @@
         if (isIOS && !isIOSStandalone && !userMarkedInstalled) {
             // آيفون + التطبيق غير مثبت + المستخدم ما ضغطش "تم التثبيت": نظهر الزر
             // ودوسة الزر تفتح Modal التعليمات العادية (تطبيق "إضافة للشاشة الرئيسية")
-            ib.style.display = 'block';
-            ib.onclick = openIosInstallModal;
+            // استثناء: لو إنت في صفحة الأدمن (#admin)، نخفي الزر عشان صفحة الأدمن ليها أبليكشن منفصل (admin.html)
+            if (window.location.hash === '#admin') {
+                ib.style.display = 'none';
+            } else {
+                ib.style.display = 'block';
+                ib.onclick = openIosInstallModal;
+            }
         } else if (isIOS) {
             // آيفون + التطبيق مثبت بالفعل أو المستخدم ضغط "تم التثبيت": نخفي الزر نهائياً
             ib.style.display = 'none';
         } else {
             // أندرويد أو ديسكتوب: السلوك الأصلي (beforeinstallprompt)
-            window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;ib.style.display='block';});
-            ib.addEventListener('click',async()=>{if(dp){dp.prompt();await dp.userChoice;ib.style.display='none';dp=null;}});
-            window.addEventListener('appinstalled',()=>{ib.style.display='none';dp=null;});
+            // استثناء: لو في صفحة الأدمن، نخفي الزر (للأدمن أبليكشن منفصل)
+            if (window.location.hash === '#admin') {
+                ib.style.display = 'none';
+            } else {
+                window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;ib.style.display='block';});
+                ib.addEventListener('click',async()=>{if(dp){dp.prompt();await dp.userChoice;ib.style.display='none';dp=null;}});
+                window.addEventListener('appinstalled',()=>{ib.style.display='none';dp=null;});
+            }
         }
         // رسالة تشخيصية في الـ Console (تقدر تشوفها بـ F12 → Console)
         console.log('=== تشخيص زر التحميل ===', { ua: ua.substring(0,100), platform, maxTouch, hasIOSInUA, hasAndroidInUA, hasIOSInPlatform, isIOS, isIOSStandalone, userMarkedInstalled });
-    
-
-        // ====== تعديلات خاصة بصفحة الأدمن ======
-        // عند فتح admin.html: نظهر صفحة الأدمن مباشرة. شريط أدمن + padding-bottom
-        // بيتحكم فيهم checkAdminSession (يظهروا بس بعد تسجيل الدخول).
-        (function() {
-            document.getElementById('view-admin').style.display = 'block';
-            const bn = document.querySelector('.bottom-nav');
-            if (bn) bn.style.display = 'none';
-            // padding-bottom يتحكم فيه checkAdminSession/adminLogout
-            checkAdminSession();
-        })();
-
-        // ====== منطق زر "تحميل الابليكشن" في صفحة الأدمن ======
-        // نفس منطق صفحة العميل بالظبط، لكن هنا الزر دايماً يظهر لو التطبيق مش مثبت.
-        // (تم تركيبه فوق في السكريبت الأصلي؛ نعيد تعريف onclick هنا للتأكيد)
-        (function() {
-            const ua = navigator.userAgent || '';
-            const platform = navigator.platform || '';
-            const maxTouch = (typeof navigator.maxTouchPoints === 'number') ? navigator.maxTouchPoints : 0;
-            const hasIOSInUA = /iPad|iPhone|iPod/.test(ua);
-            const hasAndroidInUA = /Android/i.test(ua);
-            const hasIOSInPlatform = /iPhone|iPad|iPod/i.test(platform);
-            const isIOS = hasIOSInUA && !hasAndroidInUA && hasIOSInPlatform && maxTouch > 0;
-            const isIOSStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-            let userMarkedInstalled = false;
-            try { userMarkedInstalled = localStorage.getItem('treePharma_appInstalled') === '1'; } catch(e){}
-            const ib = document.getElementById('installAppBtn');
-            if (isIOS && !isIOSStandalone && !userMarkedInstalled) {
-                ib.style.display = 'block';
-                ib.onclick = openIosInstallModal;
-            } else if (isIOS) {
-                ib.style.display = 'none';
-            } else {
-                window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.__dp=e;ib.style.display='block';});
-                ib.addEventListener('click',async()=>{if(window.__dp){window.__dp.prompt();await window.__dp.userChoice;ib.style.display='none';window.__dp=null;}});
-                window.addEventListener('appinstalled',()=>{ib.style.display='none';});
-            }
-        })();
-
-        if('serviceWorker' in navigator) {
-            window.addEventListener('load', () => navigator.serviceWorker.register('admin-sw.js').catch(e => console.error(e)));
-        }
     </script>
 </body>
 </html>
