@@ -131,8 +131,17 @@
         .hero-deco-2 { bottom: -40px; left: 90px; font-size: 70px; color: rgba(255,255,255,0.12); }
 
         @media (max-width: 640px) {
-            header { padding: 10px 12px; gap: 8px; }
-            .header-search { order: 3; flex-basis: 100%; max-width: none; }
+            header {
+                display: grid;
+                grid-template-columns: auto 1fr;
+                grid-template-rows: auto auto;
+                grid-template-areas: "brand actions" "search search";
+                padding: 10px 12px;
+                gap: 10px;
+            }
+            .header-brand { grid-area: brand; justify-self: start; }
+            .header-actions { grid-area: actions; justify-self: end; }
+            .header-search { grid-area: search; flex-basis: auto; max-width: none; order: 0; }
             .header-search .search-input { padding: 11px 16px 11px 42px; font-size: 14px; }
             .header-title { font-size: 22px; }
             .hero-section { margin: 12px 10px; padding: 22px 18px; flex-direction: column; text-align: center; }
