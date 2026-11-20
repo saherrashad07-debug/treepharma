@@ -338,6 +338,68 @@
             .list-item { padding: 8px; }
             .container { padding: 0 10px; }
         }
+
+        /* =========================================================
+           الأنيميشن — كله transform/opacity فقط (GPU accelerated)
+           ========================================================= */
+
+        /* #1 Hero Fade-in + Slide */
+        .hero-section { will-change: transform, opacity; }
+        .hero-section.anim-in { animation: heroFade 0.8s cubic-bezier(0.22,1,0.36,1) both; }
+        .hero-content > * { opacity: 0; will-change: transform, opacity; }
+        .hero-content > .hero-title { animation: slideUp 0.6s cubic-bezier(0.22,1,0.36,1) 0.25s forwards; }
+        .hero-content > .hero-subtitle { animation: slideUp 0.6s cubic-bezier(0.22,1,0.36,1) 0.45s forwards; }
+        .hero-content > .hero-btn { animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.7s forwards; }
+        .hero-logo { opacity: 0; animation: slideFromRight 0.7s cubic-bezier(0.22,1,0.36,1) 0.35s forwards; will-change: transform, opacity; }
+        .hero-deco { opacity: 0; animation: fadeIn 1s ease 1s forwards; }
+        @keyframes heroFade { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideFromRight { from { opacity: 0; transform: translateX(40px) rotate(3deg); } to { opacity: 1; transform: translateX(0) rotate(0); } }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* #2 Typewriter cursor */
+        .hero-title.typing::after { content: '|'; animation: blink 0.8s step-end infinite; opacity: 0.7; margin-right: 2px; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* #3 Staggered Cards */
+        .list-item { will-change: transform, opacity; }
+        .list-item.card-hidden { opacity: 0; transform: translateY(24px); }
+        .list-item.card-visible { transition: transform 0.45s cubic-bezier(0.22,1,0.36,1), opacity 0.45s ease; opacity: 1; transform: translateY(0); }
+
+        /* #4 3D Tilt (desktop only) */
+        @media (hover: hover) and (pointer: fine) {
+            .list-item { transition: transform 0.15s ease-out, box-shadow 0.2s ease; transform-style: preserve-3d; }
+            .list-item.tilted { box-shadow: 0 12px 30px rgba(0,105,92,0.18); }
+            .list-item .item-image-container, .list-item .item-name, .list-item .item-price { transform: translateZ(30px); }
+        }
+
+        /* #5 Fly to Cart */
+        .fly-clone { position: fixed; z-index: 10005; pointer-events: none; will-change: transform, opacity; transition: transform 0.7s cubic-bezier(0.5,-0.3,0.5,1), opacity 0.7s ease, width 0.7s ease, height 0.7s ease; border-radius: 12px; }
+        .cart-badge.bump { animation: bump 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+        @keyframes bump { 0% { transform: scale(1); } 50% { transform: scale(1.4); } 100% { transform: scale(1); } }
+
+        /* #6 Button Pulse + Shake */
+        .add-btn { will-change: transform; }
+        .add-btn.pulse { animation: btnPulse 0.3s ease; }
+        .add-btn.shake { animation: btnShake 0.35s ease; }
+        @keyframes btnPulse { 0% { transform: scale(1); } 50% { transform: scale(0.94); } 100% { transform: scale(1); } }
+        @keyframes btnShake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-4px); } 40% { transform: translateX(4px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
+
+        /* #7 Circle Reveal للوضع الليلي */
+        .dark-overlay { position: fixed; pointer-events: none; z-index: 9998; border-radius: 50%; transform: scale(0); will-change: transform, opacity; }
+        .dark-overlay.expand { animation: circleExpand 0.6s cubic-bezier(0.22,1,0.36,1) forwards; }
+        @keyframes circleExpand { from { transform: scale(0); opacity: 1; } to { transform: scale(2.5); opacity: 0; } }
+
+        /* #8 Page Slide بين الصفحات */
+        .view { will-change: transform, opacity; }
+        .view.view-enter { animation: viewEnter 0.35s cubic-bezier(0.22,1,0.36,1) both; }
+        @keyframes viewEnter { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* احترام تفضيل تقليل الحركة */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+        }
     </style>
 </head>
 <body>
@@ -627,10 +689,27 @@
 
         // ====== Dark Mode ======
         function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            document.getElementById('themeToggleBtn').innerText = isDark ? '☀️' : '🌙';
-            localStorage.setItem('treePharma_dark_mode', isDark);
+            const btn = document.getElementById('themeToggleBtn');
+            const rect = btn.getBoundingClientRect();
+            const cx = rect.left + rect.width/2;
+            const cy = rect.top + rect.height/2;
+            const maxDim = Math.max(window.innerWidth, window.innerHeight);
+            const overlay = document.createElement('div');
+            overlay.className = 'dark-overlay';
+            overlay.style.left = (cx - maxDim) + 'px';
+            overlay.style.top = (cy - maxDim) + 'px';
+            overlay.style.width = (maxDim*2) + 'px';
+            overlay.style.height = (maxDim*2) + 'px';
+            overlay.style.background = document.body.classList.contains('dark-mode') ? '#e0f2f1' : '#121212';
+            document.body.appendChild(overlay);
+            requestAnimationFrame(() => overlay.classList.add('expand'));
+            setTimeout(() => {
+                document.body.classList.toggle('dark-mode');
+                const isDark = document.body.classList.contains('dark-mode');
+                btn.innerText = isDark ? '☀️' : '🌙';
+                localStorage.setItem('treePharma_dark_mode', isDark);
+            }, 200);
+            setTimeout(() => overlay.remove(), 650);
         }
         if (localStorage.getItem('treePharma_dark_mode') === 'true') {
             document.body.classList.add('dark-mode');
@@ -696,7 +775,25 @@
             let f = sortProductsByName(currentProducts.filter(p => p.name && p.name.toLowerCase().includes(s)));
             if(!f.length && s.trim()) { l.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;background:var(--card-bg);border-radius:20px;border:1px solid var(--border-color);"><p style="color:#d32f2f;font-size:18px;font-weight:bold;">عذراً، لم نجد "${s.trim()}"</p><a href="https://wa.me/201274906271?text=${encodeURIComponent('طلب صنف: '+s.trim())}" target="_blank" style="background:#25D366;color:#fff;padding:12px 25px;border-radius:50px;display:inline-block;margin-top:15px;font-weight:bold;text-decoration:none;">اطلبه عبر واتساب</a></div>`; return; }
             let isOffer = document.getElementById("btnOffers").classList.contains("active");
-            l.innerHTML = f.map(p => `<div class="list-item">${(!isHidingImages && !isOffer && p.image_url) ? `<div class="item-image-container"><img src="${p.image_url}" class="item-image" loading="lazy" onload="this.classList.add('loaded');this.parentNode.classList.add('loaded');" onclick="openLightbox('${p.image_url}')"></div>` : ''}<div class="item-header"><div class="item-info"><span class="item-name">${p.name}</span><span class="item-price">${p.price} ج.م</span></div><button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price}, this)">${favorites.some(f=>f.name===p.name)?'❤️':'🤍'}</button></div><div class="item-footer"><input type="number" class="qty-input" id="qty_${p.id}" placeholder="0" min="1"><button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'qty_${p.id}')">إضافة للسلة</button></div></div>`).join('');
+            l.innerHTML = f.map(p => `<div class="list-item card-hidden">${(!isHidingImages && !isOffer && p.image_url) ? `<div class="item-image-container"><img src="${p.image_url}" class="item-image" loading="lazy" onload="this.classList.add('loaded');this.parentNode.classList.add('loaded');" onclick="openLightbox('${p.image_url}')"></div>` : ''}<div class="item-header"><div class="item-info"><span class="item-name">${p.name}</span><span class="item-price">${p.price} ج.م</span></div><button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price}, this)">${favorites.some(f=>f.name===p.name)?'❤️':'🤍'}</button></div><div class="item-footer"><input type="number" class="qty-input" id="qty_${p.id}" placeholder="0" min="1"><button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'qty_${p.id}', this)">إضافة للسلة</button></div></div>`).join('');
+            // #3 Staggered Cards — تفعيل الأنيميشن بالتدريج
+            const cards = l.querySelectorAll('.list-item.card-hidden');
+            cards.forEach((c, i) => {
+                setTimeout(() => {
+                    c.classList.remove('card-hidden'); c.classList.add('card-visible');
+                    // #4 3D Tilt (desktop only)
+                    if(window.matchMedia('(hover: hover) and (pointer: fine)').matches){
+                        c.addEventListener('mousemove', (ev) => {
+                            const r = c.getBoundingClientRect();
+                            const px = (ev.clientX - r.left) / r.width - 0.5;
+                            const py = (ev.clientY - r.top) / r.height - 0.5;
+                            c.style.transform = `perspective(800px) rotateY(${px*8}deg) rotateX(${-py*8}deg)`;
+                            c.classList.add('tilted');
+                        });
+                        c.addEventListener('mouseleave', () => { c.style.transform=''; c.classList.remove('tilted'); });
+                    }
+                }, Math.min(i*50, 600));
+            });
         }
 
         function toggleFavorite(n, p, b) {
@@ -710,7 +807,9 @@
         function renderFavorites() {
             let d = document.getElementById('favoritesList');
             if(!favorites.length){d.innerHTML='<p style="text-align:center;color:var(--primary);">المفضلة فارغة.</p>';return;}
-            d.innerHTML = sortProductsByName([...favorites]).map(p => `<div class="list-item"><div class="item-header"><div class="item-info"><span class="item-name">${p.name}</span><span class="item-price">${p.price} ج.م</span></div><button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price}, this)">❤️</button></div><div class="item-footer"><input type="number" class="qty-input" min="1" id="fq${p.name.replace(/\s/g,'')}" placeholder="0"><button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'fq${p.name.replace(/\s/g,'')}')">إضافة للسلة</button></div></div>`).join('');
+            d.innerHTML = sortProductsByName([...favorites]).map(p => `<div class="list-item card-hidden"><div class="item-header"><div class="item-info"><span class="item-name">${p.name}</span><span class="item-price">${p.price} ج.م</span></div><button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price}, this)">❤️</button></div><div class="item-footer"><input type="number" class="qty-input" min="1" id="fq${p.name.replace(/\s/g,'')}" placeholder="0"><button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'fq${p.name.replace(/\s/g,'')}', this)">إضافة للسلة</button></div></div>`).join('');
+            const fcards = d.querySelectorAll('.list-item.card-hidden');
+            fcards.forEach((c, i) => setTimeout(()=>{c.classList.remove('card-hidden');c.classList.add('card-visible');}, Math.min(i*50,400)));
         }
 
         // ====== تحميل الصفحة الرئيسية ======
@@ -718,6 +817,30 @@
         // عشان شريط تنقل الأدمن (الثابت) ما يغطيش زر "رفع الصور" أو أي حاجة في آخر الصفحة.
         window.onload = async function() {
             loadBanner();
+            // #1 Hero Fade-in + #2 Typewriter
+            const hero = document.querySelector('.hero-section');
+            if (hero && window.location.hash !== '#admin') {
+                hero.classList.add('anim-in');
+                const titleEl = hero.querySelector('.hero-title');
+                if (titleEl && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                    const fullText = titleEl.textContent.trim();
+                    titleEl.textContent = '';
+                    titleEl.classList.add('typing');
+                    let i = 0;
+                    setTimeout(() => {
+                        const type = () => {
+                            if (i < fullText.length) {
+                                titleEl.textContent = fullText.slice(0, i+1);
+                                i++;
+                                setTimeout(type, 45);
+                            } else {
+                                setTimeout(() => titleEl.classList.remove('typing'), 1500);
+                            }
+                        };
+                        type();
+                    }, 400);
+                }
+            }
             if (window.location.hash === '#admin') {
                 document.getElementById('view-admin').style.display = 'block';
                 document.getElementById('view-home').style.display = 'none';
@@ -741,9 +864,38 @@
         async function toggleHideImages(on){const{error}=await sb.from('settings').update({hide_images:on}).eq('id',1);if(!error){isHidingImages=on;showToast(on?"🖼️ تم إخفاء الصور":"✅ تم إظهار الصور");filterProducts();}}
         async function fetchAdminSettings(){try{const{data}=await sb.from('settings').select('*').eq('id',1).single();if(data){document.getElementById('maintenanceToggle').checked=data.is_updating;document.getElementById('hideImagesToggle').checked=data.hide_images;document.getElementById('bannerTextInput').value=data.banner_text||'';isHidingImages=data.hide_images;filterProducts();}}catch(e){}}
 
-        function addToCart(n, p, id) {
+        function addToCart(n, p, id, btnEl) {
             let q = parseInt(document.getElementById(id).value);
-            if(q>0){let e=cart.find(i=>i.name===n); if(e)e.qty+=q; else cart.push({id:Date.now(),name:n,price:p,qty:q}); updateCartDisplay();updateCartBadge();showToast(`تم إضافة ${n} ✔️`);document.getElementById(id).value='';}
+            const btn = btnEl || (event && event.currentTarget);
+            if(q>0){
+                let e=cart.find(i=>i.name===n); if(e)e.qty+=q; else cart.push({id:Date.now(),name:n,price:p,qty:q});
+                updateCartDisplay();updateCartBadge();showToast(`تم إضافة ${n} ✔️`);document.getElementById(id).value='';
+                // #6 Button Pulse + Shake
+                if(btn){btn.classList.remove('pulse','shake'); void btn.offsetWidth; btn.classList.add('pulse','shake'); setTimeout(()=>btn.classList.remove('pulse','shake'),400);}
+                // #5 Fly to Cart (لو فيه صورة في البطاقة)
+                if(btn){
+                    const card = btn.closest('.list-item');
+                    const img = card && card.querySelector('.item-image.loaded');
+                    const cartBadge = document.getElementById('cartBadge');
+                    if(img && cartBadge){
+                        const ir = img.getBoundingClientRect(); const br = cartBadge.getBoundingClientRect();
+                        const clone = document.createElement('img');
+                        clone.src = img.src; clone.className = 'fly-clone';
+                        clone.style.left = ir.left+'px'; clone.style.top = ir.top+'px';
+                        clone.style.width = ir.width+'px'; clone.style.height = ir.height+'px';
+                        document.body.appendChild(clone);
+                        requestAnimationFrame(()=>{
+                            clone.style.transform = `translate(${br.left+br.width/2-ir.left-ir.width/2}px, ${br.top+br.height/2-ir.top-ir.height/2}px)`;
+                            clone.style.width = '24px'; clone.style.height = '24px'; clone.style.opacity = '0.2';
+                        });
+                        setTimeout(()=>{
+                            cartBadge.classList.remove('bump'); void cartBadge.offsetWidth; cartBadge.classList.add('bump');
+                            setTimeout(()=>cartBadge.classList.remove('bump'),450);
+                        },650);
+                        setTimeout(()=>clone.remove(),750);
+                    }
+                }
+            }
             else showToast("برجاء كتابة كمية", "error");
         }
         function changeQty(id, d) { let i=cart.find(x=>x.id===id); if(i){i.qty+=d; if(i.qty<=0){cart=cart.filter(x=>x.id!==id); showToast("تم الحذف");} updateCartDisplay();updateCartBadge();} }
@@ -758,7 +910,9 @@
 
         function switchView(v, e) {
             ['home','favorites','cart','orders','contact'].forEach(x=>document.getElementById('view-'+x).style.display='none');
-            document.getElementById('view-'+v).style.display='block';
+            const el = document.getElementById('view-'+v);
+            el.style.display='block';
+            el.classList.remove('view-enter'); void el.offsetWidth; el.classList.add('view-enter');
             document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
             if(e)e.currentTarget.classList.add('active');
             if(v==='favorites')renderFavorites(); if(v==='orders')renderOrders();
