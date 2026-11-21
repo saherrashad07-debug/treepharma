@@ -183,6 +183,9 @@
         .item-info { flex: 1; text-align: right; word-break: break-word; min-width: 0; }
         .item-name { font-weight: bold; color: var(--text-color); font-size: 14px; line-height: 1.3; display: block; }
         .item-price { color: var(--primary); font-weight: bold; font-size: 16px; display: block; margin-top: 2px; }
+        .item-price-old { color: #888; font-weight: normal; font-size: 14px; text-decoration: line-through; display: block; margin-top: 2px; }
+        .item-price-final { color: #d32f2f; font-weight: bold; font-size: 18px; display: block; margin-top: 1px; }
+        .discount-badge { background: #d32f2f; color: #fff; font-size: 11px; padding: 3px 10px; border-radius: 12px; margin-bottom: 4px; font-weight: bold; display: inline-block; }
         .fav-btn { flex-shrink: 0; background: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; padding: 0; }
 
         .item-footer { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
@@ -561,7 +564,8 @@
                         <h3><span class="icon">➕</span> إضافة صنف جديد</h3>
                         <input type="text" id="pName" class="admin-input" placeholder="اسم الصنف">
                         <input type="number" id="pPrice" class="admin-input" placeholder="السعر">
-                        <select id="pCategory" class="admin-input"><option value="medical">طبية / عام</option><option value="offers">عروض</option></select>
+                        <input type="number" id="pDiscount" class="admin-input" placeholder="نسبة الخصم % (للأدوية فقط)" min="0" max="100" step="0.1" style="display:none;">
+                        <select id="pCategory" class="admin-input" onchange="document.getElementById('pDiscount').style.display = (this.value==='meds' ? 'block' : 'none');"><option value="medical">طبية / عام</option><option value="meds">أدوية</option><option value="offers">عروض</option></select>
                         <input type="file" id="pImage" class="admin-input" accept="image/*">
                         <button class="admin-btn" onclick="addProduct()">حفظ ونشر الصنف</button>
                     </div>
@@ -569,7 +573,7 @@
                     <div class="admin-box" style="border: 2px solid #004d40;">
                         <h3 style="color:#004d40;"><span class="icon" style="background:#004d40">⚙️</span> تحديث الأسعار (رفع إكسيل)</h3>
                         <p style="font-size:14px; color:var(--text-color); margin-bottom:15px;">رفع ملف Excel يحدث الأسعار، يضيف الجديد، ويخفي المش موجود (ما عدا العروض).</p>
-                        <select id="syncExcelCategory" class="admin-input"><option value="medical">طبية / عام</option><option value="offers">عروض</option></select>
+                        <select id="syncExcelCategory" class="admin-input"><option value="medical">طبية / عام</option><option value="meds">أدوية (يتطلب أعمدة: اسم / سعر / خصم)</option><option value="offers">عروض</option></select>
                         <input type="file" id="syncExcelFile" class="admin-input" accept=".xlsx, .xls, .csv">
                         <button class="admin-btn" style="background:#004d40;" onclick="syncExcelPrices()">🔄 مزامنة الملف</button>
                     </div>
@@ -594,6 +598,7 @@
                 </div>
                 <div class="view-buttons">
                     <button class="view-btn active" id="btnAll" onclick="showAllProducts()">كل الأصناف</button>
+                    <button class="view-btn" id="btnMeds" onclick="showMedicines()">الأدوية</button>
                     <button class="view-btn" id="btnOffers" onclick="showWeeklyOffers()">العرض الأسبوعي</button>
                 </div>
                 <div class="product-list" id="productList"><p style="text-align:center; color:var(--primary);">جاري تحميل الأصناف...</p></div>
@@ -682,7 +687,7 @@
         const SUPABASE_URL = 'https://xspkizefwwhqdhxxewvj.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_JTxJIB3ess8YXhxhnB-qzQ_cSyQVCjz';
         const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        let allProducts = [], offerProducts = [], currentProducts = [], cart = [], adminProductsCache = [];
+        let allProducts = [], offerProducts = [], medsProducts = [], currentProducts = [], cart = [], adminProductsCache = [];
         let favorites = JSON.parse(localStorage.getItem('treePharma_favorites')) || [];
         let myOrders = JSON.parse(localStorage.getItem('treePharma_orders')) || [];
         let isHidingImages = false;
@@ -754,18 +759,24 @@
                 let rawData = data || [];
                 const seen = new Set();
                 rawData = rawData.filter(p => { const n = normalizeArabic(p.name); if(!n || seen.has(n)) return false; seen.add(n); return true; });
-                allProducts = sortProductsByName(rawData.filter(p => p.category !== 'offers'));
+                allProducts = sortProductsByName(rawData.filter(p => p.category !== 'offers' && p.category !== 'meds'));
                 offerProducts = sortProductsByName(rawData.filter(p => p.category === 'offers'));
+                medsProducts = sortProductsByName(rawData.filter(p => p.category === 'meds'));
                 localStorage.setItem('treePharma_data', JSON.stringify(allProducts));
+                localStorage.setItem('treePharma_meds', JSON.stringify(medsProducts));
                 if (document.getElementById("btnAll").classList.contains("active")) { currentProducts = allProducts; filterProducts(); }
+                else if (document.getElementById("btnMeds").classList.contains("active")) { currentProducts = medsProducts; filterProducts(); }
             } catch (e) {
                 let cached = localStorage.getItem('treePharma_data');
                 if (cached) { allProducts = JSON.parse(cached); if (document.getElementById("btnAll").classList.contains("active")) { currentProducts = allProducts; filterProducts(); } }
+                let cachedMeds = localStorage.getItem('treePharma_meds');
+                if (cachedMeds) { medsProducts = JSON.parse(cachedMeds); if (document.getElementById("btnMeds").classList.contains("active")) { currentProducts = medsProducts; filterProducts(); } }
             }
         }
 
-        const setActiveButton = (id) => { ["btnAll","btnOffers"].forEach(b => document.getElementById(b).classList.remove("active")); document.getElementById(id).classList.add("active"); };
+        const setActiveButton = (id) => { ["btnAll","btnMeds","btnOffers"].forEach(b => document.getElementById(b).classList.remove("active")); document.getElementById(id).classList.add("active"); };
         const showAllProducts = () => { currentProducts = allProducts; setActiveButton("btnAll"); filterProducts(); };
+        const showMedicines = () => { currentProducts = medsProducts; setActiveButton("btnMeds"); filterProducts(); };
         const showWeeklyOffers = () => { currentProducts = offerProducts; setActiveButton("btnOffers"); filterProducts(); };
 
         function filterProducts() {
@@ -775,7 +786,18 @@
             let f = sortProductsByName(currentProducts.filter(p => p.name && p.name.toLowerCase().includes(s)));
             if(!f.length && s.trim()) { l.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;background:var(--card-bg);border-radius:20px;border:1px solid var(--border-color);"><p style="color:#d32f2f;font-size:18px;font-weight:bold;">عذراً، لم نجد "${s.trim()}"</p><a href="https://wa.me/201274906271?text=${encodeURIComponent('طلب صنف: '+s.trim())}" target="_blank" style="background:#25D366;color:#fff;padding:12px 25px;border-radius:50px;display:inline-block;margin-top:15px;font-weight:bold;text-decoration:none;">اطلبه عبر واتساب</a></div>`; return; }
             let isOffer = document.getElementById("btnOffers").classList.contains("active");
-            l.innerHTML = f.map(p => `<div class="list-item card-hidden">${(!isHidingImages && !isOffer && p.image_url) ? `<div class="item-image-container"><img src="${p.image_url}" class="item-image" loading="lazy" onload="this.classList.add('loaded');this.parentNode.classList.add('loaded');" onclick="openLightbox('${p.image_url}')"></div>` : ''}<div class="item-header"><div class="item-info"><span class="item-name">${p.name}</span><span class="item-price">${p.price} ج.م</span></div><button class="fav-btn" onclick="toggleFavorite('${p.name}', ${p.price}, this)">${favorites.some(f=>f.name===p.name)?'❤️':'🤍'}</button></div><div class="item-footer"><input type="number" class="qty-input" id="qty_${p.id}" placeholder="0" min="1"><button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, 'qty_${p.id}', this)">إضافة للسلة</button></div></div>`).join('');
+            let isMeds = document.getElementById("btnMeds").classList.contains("active");
+            l.innerHTML = f.map(p => {
+                // حساب السعر بعد الخصم للأدوية
+                let priceBlock = `<span class="item-price">${p.price} ج.م</span>`;
+                let cartPrice = p.price;
+                if (isMeds && p.discount && p.discount > 0) {
+                    const finalPrice = Math.round(p.price * (1 - p.discount/100) * 100) / 100;
+                    cartPrice = finalPrice;
+                    priceBlock = `<span class="item-price"><span class="discount-badge">خصم ${p.discount}%</span><span class="item-price-old">${p.price} ج.م</span><span class="item-price-final">${finalPrice} ج.م</span></span>`;
+                }
+                return `<div class="list-item card-hidden">${(!isHidingImages && !isOffer && p.image_url) ? `<div class="item-image-container"><img src="${p.image_url}" class="item-image" loading="lazy" onload="this.classList.add('loaded');this.parentNode.classList.add('loaded');" onclick="openLightbox('${p.image_url}')"></div>` : ''}<div class="item-header"><div class="item-info"><span class="item-name">${p.name}</span>${priceBlock}</div><button class="fav-btn" onclick="toggleFavorite('${p.name}', ${cartPrice}, this)">${favorites.some(f=>f.name===p.name)?'❤️':'🤍'}</button></div><div class="item-footer"><input type="number" class="qty-input" id="qty_${p.id}" placeholder="0" min="1"><button class="add-btn" onclick="addToCart('${p.name}', ${cartPrice}, 'qty_${p.id}', this)">إضافة للسلة</button></div></div>`;
+            }).join('');
             // #3 Staggered Cards — تفعيل الأنيميشن بالتدريج
             const cards = l.querySelectorAll('.list-item.card-hidden');
             cards.forEach((c, i) => {
@@ -1005,7 +1027,19 @@
             if(!cart.length){showToast("السلة فارغة","error");return;} let t=0,r=''; sortProductsByName([...cart]).forEach(i=>{let x=i.price*i.qty;t+=x;r+=`<tr><td>${i.name}</td><td>${i.qty}</td><td>${i.price}</td><td>${x}</td></tr>`;});
             let w=window.open('','_blank'); w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>فاتورة</title><style>body{font-family:Tajawal,sans-serif;padding:20px;max-width:800px;margin:auto;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:8px;text-align:center;}th{background:#00695c;color:#fff;}.total{text-align:left;font-weight:bold;color:#00695c;}.notes{background:#f4f7f6;padding:10px;border-radius:8px;margin-top:15px;}</style></head><body><h1 style="color:#00695c;">Tree Pharma</h1><h3>العميل: ${n} - ${p}</h3><p>العنوان: ${a}</p><p>التاريخ: ${new Date().toLocaleDateString('en-GB')}</p><p style="background:#e0f2f1;padding:10px;border-radius:8px;">طريقة الدفع: ${m}</p>${notes?`<div class="notes"><strong>ملاحظات:</strong> ${notes}</div>`:''}<table><tr><th>الصنف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>${r}</table><h2 class="total">الإجمالي: ${t} ج.م</h2><script>window.print()<\/script></body></html>`); w.document.close();
         }
-        function printCatalog() { if(!allProducts.length){showToast("لا توجد أصناف","error");return;} let h=`<html dir="rtl"><head><style>body{font-family:Tajawal,sans-serif;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:8px;}th{background:#00695c;color:#fff;}</style></head><body><h1 style="text-align:center;color:#00695c;">قائمة أسعار Tree Pharma</h1><table><tr><th>الصنف</th><th>السعر</th></tr>${allProducts.map(p=>`<tr><td>${p.name}</td><td>${p.price} ج.م</td></tr>`).join('')}</table></body></html>`; let w=window.open('','_blank'); w.document.write(h); w.document.close(); setTimeout(()=>w.print(),500); }
+        function printCatalog() {
+            if(!allProducts.length && !medsProducts.length){showToast("لا توجد أصناف","error");return;}
+            let rows = allProducts.map(p=>`<tr><td>${p.name}</td><td>${p.price} ج.م</td><td>—</td></tr>`).join('');
+            let medsRows = medsProducts.map(p=>{
+                if(p.discount && p.discount>0){const fp=Math.round(p.price*(1-p.discount/100)*100)/100; return `<tr><td>${p.name}</td><td><s>${p.price}</s> ${fp} ج.م</td><td>${p.discount}%</td></tr>`;}
+                return `<tr><td>${p.name}</td><td>${p.price} ج.م</td><td>—</td></tr>`;
+            }).join('');
+            let h=`<html dir="rtl"><head><style>body{font-family:Tajawal,sans-serif;padding:20px;}table{width:100%;border-collapse:collapse;margin-top:10px;}th,td{border:1px solid #ddd;padding:8px;text-align:center;}th{background:#00695c;color:#fff;}h2{color:#004d40;margin-top:25px;border-bottom:2px solid #00695c;padding-bottom:5px;}</style></head><body><h1 style="text-align:center;color:#00695c;">قائمة أسعار Tree Pharma</h1>`;
+            if(allProducts.length){h+=`<h2>المستلزمات الطبية</h2><table><tr><th>الصنف</th><th>السعر</th><th>الخصم</th></tr>${rows}</table>`;}
+            if(medsProducts.length){h+=`<h2>الأدوية</h2><table><tr><th>الصنف</th><th>السعر</th><th>الخصم</th></tr>${medsRows}</table>`;}
+            h+=`</body></html>`;
+            let w=window.open('','_blank'); w.document.write(h); w.document.close(); setTimeout(()=>w.print(),500);
+        }
 
         // ====== تبديل أقسام لوحة الأدمن (الرئيسية - المبيعات - المخزن) ======
         function switchAdminView(v, e) {
@@ -1039,23 +1073,27 @@
             const n=document.getElementById('pName').value,p=document.getElementById('pPrice').value,c=document.getElementById('pCategory').value,f=document.getElementById('pImage');
             if(!n||!p){showToast("أدخل الاسم والسعر","error");return;} let u='';
             if(f.files.length){const file=f.files[0]; let ext=file.name.split('.').pop().toLowerCase(); if(!['jpg','jpeg','png','webp','gif'].includes(ext))ext='jpg'; const path=`${Date.now()}.${ext}`; const {error}=await sb.storage.from('products').upload(path,file,{contentType:file.type||'image/jpeg'}); if(error){showToast("فشل رفع الصورة","error");return;} u=`${SUPABASE_URL}/storage/v1/object/public/products/${path}`;}
-            const {error}=await sb.from('products').insert([{name:n,price:p,category:c,image_url:u,is_active:true}]);
-            if(!error){showToast("تمت الإضافة ✔️");document.getElementById('pName').value='';document.getElementById('pPrice').value='';document.getElementById('pImage').value='';loadAdminProducts();fetchProducts();fetchDashboardStats();}
+            const payload={name:n,price:p,category:c,image_url:u,is_active:true};
+            if(c==='meds'){const d=document.getElementById('pDiscount')?.value; payload.discount = (d && !isNaN(parseFloat(d))) ? parseFloat(d) : 0;}
+            const {error}=await sb.from('products').insert([payload]);
+            if(!error){showToast("تمت الإضافة ✔️");document.getElementById('pName').value='';document.getElementById('pPrice').value='';if(document.getElementById('pDiscount'))document.getElementById('pDiscount').value='';document.getElementById('pImage').value='';loadAdminProducts();fetchProducts();fetchDashboardStats();}
         }
 
         async function syncExcelPrices() {
             const f=document.getElementById('syncExcelFile'),c=document.getElementById('syncExcelCategory').value;
             if(!f.files.length){showToast("اختر ملف إكسيل","error");return;}
+            const isMeds = (c==='meds');
             const r=new FileReader(); r.onload=async(e)=>{
                 const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'}); const ws=wb.Sheets[wb.SheetNames[0]]; const json=XLSX.utils.sheet_to_json(ws,{header:1});
                 if(json.length<2){showToast("الملف فارغ","error");return;}
                 const {data:db}=await sb.from('products').select('*');
                 const items=[],set=new Set();
-                for(let i=1;i<json.length;i++){const row=json[i]; if(row[0]&&row[1]){const nm=normalizeArabic(String(row[0]).trim()); if(!set.has(nm)){items.push({name:String(row[0]).trim(),price:parseFloat(row[1]),norm:nm}); set.add(nm);}}}
+                for(let i=1;i<json.length;i++){const row=json[i]; if(row[0]&&row[1]){const nm=normalizeArabic(String(row[0]).trim()); if(!set.has(nm)){const it={name:String(row[0]).trim(),price:parseFloat(row[1]),norm:nm}; if(isMeds)it.discount=parseFloat(row[2])||0; items.push(it); set.add(nm);}}}
                 if(!items.length){showToast("لا توجد بيانات صحيحة","error");return;}
                 let u=0,ins=0,re=0,de=0;
-                for(const it of items){const m=db.find(p=>normalizeArabic(p.name)===it.norm); if(m){const{error}=await sb.from('products').update({price:it.price,is_active:true,category:c}).eq('id',m.id); if(!error){u++; if(!m.is_active)re++;}} else {const{error}=await sb.from('products').insert([{name:it.name,price:it.price,category:c,image_url:'',is_active:true}]); if(!error)ins++;}}
-                for(const p of db){if(p.category==='offers')continue; const nm=normalizeArabic(p.name); if(!set.has(nm)&&p.is_active){const{error}=await sb.from('products').update({is_active:false}).eq('id',p.id); if(!error)de++;}}
+                for(const it of items){const m=db.find(p=>normalizeArabic(p.name)===it.norm); const upd={price:it.price,is_active:true,category:c}; if(isMeds)upd.discount=it.discount; if(m){const{error}=await sb.from('products').update(upd).eq('id',m.id); if(!error){u++; if(!m.is_active)re++;}} else {const insObj={name:it.name,price:it.price,category:c,image_url:'',is_active:true}; if(isMeds)insObj.discount=it.discount; const{error}=await sb.from('products').insert([insObj]); if(!error)ins++;}}
+                // إخفاء المش موجود في نفس الكاتيجوري بس (ما عدا العروض)
+                for(const p of db){if(p.category!==c)continue; if(p.category==='offers')continue; const nm=normalizeArabic(p.name); if(!set.has(nm)&&p.is_active){const{error}=await sb.from('products').update({is_active:false}).eq('id',p.id); if(!error)de++;}}
                 showToast(`✅ تحديث: ${u} سعر، ${ins} جديد، ${re} رجع، ${de} اتخفي`); f.value=''; loadAdminProducts();fetchProducts();fetchDashboardStats();
             }; r.readAsArrayBuffer(f.files[0]);
         }
@@ -1116,11 +1154,13 @@
             const l=document.getElementById('adminProductList'),s=document.getElementById('adminSearchInput').value.toLowerCase().trim();
             let p=sortProductsByName(adminProductsCache.filter(x=>x.name&&x.name.toLowerCase().includes(s)));
             if(!p.length){l.innerHTML='<p style="text-align:center;color:var(--primary);">لا توجد أصناف.</p>';return;}
-            let g='',o='',gc=0,oc=0;
+            let g='',o='',m='',gc=0,oc=0,mc=0;
             p.forEach(x=>{let st=x.is_active?'':'opacity:0.5;border:1px dashed #ff4d4d;'; let ba=x.is_active?'':'<span style="background:#d32f2f;color:#fff;padding:2px 8px;border-radius:12px;font-size:10px;">مخفي</span>';
-            let it=`<div class="admin-product-item" style="${st}"><div style="display:flex;gap:10px;align-items:center;"><input type="text" id="n_${x.id}" value="${x.name}" class="admin-input" style="flex:1;margin:0;font-weight:bold;background:var(--input-bg);color:var(--text-color);"><input type="number" id="p_${x.id}" value="${x.price}" class="admin-input" style="width:100px;margin:0;text-align:center;background:var(--input-bg);color:var(--text-color);">${ba}</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;"><input type="file" id="i_${x.id}" accept="image/*" style="flex:1;border:none;background:transparent;"><button class="admin-icon-btn save" onclick="updateProduct(${x.id})">💾</button>${x.is_active?`<button class="admin-icon-btn toggle" onclick="toggleProductVisibility(${x.id},false)">👁️</button>`:`<button class="admin-icon-btn toggle" onclick="toggleProductVisibility(${x.id},true)">🚫</button>`}<button class="admin-icon-btn delete" onclick="deleteProduct(${x.id})">🗑️</button></div></div>`;
-            if(x.category==='offers'){o+=it;oc++;} else {g+=it;gc++;}});
-            let h=''; if(g){h+=`<div class="admin-category-header">الأصناف <span>${gc}</span></div>${g}`;} if(o){h+=`<div class="admin-category-header">العروض <span>${oc}</span></div>${o}`;} l.innerHTML=h||'<p style="text-align:center;color:var(--primary);">لا توجد أصناف.</p>';
+            let discountField = x.category==='meds' ? `<input type="number" id="d_${x.id}" value="${x.discount||0}" class="admin-input" style="width:80px;margin:0;text-align:center;background:var(--input-bg);color:var(--text-color);" title="نسبة الخصم %">` : '';
+            let discountLabel = x.category==='meds' ? '<span style="font-size:11px;color:#d32f2f;font-weight:bold;">خصم%</span>' : '';
+            let it=`<div class="admin-product-item" style="${st}"><div style="display:flex;gap:10px;align-items:center;"><input type="text" id="n_${x.id}" value="${x.name}" class="admin-input" style="flex:1;margin:0;font-weight:bold;background:var(--input-bg);color:var(--text-color);"><input type="number" id="p_${x.id}" value="${x.price}" class="admin-input" style="width:100px;margin:0;text-align:center;background:var(--input-bg);color:var(--text-color);">${discountLabel}${discountField}${ba}</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;"><input type="file" id="i_${x.id}" accept="image/*" style="flex:1;border:none;background:transparent;"><button class="admin-icon-btn save" onclick="updateProduct(${x.id})">💾</button>${x.is_active?`<button class="admin-icon-btn toggle" onclick="toggleProductVisibility(${x.id},false)">👁️</button>`:`<button class="admin-icon-btn toggle" onclick="toggleProductVisibility(${x.id},true)">🚫</button>`}<button class="admin-icon-btn delete" onclick="deleteProduct(${x.id})">🗑️</button></div></div>`;
+            if(x.category==='offers'){o+=it;oc++;} else if(x.category==='meds'){m+=it;mc++;} else {g+=it;gc++;}});
+            let h=''; if(g){h+=`<div class="admin-category-header">الأصناف <span>${gc}</span></div>${g}`;} if(m){h+=`<div class="admin-category-header" style="background:#d32f2f;">الأدوية <span>${mc}</span></div>${m}`;} if(o){h+=`<div class="admin-category-header">العروض <span>${oc}</span></div>${o}`;} l.innerHTML=h||'<p style="text-align:center;color:var(--primary);">لا توجد أصناف.</p>';
         }
 
         function showNoImageReport() {
@@ -1141,7 +1181,7 @@
             showToast('✅ تم إخفاء زر التحميل. التطبيق أصبح جاهزاً على شاشتك الرئيسية');
         }
         async function toggleProductVisibility(id,on){const{error}=await sb.from('products').update({is_active:on}).eq('id',id); if(!error){showToast(on?"تم الإظهار":"تم الإخفاء");loadAdminProducts();fetchProducts();fetchDashboardStats();}}
-        async function updateProduct(id){const n=document.getElementById(`n_${id}`).value,p=document.getElementById(`p_${id}`).value,f=document.getElementById(`i_${id}`);if(!n||!p){showToast("أدخل الاسم والسعر","error");return;}let u={name:n,price:parseFloat(p)};if(f.files.length){const file=f.files[0];let ext=file.name.split('.').pop().toLowerCase();if(!['jpg','jpeg','png','webp','gif'].includes(ext))ext='jpg';const path=`${Date.now()}.${ext}`;const{error:ue}=await sb.storage.from('products').upload(path,file,{contentType:file.type||'image/jpeg'});if(ue){showToast("فشل رفع الصورة","error");return;}u.image_url=`${SUPABASE_URL}/storage/v1/object/public/products/${path}`;}const{error}=await sb.from('products').update(u).eq('id',id);if(!error){showToast("تم التحديث ✔️");loadAdminProducts();fetchProducts();}}
+        async function updateProduct(id){const n=document.getElementById(`n_${id}`).value,p=document.getElementById(`p_${id}`).value,f=document.getElementById(`i_${id}`);if(!n||!p){showToast("أدخل الاسم والسعر","error");return;}let u={name:n,price:parseFloat(p)};const dEl=document.getElementById(`d_${id}`);if(dEl){u.discount=parseFloat(dEl.value)||0;}if(f.files.length){const file=f.files[0];let ext=file.name.split('.').pop().toLowerCase();if(!['jpg','jpeg','png','webp','gif'].includes(ext))ext='jpg';const path=`${Date.now()}.${ext}`;const{error:ue}=await sb.storage.from('products').upload(path,file,{contentType:file.type||'image/jpeg'});if(ue){showToast("فشل رفع الصورة","error");return;}u.image_url=`${SUPABASE_URL}/storage/v1/object/public/products/${path}`;}const{error}=await sb.from('products').update(u).eq('id',id);if(!error){showToast("تم التحديث ✔️");loadAdminProducts();fetchProducts();}}
         async function deleteProduct(id){if(!confirm("حذف نهائي؟"))return;const{error}=await sb.from('products').delete().eq('id',id);if(!error){showToast("تم الحذف");loadAdminProducts();fetchProducts();fetchDashboardStats();}}
         async function deleteAllProducts(){if(!confirm("مسح الكل؟"))return;const{error}=await sb.from('products').delete().neq('id',0);if(!error){showToast("تم المسح");loadAdminProducts();fetchProducts();fetchDashboardStats();}}
 
