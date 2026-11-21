@@ -785,9 +785,19 @@
 
         async function fetchProducts() {
             try {
-                const { data, error } = await sb.from('products').select('*').eq('is_active', true);
-                if (error) throw error;
-                let rawData = data || [];
+                // جلب كل الأصناف على دفعات (pagination) عشان Supabase بترجع 1000 صف كحد أقصى
+                const PAGE_SIZE = 1000;
+                let allRaw = [];
+                let from = 0;
+                while (true) {
+                    const { data, error } = await sb.from('products').select('*').eq('is_active', true).range(from, from + PAGE_SIZE - 1);
+                    if (error) throw error;
+                    if (!data || !data.length) break;
+                    allRaw = allRaw.concat(data);
+                    if (data.length < PAGE_SIZE) break;  // آخر صفحة
+                    from += PAGE_SIZE;
+                }
+                let rawData = allRaw;
                 const seen = new Set();
                 rawData = rawData.filter(p => { const n = normalizeArabic(p.name); if(!n || seen.has(n)) return false; seen.add(n); return true; });
                 allProducts = sortProductsByName(rawData.filter(p => p.category !== 'meds'));  // كل الأصناف = medical + offers المعلّمة
@@ -796,58 +806,54 @@
                 localStorage.setItem('treePharma_data', JSON.stringify(allProducts));
                 localStorage.setItem('treePharma_meds', JSON.stringify(medsProducts));
                 localStorage.setItem('treePharma_offers', JSON.stringify(offerProducts));
-                if (document.getElementById("btnAll").classList.contains("active")) { currentProducts = allProducts; filterProducts(); }
-                else if (document.getElementById("btnMeds").classList.contains("active")) { currentProducts = medsProducts; filterProducts(); }
-                else if (document.getElementById("btnOffers").classList.contains("active")) { currentProducts = offerProducts; filterProducts(); }
+                if (document.getElementById("btnAll").classList.contains("active")) { currentProducts = allProducts; resetPagination(); filterProducts(); }
+                else if (document.getElementById("btnMeds").classList.contains("active")) { currentProducts = medsProducts; resetPagination(); filterProducts(); }
+                else if (document.getElementById("btnOffers").classList.contains("active")) { currentProducts = offerProducts; resetPagination(); filterProducts(); }
             } catch (e) {
                 let cached = localStorage.getItem('treePharma_data');
-                if (cached) { allProducts = JSON.parse(cached); if (document.getElementById("btnAll").classList.contains("active")) { currentProducts = allProducts; filterProducts(); } }
+                if (cached) { allProducts = JSON.parse(cached); if (document.getElementById("btnAll").classList.contains("active")) { currentProducts = allProducts; resetPagination(); filterProducts(); } }
                 let cachedMeds = localStorage.getItem('treePharma_meds');
-                if (cachedMeds) { medsProducts = JSON.parse(cachedMeds); if (document.getElementById("btnMeds").classList.contains("active")) { currentProducts = medsProducts; filterProducts(); } }
+                if (cachedMeds) { medsProducts = JSON.parse(cachedMeds); if (document.getElementById("btnMeds").classList.contains("active")) { currentProducts = medsProducts; resetPagination(); filterProducts(); } }
                 let cachedOffers = localStorage.getItem('treePharma_offers');
-                if (cachedOffers) { offerProducts = JSON.parse(cachedOffers); if (document.getElementById("btnOffers").classList.contains("active")) { currentProducts = offerProducts; filterProducts(); } }
+                if (cachedOffers) { offerProducts = JSON.parse(cachedOffers); if (document.getElementById("btnOffers").classList.contains("active")) { currentProducts = offerProducts; resetPagination(); filterProducts(); } }
             }
         }
 
         const setActiveButton = (id) => { ["btnAll","btnMeds","btnOffers"].forEach(b => document.getElementById(b).classList.remove("active")); document.getElementById(id).classList.add("active"); };
-        const showAllProducts = () => { currentProducts = allProducts; setActiveButton("btnAll"); filterProducts(); };
-        const showMedicines = () => { currentProducts = medsProducts; setActiveButton("btnMeds"); filterProducts(); };
-        const showWeeklyOffers = () => { currentProducts = offerProducts; setActiveButton("btnOffers"); filterProducts(); };
+        const ITEMS_PER_PAGE = 60;  // عدد البطاقات اللي بتتحمل في كل مرة (عشان المتصفح ما يهنجش مع 2000 صنف)
+        let currentDisplayList = [];  // القائمة المصفّاة الحالية (كلها)
+        let loadedCount = 0;  // عدد البطاقات المعروضة حالياً
 
-        function filterProducts() {
-            let s = document.getElementById('searchInput').value.toLowerCase();
-            let l = document.getElementById('productList');
-            if (!currentProducts.length) { l.innerHTML = '<p style="text-align:center; color:var(--primary);">لا توجد أصناف.</p>'; return; }
-            let f = sortProductsByName(currentProducts.filter(p => p.name && p.name.toLowerCase().includes(s)));
-            if(!f.length && s.trim()) { l.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;background:var(--card-bg);border-radius:20px;border:1px solid var(--border-color);"><p style="color:#d32f2f;font-size:18px;font-weight:bold;">عذراً، لم نجد "${s.trim()}"</p><a href="https://wa.me/201274906271?text=${encodeURIComponent('طلب صنف: '+s.trim())}" target="_blank" style="background:#25D366;color:#fff;padding:12px 25px;border-radius:50px;display:inline-block;margin-top:15px;font-weight:bold;text-decoration:none;">اطلبه عبر واتساب</a></div>`; return; }
-            let isOffer = document.getElementById("btnOffers").classList.contains("active");
-            let isMeds = document.getElementById("btnMeds").classList.contains("active");
-            l.innerHTML = f.map(p => {
-                // حساب السعر بعد الخصم للأدوية
-                let priceBlock = `<span class="item-price">${p.price} ج.م</span>`;
-                let cartPrice = p.price;
-                if (isMeds && p.discount && p.discount > 0) {
-                    const finalPrice = Math.round(p.price * (1 - p.discount/100) * 100) / 100;
-                    cartPrice = finalPrice;
-                    priceBlock = `<span class="item-price"><span class="discount-badge">خصم ${p.discount}%</span><span class="item-price-old">${p.price} ج.م</span><span class="item-price-final">${finalPrice} ج.م</span></span>`;
-                }
-                // عرض سعر العرض (في صفحة العروض)
-                if (isOffer && p.offer_price != null && p.offer_price > 0 && p.offer_price < p.price) {
-                    cartPrice = p.offer_price;
-                    priceBlock = `<span class="item-price"><span class="discount-badge">عرض الأسبوع</span><span class="item-price-old">${p.price} ج.م</span><span class="item-price-final">${p.offer_price} ج.م</span></span>`;
-                }
-                // في «كل الأصناف» لو الصنف معرّض، نوضّح إنه موجود كمان في العروض بسعر أقل
-                if (!isOffer && !isMeds && p.is_offer && p.offer_price != null && p.offer_price > 0 && p.offer_price < p.price) {
-                    priceBlock = `<span class="item-price">${p.price} ج.م <span style="font-size:11px; color:#ff6f00; background:#fff3e0; padding:2px 8px; border-radius:10px; margin-right:4px; font-weight:bold;">عرض: ${p.offer_price} ج.م</span></span>`;
-                }
-                return `<div class="list-item card-hidden">${(!isHidingImages && p.image_url) ? `<div class="item-image-container"><img src="${p.image_url}" class="item-image" loading="lazy" onload="this.classList.add('loaded');this.parentNode.classList.add('loaded');" onclick="openLightbox('${p.image_url}')"></div>` : ''}<div class="item-header"><div class="item-info"><span class="item-name">${p.name}</span>${priceBlock}</div><button class="fav-btn" onclick="toggleFavorite('${p.name}', ${cartPrice}, this)">${favorites.some(f=>f.name===p.name)?'❤️':'🤍'}</button></div><div class="item-footer"><input type="number" class="qty-input" id="qty_${p.id}" placeholder="0" min="1"><button class="add-btn" onclick="addToCart('${p.name}', ${cartPrice}, 'qty_${p.id}', this)">إضافة للسلة</button></div></div>`;
-            }).join('');
-            // #3 Staggered Cards — تفعيل الأنيميشن بالتدريج
-            const cards = l.querySelectorAll('.list-item.card-hidden');
+        const resetPagination = () => { loadedCount = 0; };
+        const showAllProducts = () => { currentProducts = allProducts; setActiveButton("btnAll"); resetPagination(); filterProducts(); };
+        const showMedicines = () => { currentProducts = medsProducts; setActiveButton("btnMeds"); resetPagination(); filterProducts(); };
+        const showWeeklyOffers = () => { currentProducts = offerProducts; setActiveButton("btnOffers"); resetPagination(); filterProducts(); };
+
+        // بناء HTML لبطاقة واحدة (مستخرجة عشان تتعد استخدامها في الـ pagination)
+        function buildProductCard(p, isOffer, isMeds) {
+            let priceBlock = `<span class="item-price">${p.price} ج.م</span>`;
+            let cartPrice = p.price;
+            if (isMeds && p.discount && p.discount > 0) {
+                const finalPrice = Math.round(p.price * (1 - p.discount/100) * 100) / 100;
+                cartPrice = finalPrice;
+                priceBlock = `<span class="item-price"><span class="discount-badge">خصم ${p.discount}%</span><span class="item-price-old">${p.price} ج.م</span><span class="item-price-final">${finalPrice} ج.م</span></span>`;
+            }
+            if (isOffer && p.offer_price != null && p.offer_price > 0 && p.offer_price < p.price) {
+                cartPrice = p.offer_price;
+                priceBlock = `<span class="item-price"><span class="discount-badge">عرض الأسبوع</span><span class="item-price-old">${p.price} ج.م</span><span class="item-price-final">${p.offer_price} ج.م</span></span>`;
+            }
+            if (!isOffer && !isMeds && p.is_offer && p.offer_price != null && p.offer_price > 0 && p.offer_price < p.price) {
+                priceBlock = `<span class="item-price">${p.price} ج.م <span style="font-size:11px; color:#ff6f00; background:#fff3e0; padding:2px 8px; border-radius:10px; margin-right:4px; font-weight:bold;">عرض: ${p.offer_price} ج.م</span></span>`;
+            }
+            return `<div class="list-item card-hidden">${(!isHidingImages && p.image_url) ? `<div class="item-image-container"><img src="${p.image_url}" class="item-image" loading="lazy" onload="this.classList.add('loaded');this.parentNode.classList.add('loaded');" onclick="openLightbox('${p.image_url}')"></div>` : ''}<div class="item-header"><div class="item-info"><span class="item-name">${p.name}</span>${priceBlock}</div><button class="fav-btn" onclick="toggleFavorite('${p.name}', ${cartPrice}, this)">${favorites.some(f=>f.name===p.name)?'❤️':'🤍'}</button></div><div class="item-footer"><input type="number" class="qty-input" id="qty_${p.id}" placeholder="0" min="1"><button class="add-btn" onclick="addToCart('${p.name}', ${cartPrice}, 'qty_${p.id}', this)">إضافة للسلة</button></div></div>`;
+        }
+
+        // تفعيل الأنيميشن على بطاقات جديدة (الـ tilt + staggered fade-in)
+        function animateCards(container, startIdx) {
+            const cards = container.querySelectorAll('.list-item.card-hidden');
             cards.forEach((c, i) => {
                 setTimeout(() => {
                     c.classList.remove('card-hidden'); c.classList.add('card-visible');
-                    // #4 3D Tilt (desktop only)
                     if(window.matchMedia('(hover: hover) and (pointer: fine)').matches){
                         c.addEventListener('mousemove', (ev) => {
                             const r = c.getBoundingClientRect();
@@ -858,8 +864,40 @@
                         });
                         c.addEventListener('mouseleave', () => { c.style.transform=''; c.classList.remove('tilted'); });
                     }
-                }, Math.min(i*50, 600));
+                }, Math.min(i*30, 400));
             });
+        }
+
+        function filterProducts() {
+            let s = document.getElementById('searchInput').value.toLowerCase();
+            let l = document.getElementById('productList');
+            if (!currentProducts.length) { l.innerHTML = '<p style="text-align:center; color:var(--primary);">لا توجد أصناف.</p>'; return; }
+            let f = sortProductsByName(currentProducts.filter(p => p.name && p.name.toLowerCase().includes(s)));
+            if(!f.length && s.trim()) { l.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;background:var(--card-bg);border-radius:20px;border:1px solid var(--border-color);"><p style="color:#d32f2f;font-size:18px;font-weight:bold;">عذراً، لم نجد "${s.trim()}"</p><a href="https://wa.me/201274906271?text=${encodeURIComponent('طلب صنف: '+s.trim())}" target="_blank" style="background:#25D366;color:#fff;padding:12px 25px;border-radius:50px;display:inline-block;margin-top:15px;font-weight:bold;text-decoration:none;">اطلبه عبر واتساب</a></div>`; return; }
+            let isOffer = document.getElementById("btnOffers").classList.contains("active");
+            let isMeds = document.getElementById("btnMeds").classList.contains("active");
+            currentDisplayList = f;
+            loadedCount = 0;
+            renderProductPage(l, isOffer, isMeds);
+        }
+
+        // رسم صفحة بطاقات (الحد الأقصى ITEMS_PER_PAGE) + زرار «تحميل المزيد» لو فيه باقي
+        function renderProductPage(l, isOffer, isMeds) {
+            const slice = currentDisplayList.slice(0, loadedCount + ITEMS_PER_PAGE);
+            l.innerHTML = slice.map(p => buildProductCard(p, isOffer, isMeds)).join('');
+            loadedCount = slice.length;
+            animateCards(l, 0);
+            // زرار تحميل المزيد لو فيه أصناف لسه
+            if (loadedCount < currentDisplayList.length) {
+                const remaining = currentDisplayList.length - loadedCount;
+                const moreBtn = document.createElement('button');
+                moreBtn.id = 'loadMoreBtn';
+                moreBtn.className = 'admin-btn';
+                moreBtn.style.cssText = 'grid-column:1/-1; margin:20px auto; display:block; background:var(--primary); color:#fff; padding:14px 40px; border-radius:50px; font-size:15px; font-weight:bold; border:none; cursor:pointer;';
+                moreBtn.innerHTML = `⬇️ عرض المزيد (${remaining} صنف متبقي)`;
+                moreBtn.onclick = () => { moreBtn.remove(); renderProductPage(l, isOffer, isMeds); };
+                l.appendChild(moreBtn);
+            }
         }
 
         function toggleFavorite(n, p, b) {
@@ -1139,15 +1177,139 @@
             const r=new FileReader(); r.onload=async(e)=>{
                 const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'}); const ws=wb.Sheets[wb.SheetNames[0]]; const json=XLSX.utils.sheet_to_json(ws,{header:1});
                 if(json.length<2){showToast("الملف فارغ","error");return;}
-                const {data:db}=await sb.from('products').select('*');
+                // شريط التقدّم
+                const syncBtn = document.querySelector('button[onclick="syncExcelPrices()"]');
+                const origText = syncBtn ? syncBtn.innerHTML : '';
+                const setProgress = (pct, msg) => {
+                    if(syncBtn){ syncBtn.innerHTML = `⏳ ${msg} ${pct}%`; syncBtn.disabled = true; }
+                };
+                setProgress(5, 'جلب الأصناف الحالية...');
+                // جلب كل الأصناف الحالية بـ pagination (عشان لو أكتر من 1000)
+                let db = [];
+                const PAGE = 1000;
+                let from = 0;
+                while (true) {
+                    const { data: pageData, error: pageErr } = await sb.from('products').select('*').range(from, from + PAGE - 1);
+                    if (pageErr || !pageData || !pageData.length) break;
+                    db = db.concat(pageData);
+                    if (pageData.length < PAGE) break;
+                    from += PAGE;
+                }
+                setProgress(20, 'تحليل الملف...');
                 const items=[],set=new Set();
                 for(let i=1;i<json.length;i++){const row=json[i]; if(row[0]&&row[1]){const nm=normalizeArabic(String(row[0]).trim()); if(!set.has(nm)){const it={name:String(row[0]).trim(),price:parseFloat(row[1]),norm:nm}; if(isMeds)it.discount=parseFloat(row[2])||0; items.push(it); set.add(nm);}}}
-                if(!items.length){showToast("لا توجد بيانات صحيحة","error");return;}
-                let u=0,ins=0,re=0,de=0;
-                for(const it of items){const m=db.find(p=>normalizeArabic(p.name)===it.norm); const upd={price:it.price,is_active:true,category:c}; if(isMeds)upd.discount=it.discount; if(m){const{error}=await sb.from('products').update(upd).eq('id',m.id); if(!error){u++; if(!m.is_active)re++;}} else {const insObj={name:it.name,price:it.price,category:c,image_url:'',is_active:true}; if(isMeds)insObj.discount=it.discount; const{error}=await sb.from('products').insert([insObj]); if(!error)ins++;}}
-                // إخفاء المش موجود في نفس الكاتيجوري بس (مع الحفاظ على العروض المعرّضة)
-                for(const p of db){if(p.category!==c)continue; if(p.is_offer)continue; const nm=normalizeArabic(p.name); if(!set.has(nm)&&p.is_active){const{error}=await sb.from('products').update({is_active:false}).eq('id',p.id); if(!error)de++;}}
-                showToast(`✅ تحديث: ${u} سعر، ${ins} جديد، ${re} رجع، ${de} اتخفي`); f.value=''; loadAdminProducts();fetchProducts();fetchDashboardStats();
+                if(!items.length){showToast("لا توجد بيانات صحيحة","error"); if(syncBtn){syncBtn.innerHTML=origText;syncBtn.disabled=false;} return;}
+
+                // Map للبحث O(1) بدل db.find O(n)
+                const dbMap = new Map();
+                db.forEach(p => dbMap.set(normalizeArabic(p.name), p));
+
+                setProgress(30, 'تجهيز البيانات...');
+                const toUpdate = [];  // {id, fields}
+                const toInsert = [];   // rows
+                let reCount = 0;
+                items.forEach(it => {
+                    const m = dbMap.get(it.norm);
+                    if (m) {
+                        const upd = { price: it.price, is_active: true, category: c };
+                        if (isMeds) upd.discount = it.discount;
+                        toUpdate.push({ id: m.id, fields: upd, wasInactive: !m.is_active });
+                    } else {
+                        const insObj = { name: it.name, price: it.price, category: c, image_url: '', is_active: true };
+                        if (isMeds) insObj.discount = it.discount;
+                        toInsert.push(insObj);
+                    }
+                });
+
+                // إخفاء المش موجود في نفس الكاتيجوري بس (مع الحفاظ على العروض)
+                const toHide = [];
+                db.forEach(p => {
+                    if (p.category !== c) return;
+                    if (p.is_offer) return;
+                    const nm = normalizeArabic(p.name);
+                    if (!set.has(nm) && p.is_active) toHide.push(p.id);
+                });
+
+                // تنفيذ الـ batch: 250 صف في الطلب الواحد، 5 دفعات متوازية
+                const BATCH_SIZE = 250;
+                const CONCURRENCY = 5;
+                let u = 0, ins = 0, de = 0;
+                const totalWork = toUpdate.length + toInsert.length + toHide.length;
+                let doneWork = 0;
+
+                const chunk = (arr, size) => {
+                    const out = [];
+                    for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+                    return out;
+                };
+                const runBatch = async (batch, type) => {
+                    let ok = 0;
+                    if (type === 'update') {
+                        // upsert بـ id — كل batch عبارة عن {id, fields}[]
+                        // نفصلها لدفعات صغيرة عشان update بـ in() مايقبلش id كذا مرة
+                        const promises = batch.map(async (it) => {
+                            const { error } = await sb.from('products').update(it.fields).eq('id', it.id);
+                            if (!error) { ok++; if (it.wasInactive) reCount++; }
+                            doneWork++;
+                            setProgress(Math.round(30 + (doneWork/totalWork)*65), 'تحديث الأسعار...');
+                        });
+                        await Promise.all(promises);
+                    } else if (type === 'insert') {
+                        const batches = chunk(batch, BATCH_SIZE);
+                        for (const b of batches) {
+                            const { error } = await sb.from('products').insert(b);
+                            if (!error) { ok += b.length; }
+                            doneWork += b.length;
+                            setProgress(Math.round(30 + (doneWork/totalWork)*65), 'إضافة جديد...');
+                        }
+                    } else if (type === 'hide') {
+                        const batches = chunk(batch, BATCH_SIZE);
+                        for (const b of batches) {
+                            // update is_active=false بـ in()
+                            const { error } = await sb.from('products').update({ is_active: false }).in('id', b);
+                            if (!error) { ok += b.length; }
+                            doneWork += b.length;
+                            setProgress(Math.round(30 + (doneWork/totalWork)*65), 'إخفاء غير موجود...');
+                        }
+                    }
+                    return ok;
+                };
+                // تشغيل الدفعات (update و insert متوازيين بأقصى CONCURRENCY)
+                const updateChunks = chunk(toUpdate, BATCH_SIZE);
+                const insertChunks = chunk(toInsert, BATCH_SIZE);
+                const hideChunks = chunk(toHide, BATCH_SIZE);
+
+                // نبدأ تحديث المتوازي للـ update batches
+                const updateResults = [];
+                for (let i = 0; i < updateChunks.length; i += CONCURRENCY) {
+                    const group = updateChunks.slice(i, i + CONCURRENCY);
+                    const results = await Promise.all(group.map(b => runBatch(b, 'update')));
+                    updateResults.push(...results);
+                }
+                u = updateResults.reduce((a,b)=>a+b, 0);
+
+                // insert batches (متوازية)
+                const insertResults = [];
+                for (let i = 0; i < insertChunks.length; i += CONCURRENCY) {
+                    const group = insertChunks.slice(i, i + CONCURRENCY);
+                    const results = await Promise.all(group.map(b => runBatch(b, 'insert')));
+                    insertResults.push(...results);
+                }
+                ins = insertResults.reduce((a,b)=>a+b, 0);
+
+                // hide batches (متوازية)
+                const hideResults = [];
+                for (let i = 0; i < hideChunks.length; i += CONCURRENCY) {
+                    const group = hideChunks.slice(i, i + CONCURRENCY);
+                    const results = await Promise.all(group.map(b => runBatch(b, 'hide')));
+                    hideResults.push(...results);
+                }
+                de = hideResults.reduce((a,b)=>a+b, 0);
+
+                setProgress(100, 'اكتمل!');
+                showToast(`✅ تحديث: ${u} سعر، ${ins} جديد، ${reCount} رجع، ${de} اتخفي`);
+                if(syncBtn){syncBtn.innerHTML=origText;syncBtn.disabled=false;}
+                f.value=''; loadAdminProducts();fetchProducts();fetchDashboardStats();
             }; r.readAsArrayBuffer(f.files[0]);
         }
 
@@ -1202,7 +1364,21 @@
             showToast(`تم رفع ${up} صورة`,"success"); loadAdminProducts();fetchProducts(); inp.value='';
         }
 
-        async function loadAdminProducts() { const {data}=await sb.from('products').select('*').order('is_active',{ascending:false}); if(data){adminProductsCache=data; filterAdminProducts();} }
+        async function loadAdminProducts() {
+            // pagination عشان يجيب كل الأصناف (Supabase بترجع 1000 كحد أقصى)
+            let all = [];
+            const PAGE = 1000;
+            let from = 0;
+            while (true) {
+                const { data, error } = await sb.from('products').select('*').order('is_active',{ascending:false}).range(from, from + PAGE - 1);
+                if (error || !data || !data.length) break;
+                all = all.concat(data);
+                if (data.length < PAGE) break;
+                from += PAGE;
+            }
+            adminProductsCache = all;
+            filterAdminProducts();
+        }
         function filterAdminProducts() {
             const l=document.getElementById('adminProductList'),s=document.getElementById('adminSearchInput').value.toLowerCase().trim();
             let p=sortProductsByName(adminProductsCache.filter(x=>x.name&&x.name.toLowerCase().includes(s)));
@@ -1234,9 +1410,19 @@
 
         async function openOffersManager() {
             document.getElementById('offersSearchInput').value = '';
-            const { data, error } = await sb.from('products').select('*').eq('is_active', true).neq('category','meds');
-            if (error) { showToast("فشل تحميل الأصناف","error"); return; }
-            offersMedicalCache = sortProductsByName(data || []);
+            // pagination عشان يجيب كل الأصناف (أكتر من 1000)
+            let all = [];
+            const PAGE = 1000;
+            let from = 0;
+            while (true) {
+                const { data, error } = await sb.from('products').select('*').eq('is_active', true).neq('category','meds').range(from, from + PAGE - 1);
+                if (error) { showToast("فشل تحميل الأصناف","error"); return; }
+                if (!data || !data.length) break;
+                all = all.concat(data);
+                if (data.length < PAGE) break;
+                from += PAGE;
+            }
+            offersMedicalCache = sortProductsByName(all);
             // بناء المسودة من الحالة الحالية
             offersDraft = {};
             offersMedicalCache.forEach(p => {
@@ -1310,9 +1496,19 @@
             const d = document.getElementById('activeOffersSummary');
             if (!d) return;
             try {
-                const { data, error } = await sb.from('products').select('name,price,offer_price').eq('is_offer', true);
-                if (error || !data || !data.length) { d.innerHTML = '<span style="color:#888;">لا توجد عروض حالية.</span>'; return; }
-                const sorted = sortProductsByName(data);
+                // pagination عشان يجيب كل العروض (لو أكتر من 1000)
+                let all = [];
+                const PAGE = 1000;
+                let from = 0;
+                while (true) {
+                    const { data, error } = await sb.from('products').select('name,price,offer_price').eq('is_offer', true).range(from, from + PAGE - 1);
+                    if (error || !data || !data.length) break;
+                    all = all.concat(data);
+                    if (data.length < PAGE) break;
+                    from += PAGE;
+                }
+                if (!all.length) { d.innerHTML = '<span style="color:#888;">لا توجد عروض حالية.</span>'; return; }
+                const sorted = sortProductsByName(all);
                 d.innerHTML = `<strong style="color:#ff6f00;">العروض الحالية (${sorted.length}):</strong><br>` + sorted.map(p =>
                     `<div style="padding:4px 0; border-bottom:1px dashed var(--border-color);">• ${p.name}: <s style="color:#888;">${p.price} ج.م</s> <strong style="color:#d32f2f;">${p.offer_price} ج.م</strong></div>`
                 ).join('');
