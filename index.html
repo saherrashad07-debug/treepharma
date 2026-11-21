@@ -615,6 +615,18 @@
                         <p style="font-size:14px; color:var(--text-color); margin-bottom:15px;">اختار أصناف من المستلزمات الطبية (مش الأدوية) وحدد سعر العرض ليها. الصنف هيفضل موجود بسعره العادي في «كل الأصناف»، وهيظهر كمان في «العرض الأسبوعي» بسعر العرض.</p>
                         <button class="admin-btn" style="background:#ff6f00;" onclick="openOffersManager()">🏷️ إدارة العروض</button>
                         <div id="activeOffersSummary" style="margin-top:15px; font-size:13px; color:var(--text-color);"></div>
+                        <div style="height:40px;"></div>
+                    </div>
+
+                    <!-- ====== مسح الأصناف بالكاتيجوري ====== -->
+                    <div class="admin-box" style="border: 2px solid #d32f2f;">
+                        <h3 style="color:#d32f2f;"><span class="icon" style="background:#d32f2f">🗑️</span> مسح الأصناف بالكاتيجوري</h3>
+                        <p style="font-size:14px; color:var(--text-color); margin-bottom:15px;">يحذف كل أصناف الكاتيجوري المختار من قاعدة البيانات نهائياً (لا يمكن التراجع). يتطلب تأكيد بكلمة المرور.</p>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <button class="admin-btn" style="background:#00695c; flex:1; min-width:180px;" onclick="deleteCategoryProducts('medical')">🗑️ مسح كل المستلزمات الطبية</button>
+                            <button class="admin-btn" style="background:#d32f2f; flex:1; min-width:180px;" onclick="deleteCategoryProducts('meds')">🗑️ مسح كل الأدوية</button>
+                        </div>
+                        <div id="deleteCategoryStatus" style="margin-top:15px; font-weight:bold; text-align:center; min-height:60px; padding:15px; background:var(--secondary-bg); border-radius:12px; border:1px dashed var(--border-color); font-size:14px;"></div>
                         <div style="height:80px;"></div>
                     </div>
                 </div>
@@ -1362,6 +1374,72 @@
             }
             st.innerHTML=result;
             showToast(`تم رفع ${up} صورة`,"success"); loadAdminProducts();fetchProducts(); inp.value='';
+        }
+
+        // ====== مسح كل أصناف كاتيجوري معين ======
+        async function deleteCategoryProducts(category) {
+            const catName = category === 'meds' ? 'الأدوية' : 'المستلزمات الطبية';
+            const st = document.getElementById('deleteCategoryStatus');
+            // التأكيد الأول: كتابة "حذف"
+            const confirmText = prompt(`⚠️ تحذير شديد!\n\nهذا سيحذف كل أصناف ${catName} نهائياً من قاعدة البيانات (لا يمكن التراجع).\n\nللتأكيد، اكتب كلمة "حذف" في الخانة:`);
+            if (confirmText === null) { return; }
+            if (confirmText.trim() !== 'حذف') {
+                if (st) st.innerHTML = '<span style="color:#d32f2f;">❌ تم الإلغاء — كلمة التأكيد غير صحيحة.</span>';
+                showToast("تم الإلغاء", "error");
+                return;
+            }
+            // التأكيد التاني: اكتب رقم عشوائي عشان نتأكد إنك مش بتنام
+            const randomNum = Math.floor(Math.random() * 9000) + 1000;
+            const confirmNum = prompt(`التأكيد الأخير: اكتب الرقم ده للمتابعة: ${randomNum}`);
+            if (confirmNum === null || confirmNum.trim() !== String(randomNum)) {
+                if (st) st.innerHTML = '<span style="color:#d32f2f;">❌ تم الإلغاء — الرقم غير مطابق.</span>';
+                showToast("تم الإلغاء", "error");
+                return;
+            }
+            // بدء الحذف
+            const origBtns = document.querySelectorAll('button[onclick^="deleteCategoryProducts"]');
+            origBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
+            if (st) st.innerHTML = '<span style="color:#00695c;">⏳ جلب الأصناف للحذف...</span>';
+
+            try {
+                // جلب كل الـ IDs بالكاتيجوري ده (pagination عشان لو أكتر من 1000)
+                let ids = [];
+                const PAGE = 1000;
+                let from = 0;
+                while (true) {
+                    const { data, error } = await sb.from('products').select('id').eq('category', category).range(from, from + PAGE - 1);
+                    if (error) throw error;
+                    if (!data || !data.length) break;
+                    ids = ids.concat(data.map(r => r.id));
+                    if (data.length < PAGE) break;
+                    from += PAGE;
+                }
+                if (!ids.length) {
+                    if (st) st.innerHTML = '<span style="color:#888;">ℹ️ لا توجد أصناف في هذا الكاتيجوري.</span>';
+                    showToast("لا توجد أصناف", "error");
+                    return;
+                }
+                // الحذف على دفعات (Supabase بيقبل ~100 ID في in() بأمان)
+                const BATCH = 100;
+                const total = ids.length;
+                let deleted = 0;
+                const idChunks = [];
+                for (let i = 0; i < ids.length; i += BATCH) idChunks.push(ids.slice(i, i + BATCH));
+                for (let i = 0; i < idChunks.length; i++) {
+                    const { error } = await sb.from('products').delete().in('id', idChunks[i]);
+                    if (!error) deleted += idChunks[i].length;
+                    const pct = Math.round(((i + 1) / idChunks.length) * 100);
+                    if (st) st.innerHTML = `<span style="color:#00695c;">⏳ جاري الحذف... ${deleted}/${total} (${pct}%)</span>`;
+                }
+                if (st) st.innerHTML = `<span style="color:#00695c;">✅ تم حذف ${deleted} صنف من ${catName}.</span>`;
+                showToast(`✅ تم حذف ${deleted} صنف`);
+                fetchProducts(); fetchDashboardStats(); loadAdminProducts();
+            } catch (e) {
+                if (st) st.innerHTML = `<span style="color:#d32f2f;">❌ فشل الحذف: ${e.message || 'خطأ غير معروف'}</span>`;
+                showToast("فشل الحذف", "error");
+            } finally {
+                origBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+            }
         }
 
         async function loadAdminProducts() {
