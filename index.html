@@ -612,7 +612,7 @@
                     <!-- ====== إدارة العروض الأسبوعية ====== -->
                     <div class="admin-box" style="border: 2px solid #ff6f00;">
                         <h3 style="color:#ff6f00;"><span class="icon" style="background:#ff6f00">🏷️</span> العروض الأسبوعية</h3>
-                        <p style="font-size:14px; color:var(--text-color); margin-bottom:15px;">اختار أصناف من المستلزمات الطبية (مش الأدوية) وحدد سعر العرض ليها. الصنف هيفضل موجود بسعره العادي في «كل الأصناف»، وهيظهر كمان في «العرض الأسبوعي» بسعر العرض.</p>
+                        <p style="font-size:14px; color:var(--text-color); margin-bottom:15px;">اختار أصناف من المستلزمات الطبية (مش الأدوية) وحدد سعر العرض ليها. الصنف هيفضل موجود بسعره العادي في «المستلزمات»، وهيظهر كمان في «العرض الأسبوعي» بسعر العرض.</p>
                         <button class="admin-btn" style="background:#ff6f00;" onclick="openOffersManager()">🏷️ إدارة العروض</button>
                         <div id="activeOffersSummary" style="margin-top:15px; font-size:13px; color:var(--text-color);"></div>
                         <div style="height:40px;"></div>
@@ -640,7 +640,7 @@
                     <button class="catalog-btn" onclick="printCatalog()">تحميل قائمة الأسعار</button>
                 </div>
                 <div class="view-buttons">
-                    <button class="view-btn active" id="btnAll" onclick="showAllProducts()">كل الأصناف</button>
+                    <button class="view-btn active" id="btnAll" onclick="showAllProducts()">المستلزمات</button>
                     <button class="view-btn" id="btnMeds" onclick="showMedicines()">الأدوية</button>
                     <button class="view-btn" id="btnOffers" onclick="showWeeklyOffers()">العرض الأسبوعي</button>
                 </div>
@@ -1475,9 +1475,10 @@
         }
 
         function showNoImageReport() {
-            const p=adminProductsCache.filter(x=>!x.image_url||!x.image_url.trim()); const d=document.getElementById('noImageList');
-            if(!p.length){d.innerHTML='<div class="modal-empty">🎉 كل الأصناف ليها صور.</div>';}
-            else {d.innerHTML=`<p style="margin-bottom:15px;color:var(--text-color);">يوجد <strong style="color:#d32f2f;">${p.length}</strong> صنف بدون صورة:</p>`+sortProductsByName([...p]).map((x,i)=>`<div class="modal-item">${i+1}. ${x.name}</div>`).join('');}
+            // المستلزمات فقط (مش الأدوية) — exclude meds
+            const p=adminProductsCache.filter(x=>x.category!=='meds' && (!x.image_url||!x.image_url.trim())); const d=document.getElementById('noImageList');
+            if(!p.length){d.innerHTML='<div class="modal-empty">🎉 كل المستلزمات ليها صور.</div>';}
+            else {d.innerHTML=`<p style="margin-bottom:15px;color:var(--text-color);">يوجد <strong style="color:#d32f2f;">${p.length}</strong> صنف من المستلزمات بدون صورة:</p>`+sortProductsByName([...p]).map((x,i)=>`<div class="modal-item">${i+1}. ${x.name}</div>`).join('');}
             document.getElementById('noImageModal').classList.add('active');
         }
         function closeNoImageModal(e){ if(e&&e.target!==e.currentTarget)return; document.getElementById('noImageModal').classList.remove('active'); }
